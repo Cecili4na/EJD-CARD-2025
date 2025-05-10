@@ -3,19 +3,22 @@ import Login from './components/Login';
 import ConsultaServicos from './components/ConsultaServicos';
 import { useEffect, useState } from 'react';
 import { supabase } from './services/supabase';
+import type { Session, AuthChangeEvent } from '@supabase/supabase-js';
 
 function App() {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const session = supabase.auth.getSession().then(({ data }) => {
+        supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
             setUser(data.session?.user ?? null);
             setLoading(false);
         });
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-        });
+        const { data: listener } = supabase.auth.onAuthStateChange(
+            (_event: AuthChangeEvent, session: Session | null) => {
+                setUser(session?.user ?? null);
+            }
+        );
         return () => {
             listener?.subscription.unsubscribe();
         };

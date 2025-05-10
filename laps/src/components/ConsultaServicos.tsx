@@ -10,7 +10,6 @@ function ConsultaServicos() {
     const [error, setError] = useState<string | null>(null);
     const [dados, setDados] = useState<HistoricoVeiculo | null>(null);
     const [filtro, setFiltro] = useState('');
-    const [mostrarUltimoDono, setMostrarUltimoDono] = useState(false);
     const navigate = useNavigate();
 
     const handleBuscar = async () => {
@@ -107,47 +106,45 @@ function ConsultaServicos() {
                     )}
                     {dados && (
                         <div className="space-y-8">
-                            <div className="flex justify-between items-center">
-                                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                    <label className="font-semibold text-blue-900" htmlFor="filtro">Buscar peça ou serviço:</label>
-                                    <input
-                                        id="filtro"
-                                        type="text"
-                                        value={filtro}
-                                        onChange={e => setFiltro(e.target.value)}
-                                        placeholder="Ex: óleo, filtro, pneu..."
-                                        className="w-64 px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-blue-50 text-blue-900 placeholder-blue-400 font-semibold"
-                                    />
-                                </div>
-                                <button
-                                    onClick={() => setMostrarUltimoDono(!mostrarUltimoDono)}
-                                    className="px-6 py-3 bg-blue-800 text-white rounded-lg hover:bg-blue-900 font-bold shadow transition-colors duration-200 flex items-center gap-2"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                    </svg>
-                                    {mostrarUltimoDono ? 'Ocultar Informações do Último Dono' : 'Ver Informações do Último Dono'}
-                                </button>
+                            {/* Campo de busca por peça/serviço */}
+                            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                                <label className="font-semibold text-blue-900" htmlFor="filtro">Buscar peça ou serviço:</label>
+                                <input
+                                    id="filtro"
+                                    type="text"
+                                    value={filtro}
+                                    onChange={e => setFiltro(e.target.value)}
+                                    placeholder="Ex: óleo, filtro, pneu..."
+                                    className="w-64 px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-blue-50 text-blue-900 placeholder-blue-400 font-semibold"
+                                />
                             </div>
-                            {mostrarUltimoDono && (
-                                <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow">
-                                    <h3 className="text-xl font-bold text-blue-900 mb-4">Último Dono</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
-                                            <p className="text-blue-700">Nome</p>
-                                            <p className="text-lg font-bold text-blue-900">{dados.ultimoDono['Nome do Cliente']}</p>
-                                        </div>
-                                        <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
-                                            <p className="text-blue-700">Telefone</p>
-                                            <p className="text-lg font-bold text-blue-900">{dados.ultimoDono['Fone Resid']}</p>
-                                        </div>
-                                        <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 col-span-2">
-                                            <p className="text-blue-700">Endereço</p>
-                                            <p className="text-lg font-bold text-blue-900">{dados.ultimoDono.Endereço}, {dados.ultimoDono.Cidade} - {dados.ultimoDono.UF}</p>
-                                        </div>
+                            {/* Fim do campo de busca */}
+                            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow">
+                                <h3 className="text-xl font-bold text-blue-900 mb-4">Informações do Veículo</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                                        <p className="text-blue-700">Placa</p>
+                                        <p className="text-lg font-bold text-blue-900">{dados.placa}</p>
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow">
+                                <h3 className="text-xl font-bold text-blue-900 mb-4">Último Dono</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                                        <p className="text-blue-700">Nome</p>
+                                        <p className="text-lg font-bold text-blue-900">{dados.ultimoDono['Nome do Cliente']}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                                        <p className="text-blue-700">Telefone</p>
+                                        <p className="text-lg font-bold text-blue-900">{dados.ultimoDono['Fone Resid']}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 col-span-2">
+                                        <p className="text-blue-700">Endereço</p>
+                                        <p className="text-lg font-bold text-blue-900">{dados.ultimoDono.Endereço}, {dados.ultimoDono.Cidade} - {dados.ultimoDono.UF}</p>
+                                    </div>
+                                </div>
+                            </div>
                             <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow">
                                 <h3 className="text-xl font-bold text-blue-900 mb-4">Histórico de Serviços</h3>
                                 <div className="space-y-6">
@@ -183,9 +180,14 @@ function ConsultaServicos() {
                                                             <div key={itemIndex} className="bg-blue-50 rounded-lg p-4 flex justify-between items-center border border-blue-100">
                                                                 <div>
                                                                     <p className="font-semibold text-blue-900">{item.descricao}</p>
-                                                                    {item.observacao && (
-                                                                        <p className="text-blue-600 text-sm mt-1">{item.observacao}</p>
-                                                                    )}
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="text-blue-700 font-bold">
+                                                                        {item.quantidade} x R$ {item.valorUnitario.toFixed(2)}
+                                                                    </p>
+                                                                    <p className="text-blue-500 text-sm">
+                                                                        Total: R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                         ))}
