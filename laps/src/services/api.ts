@@ -1,11 +1,12 @@
 // src/services/api.ts
 import { HistoricoVeiculo } from '../types/veiculo';
 
-const API_URL = 'https://pp.campinagrande.br';
+// URL do Worker (será substituída pela URL de produção após deploy)
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://localhost:8787';
 
 export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVeiculo> {
     try {
-        const response = await fetch(`${API_URL}/historico?placa=${placa}`, {
+        const response = await fetch(`${WORKER_URL}/historico?placa=${placa}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
