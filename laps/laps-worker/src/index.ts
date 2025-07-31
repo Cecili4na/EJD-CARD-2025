@@ -1,6 +1,6 @@
 /**
  * Worker para busca de histórico de veículos
- * Combina dados do Supabase (sistema antigo) com API externa (sistema novo)
+ * Combina dados do Supabase (Adalberto) com API externa (Softcom)
  */
 
 interface Env {
@@ -31,7 +31,7 @@ interface Historico {
 	chassi: string | null;
 	observacaoGeral: string | null;
 	itens: ItemServico[];
-	sistema: 'Softcom' | 'Alberto'; // Identificador do sistema
+	sistema: 'Softcom' | 'Adalberto'; // Identificador do sistema
 }
 
 interface UltimoDono {
@@ -51,7 +51,7 @@ interface HistoricoVeiculo {
 	historico: Historico[];
 }
 
-// Tipos do sistema antigo (Alberto/Supabase)
+// Tipos do sistema antigo (Adalberto/Supabase)
 interface BackupAutosVenda {
 	Codigo: number;
 	Cliente_Nome: string;
@@ -77,7 +77,7 @@ interface BackupAutosVenda {
 }
 
 /**
- * Mapeia dados do sistema antigo (Supabase) para o formato atual
+ * Mapeia dados do sistema antigo (Adalberto/Supabase) para o formato atual
  */
 function mapearDadosAntigos(dadosSupabase: BackupAutosVenda[]): Partial<HistoricoVeiculo> {
 	if (!dadosSupabase.length) {
@@ -111,7 +111,7 @@ function mapearDadosAntigos(dadosSupabase: BackupAutosVenda[]): Partial<Historic
 		anoFabricacao: String(registro.Ano), // Usando ano da venda como aproximação
 		chassi: null,
 		observacaoGeral: null,
-		sistema: 'Alberto',
+					sistema: 'Adalberto',
 		itens: [
 			{
 				codigo: registro.Codigo,
@@ -163,7 +163,7 @@ async function buscarDadosAntigos(placa: string, env: Env): Promise<Partial<Hist
 }
 
 /**
- * Busca dados no sistema novo (API externa)
+ * Busca dados no sistema novo (Softcom/API externa)
  */
 async function buscarDadosNovos(placa: string, env: Env): Promise<Partial<HistoricoVeiculo>> {
 	try {
@@ -181,7 +181,7 @@ async function buscarDadosNovos(placa: string, env: Env): Promise<Partial<Histor
 
 		const dados: HistoricoVeiculo = await response.json();
 		
-		// Marcar dados como do sistema novo
+		// Marcar dados como do sistema Softcom
 		const historicoComSistema = dados.historico.map(item => ({
 			...item,
 			sistema: 'Softcom' as const
@@ -201,7 +201,7 @@ async function buscarDadosNovos(placa: string, env: Env): Promise<Partial<Histor
  * Combina dados dos dois sistemas em ordem cronológica
  */
 function combinarHistoricos(dadosAntigos: Partial<HistoricoVeiculo>, dadosNovos: Partial<HistoricoVeiculo>): HistoricoVeiculo {
-	// Usar dados do sistema novo como base, ou criar estrutura mínima
+			// Usar dados do sistema Softcom como base, ou criar estrutura mínima
 	const resultado: HistoricoVeiculo = {
 		placa: dadosNovos.placa || dadosAntigos.placa || '',
 		ultimoDono: dadosNovos.ultimoDono || dadosAntigos.ultimoDono || {

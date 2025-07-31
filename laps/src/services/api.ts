@@ -2,8 +2,8 @@
 import { HistoricoVeiculo } from '../types/veiculo';
 import { supabase } from './supabase';
 
-// URL do Worker (será substituída pela URL de produção após deploy)
-const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://localhost:8787';
+// URL da API externa
+const API_URL = 'https://pp.campinagrande.br';
 
 export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVeiculo> {
     try {
@@ -30,7 +30,7 @@ export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVe
         // Se a API externa retornou dados
         if (resultadoAPI.status === 'fulfilled') {
             dadosCombinados = resultadoAPI.value;
-            fontes.push('Sistema Antigo');
+            fontes.push('Softcom');
         } else {
             erros.push('Erro na API externa: ' + resultadoAPI.reason);
         }
@@ -40,11 +40,11 @@ export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVe
             if (dadosCombinados) {
                 // Combinar dados se ambos retornaram
                 dadosCombinados = combinarDados(dadosCombinados, resultadoSupabase.value);
-                fontes.push('Sistema Novo');
+                fontes.push('Adalberto');
             } else {
                 // Usar apenas dados do Supabase se API externa falhou
                 dadosCombinados = resultadoSupabase.value;
-                fontes.push('Sistema Novo');
+                fontes.push('Adalberto');
             }
         } else if (resultadoSupabase.status === 'rejected') {
             erros.push('Erro no Supabase: ' + resultadoSupabase.reason);
@@ -73,24 +73,35 @@ export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVe
 }
 
 async function buscarNaAPIExterna(placa: string): Promise<HistoricoVeiculo> {
-    const response = await fetch(`${WORKER_URL}/historico?placa=${placa}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-    });
+    console.log('Tentando buscar na API externa:', `${API_URL}/historico?placa=${placa}`);
     
-    if (!response.ok) {
-        if (response.status === 404) {
-            throw new Error(`Veículo com placa ${placa} não encontrado na API externa.`);
+    try {
+        const response = await fetch(`${API_URL}/historico?placa=${placa}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+        
+        console.log('Resposta da API externa:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error(`Veículo com placa ${placa} não encontrado na API externa.`);
+            }
+            throw new Error(`Erro na API externa: ${response.status} ${response.statusText}`);
         }
-        throw new Error(`Erro na API externa: ${response.status} ${response.statusText}`);
-    }
 
-    const data = await response.json();
-    // Adicionar informação sobre a fonte
-    data.fontes = ['Sistema Antigo'];
-    return data;
+        const data = await response.json();
+        console.log('Dados recebidos da API externa:', data);
+        
+        // Adicionar informação sobre a fonte
+        data.fontes = ['Softcom'];
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar na API externa:', error);
+        throw error;
+    }
 }
 
 async function buscarNoSupabase(placa: string): Promise<HistoricoVeiculo | null> {
@@ -234,7 +245,7 @@ async function buscarNoSupabase(placa: string): Promise<HistoricoVeiculo | null>
             placa: placa.toUpperCase(),
             ultimoDono,
             historico: historicoCompleto,
-            fontes: ['Sistema Novo']
+            fontes: ['Adalberto']
         };
 
     } catch (error) {
@@ -279,7 +290,7 @@ function combinarDados(dadosAPI: HistoricoVeiculo, dadosSupabase: HistoricoVeicu
         placa: dadosAPI.placa,
         ultimoDono,
         historico: historicoCombinado,
-        fontes: ['Sistema Antigo', 'Sistema Novo']
+        fontes: ['Softcom', 'Adalberto']
     };
 }
 
@@ -319,7 +330,7 @@ function normalizarDados(dados: HistoricoVeiculo): HistoricoVeiculo {
 // Função para buscar sugestões de placas na API externa
 export async function buscarSugestoesAPI(prefixo: string): Promise<string[]> {
     try {
-        const response = await fetch(`${WORKER_URL}/sugestoes?prefixo=${prefixo.toUpperCase()}`, {
+        const response = await fetch(`${API_URL}/sugestoes?prefixo=${prefixo.toUpperCase()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

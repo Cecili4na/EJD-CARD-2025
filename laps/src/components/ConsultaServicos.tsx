@@ -269,7 +269,7 @@ function ConsultaServicos() {
                                         if (itensFiltrados.length === 0) return null;
                                         return (
                                             <div key={index} className="bg-white rounded-lg p-6 shadow-sm border border-blue-100">
-                                                <div className="grid grid-cols-4 gap-4 mb-6">
+                                                <div className="grid grid-cols-3 gap-4 mb-6">
                                                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                                                         <p className="text-blue-700">Data</p>
                                                         <p className="text-lg font-bold text-blue-900">
@@ -288,10 +288,6 @@ function ConsultaServicos() {
                                                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                                                         <p className="text-blue-700">Modelo</p>
                                                         <p className="text-lg font-bold text-blue-900">{servico.modelo}</p>
-                                                    </div>
-                                                    <div className={`p-4 rounded-lg border ${servico.sistema === 'Softcom' ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
-                                                        <p className={`${servico.sistema === 'Softcom' ? 'text-green-700' : 'text-orange-700'}`}>Sistema</p>
-                                                        <p className={`text-lg font-bold ${servico.sistema === 'Softcom' ? 'text-green-900' : 'text-orange-900'}`}>{servico.sistema}</p>
                                                     </div>
                                                 </div>
                                                 <div>
