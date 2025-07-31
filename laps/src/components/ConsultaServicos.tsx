@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { buscarHistoricoVeiculo } from '../services/api';
+import { buscarHistoricoVeiculo, buscarSugestoesAPI, buscarSugestoesSupabase } from '../services/api';
 import { HistoricoVeiculo } from '../types/veiculo';
 import { supabase } from '../services/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,33 @@ function ConsultaServicos() {
     const [filtro, setFiltro] = useState('');
     const [mostrarUltimoDono, setMostrarUltimoDono] = useState(false);
     const [fontesDados, setFontesDados] = useState<string[]>([]);
+    const [sugestoes, setSugestoes] = useState<string[]>([]);
+    const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
     const navigate = useNavigate();
+
+
+
+    const buscarSugestoes = async (prefixo: string) => {
+        if (prefixo.length < 2) {
+            setSugestoes([]);
+            setMostrarSugestoes(false);
+            return;
+        }
+
+        try {
+            const sugestoesAPI = await buscarSugestoesAPI(prefixo);
+            const sugestoesSupabase = await buscarSugestoesSupabase(prefixo);
+            
+            // Combinar e remover duplicatas
+            const todasSugestoes = [...new Set([...sugestoesAPI, ...sugestoesSupabase])];
+            setSugestoes(todasSugestoes.slice(0, 10)); // Limitar a 10 sugestões
+            setMostrarSugestoes(todasSugestoes.length > 0);
+        } catch (error) {
+            console.error('Erro ao buscar sugestões:', error);
+            setSugestoes([]);
+            setMostrarSugestoes(false);
+        }
+    };
 
     const handleBuscar = async () => {
         if (!placa) {
@@ -22,6 +48,7 @@ function ConsultaServicos() {
         setLoading(true);
         setError(null);
         setFontesDados([]);
+        setMostrarSugestoes(false);
         // Limpar dados anteriores imediatamente
         setDados(null);
         
@@ -78,27 +105,57 @@ function ConsultaServicos() {
                             <p className="text-blue-700">Consulte o histórico de serviços pelo número da placa.</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <input
-                                type="text"
-                                value={placa}
-                                onChange={(e) => {
-                                    const novaPlaca = e.target.value.toUpperCase();
-                                    setPlaca(novaPlaca);
-                                    // Limpar dados e erros quando o usuário digita
-                                    if (novaPlaca !== dados?.placa) {
-                                        setDados(null);
-                                        setError(null);
-                                        setFontesDados([]);
-                                    }
-                                }}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleBuscar();
-                                    }
-                                }}
-                                placeholder="Digite a placa do veículo"
-                                className="w-56 px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-blue-50 text-blue-900 placeholder-blue-400 font-semibold"
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={placa}
+                                    onChange={(e) => {
+                                        const novaPlaca = e.target.value.toUpperCase();
+                                        setPlaca(novaPlaca);
+                                        // Limpar dados e erros quando o usuário digita
+                                        if (novaPlaca !== dados?.placa) {
+                                            setDados(null);
+                                            setError(null);
+                                            setFontesDados([]);
+                                        }
+                                        // Buscar sugestões
+                                        buscarSugestoes(novaPlaca);
+                                    }}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleBuscar();
+                                        }
+                                    }}
+                                    onFocus={() => {
+                                        if (placa.length >= 2) {
+                                            buscarSugestoes(placa);
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        // Pequeno delay para permitir clicar nas sugestões
+                                        setTimeout(() => setMostrarSugestoes(false), 200);
+                                    }}
+                                    placeholder="Digite a placa do veículo"
+                                    className="w-56 px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-blue-50 text-blue-900 placeholder-blue-400 font-semibold"
+                                />
+                                {mostrarSugestoes && sugestoes.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 bg-white border border-blue-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                                        {sugestoes.map((sugestao, index) => (
+                                            <div
+                                                key={index}
+                                                className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-blue-100 last:border-b-0"
+                                                onClick={() => {
+                                                    setPlaca(sugestao);
+                                                    setMostrarSugestoes(false);
+                                                    setSugestoes([]);
+                                                }}
+                                            >
+                                                <span className="font-semibold text-blue-900">{sugestao}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             <button
                                 onClick={handleBuscar}
                                 disabled={loading}
