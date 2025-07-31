@@ -28,6 +28,7 @@ export interface UltimoDono {
     'Nome do Cliente': string;
     'Razão Social': string;
     'Endereço': string;
+    'Bairro'?: string;
     'Cidade': string;
     'UF': string;
     'Fone Resid': string;
@@ -38,5 +39,5 @@ export interface HistoricoVeiculo {
     placa: string;
     ultimoDono: UltimoDono;
     historico: Historico[];
-    fontes?: string[];
+    fontes?: string[]; // Array com as fontes dos dados (API Externa, Supabase)
 }

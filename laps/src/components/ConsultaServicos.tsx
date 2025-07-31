@@ -16,6 +16,7 @@ function ConsultaServicos() {
     const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
     const navigate = useNavigate();
 
+
     const buscarSugestoes = async (prefixo: string) => {
         if (prefixo.length < 2) {
             setSugestoes([]);
@@ -232,7 +233,21 @@ function ConsultaServicos() {
                             <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-xl font-bold text-blue-900">Placa: {dados.placa}</h3>
+                                    {fontesDados.length > 0 && (
+                                        <div className="flex gap-2">
+                                            {fontesDados.map((fonte, index) => (
+                                                <span key={index} className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm font-semibold">
+                                                    {fonte}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
+                                {fontesDados.length > 0 && (
+                                    <div className="text-sm text-blue-600">
+                                        Dados obtidos de: {fontesDados.join(' e ')}
+                                    </div>
+                                )}
                             </div>
 
                             {mostrarUltimoDono && (
@@ -249,7 +264,12 @@ function ConsultaServicos() {
                                         </div>
                                         <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 col-span-2">
                                             <p className="text-blue-700">Endereço</p>
-                                            <p className="text-lg font-bold text-blue-900">{dados.ultimoDono.Endereço}, {dados.ultimoDono.Cidade} - {dados.ultimoDono.UF}</p>
+                                            <p className="text-lg font-bold text-blue-900">
+                                                {dados.ultimoDono.Endereço}
+                                                {dados.ultimoDono.Bairro && `, ${dados.ultimoDono.Bairro}`}
+                                                {dados.ultimoDono.Cidade && `, ${dados.ultimoDono.Cidade}`}
+                                                {dados.ultimoDono.UF && ` - ${dados.ultimoDono.UF}`}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

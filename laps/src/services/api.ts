@@ -95,8 +95,17 @@ async function buscarNaAPIExterna(placa: string): Promise<HistoricoVeiculo> {
         const data = await response.json();
         console.log('Dados recebidos da API externa:', data);
         
-        // Adicionar informação sobre a fonte
+        // Adicionar informação sobre a fonte e garantir que sistema existe
         data.fontes = ['Softcom'];
+        
+        // Garantir que todos os itens do histórico tenham a propriedade sistema
+        if (data.historico) {
+            data.historico = data.historico.map((servico: any) => ({
+                ...servico,
+                sistema: servico.sistema || 'Softcom'
+            }));
+        }
+        
         return data;
     } catch (error) {
         console.error('Erro ao buscar na API externa:', error);
