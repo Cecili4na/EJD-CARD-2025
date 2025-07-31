@@ -20,6 +20,7 @@ export interface Historico {
     chassi: string | null;
     observacaoGeral: string | null;
     itens: ItemServico[];
+    sistema: 'Softcom' | 'Alberto';
 }
 
 export interface UltimoDono {
@@ -37,4 +38,5 @@ export interface HistoricoVeiculo {
     placa: string;
     ultimoDono: UltimoDono;
     historico: Historico[];
+    fontes?: string[];
 }
