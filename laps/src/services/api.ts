@@ -250,7 +250,7 @@ async function buscarNoSupabase(placa: string): Promise<HistoricoVeiculo | null>
 
     } catch (error) {
         console.error('Erro ao buscar no Supabase:', error);
-        throw error;
+            throw error;
     }
 }
 

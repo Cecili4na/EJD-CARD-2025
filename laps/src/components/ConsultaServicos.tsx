@@ -49,8 +49,9 @@ function ConsultaServicos() {
         setError(null);
         setFontesDados([]);
         setMostrarSugestoes(false);
-        // Limpar dados anteriores imediatamente
+        // Limpar dados anteriores e filtro imediatamente
         setDados(null);
+        setFiltro('');
         
         try {
             const resultado = await buscarHistoricoVeiculo(placa);
@@ -112,11 +113,12 @@ function ConsultaServicos() {
                                     onChange={(e) => {
                                         const novaPlaca = e.target.value.toUpperCase();
                                         setPlaca(novaPlaca);
-                                        // Limpar dados e erros quando o usuário digita
+                                        // Limpar dados, erros e filtro quando o usuário digita
                                         if (novaPlaca !== dados?.placa) {
                                             setDados(null);
                                             setError(null);
                                             setFontesDados([]);
+                                            setFiltro('');
                                         }
                                         // Buscar sugestões
                                         buscarSugestoes(novaPlaca);
@@ -258,54 +260,76 @@ function ConsultaServicos() {
                             <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow">
                                 <h3 className="text-xl font-bold text-blue-900 mb-4">Histórico de Serviços</h3>
                                 <div className="space-y-6">
-                                    {dados.historico.map((servico, index) => {
-                                        // Filtrar itens do serviço pelo termo digitado
-                                        const itensFiltrados = filtro.trim()
-                                            ? servico.itens.filter(item =>
-                                                item.descricao.toLowerCase().includes(filtro.toLowerCase())
-                                            )
-                                            : servico.itens;
-                                        // Se não houver itens após o filtro, não exibe o serviço
-                                        if (itensFiltrados.length === 0) return null;
-                                        return (
-                                            <div key={index} className="bg-white rounded-lg p-6 shadow-sm border border-blue-100">
-                                                <div className="grid grid-cols-3 gap-4 mb-6">
-                                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                                        <p className="text-blue-700">Data</p>
-                                                        <p className="text-lg font-bold text-blue-900">
-                                                            {(() => {
-                                                                const data = new Date(servico.dataVenda);
-                                                                return isNaN(data.getTime()) 
-                                                                    ? servico.dataVenda || 'Data não informada'
-                                                                    : data.toLocaleDateString('pt-BR');
-                                                            })()}
-                                                        </p>
+                                    {(() => {
+                                        // Filtrar serviços que têm itens que correspondem ao filtro
+                                        const servicosComItens = dados.historico.map((servico, index) => {
+                                            const itensFiltrados = filtro.trim()
+                                                ? servico.itens.filter(item =>
+                                                    item.descricao.toLowerCase().includes(filtro.toLowerCase())
+                                                )
+                                                : servico.itens;
+                                            
+                                            if (itensFiltrados.length === 0) return null;
+                                            
+                                            return (
+                                                <div key={index} className="bg-white rounded-lg p-6 shadow-sm border border-blue-100">
+                                                    <div className="grid grid-cols-3 gap-4 mb-6">
+                                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                                            <p className="text-blue-700">Data</p>
+                                                            <p className="text-lg font-bold text-blue-900">
+                                                                {(() => {
+                                                                    const data = new Date(servico.dataVenda);
+                                                                    return isNaN(data.getTime()) 
+                                                                        ? servico.dataVenda || 'Data não informada'
+                                                                        : data.toLocaleDateString('pt-BR');
+                                                                })()}
+                                                            </p>
+                                                        </div>
+                                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                                            <p className="text-blue-700">Quilometragem</p>
+                                                            <p className="text-lg font-bold text-blue-900">{servico.quilometragem} km</p>
+                                                        </div>
+                                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                                            <p className="text-blue-700">Modelo</p>
+                                                            <p className="text-lg font-bold text-blue-900">{servico.modelo}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                                        <p className="text-blue-700">Quilometragem</p>
-                                                        <p className="text-lg font-bold text-blue-900">{servico.quilometragem} km</p>
-                                                    </div>
-                                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                                        <p className="text-blue-700">Modelo</p>
-                                                        <p className="text-lg font-bold text-blue-900">{servico.modelo}</p>
+                                                    <div>
+                                                        <h4 className="text-lg font-bold text-blue-900 mb-4">Itens do Serviço</h4>
+                                                        <div className="space-y-3">
+                                                            {itensFiltrados.map((item, itemIndex) => (
+                                                                <div key={itemIndex} className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                                                                    <p className="font-semibold text-blue-900">{item.descricao}</p>
+                                                                    {item.observacao && (
+                                                                        <p className="text-blue-600 text-sm mt-1">{item.observacao}</p>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <h4 className="text-lg font-bold text-blue-900 mb-4">Itens do Serviço</h4>
-                                                    <div className="space-y-3">
-                                                        {itensFiltrados.map((item, itemIndex) => (
-                                                            <div key={itemIndex} className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                                                                <p className="font-semibold text-blue-900">{item.descricao}</p>
-                                                                {item.observacao && (
-                                                                    <p className="text-blue-600 text-sm mt-1">{item.observacao}</p>
-                                                                )}
-                                                            </div>
-                                                        ))}
+                                            );
+                                        }).filter(Boolean);
+
+                                        // Se há filtro ativo e nenhum serviço foi encontrado
+                                        if (filtro.trim() && servicosComItens.length === 0) {
+                                            return (
+                                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                                                    <div className="flex items-center justify-center mb-3">
+                                                        <svg className="h-8 w-8 text-yellow-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                                        </svg>
                                                     </div>
+                                                    <h4 className="text-lg font-bold text-yellow-800 mb-2">Item não encontrado</h4>
+                                                    <p className="text-yellow-700">
+                                                        O item "<span className="font-semibold">{filtro}</span>" não foi encontrado no histórico desta placa.
+                                                    </p>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        }
+
+                                        return servicosComItens;
+                                    })()}
                                 </div>
                             </div>
                         </div>
