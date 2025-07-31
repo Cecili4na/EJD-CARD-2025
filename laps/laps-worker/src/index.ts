@@ -1,6 +1,6 @@
 /**
  * Worker para busca de histórico de veículos
- * Combina dados do Supabase (Adalberto) com API externa (Softcom)
+ * Combina dados do Supabase (Alberto) com API externa (Softcom)
  */
 
 interface Env {
@@ -31,7 +31,7 @@ interface Historico {
 	chassi: string | null;
 	observacaoGeral: string | null;
 	itens: ItemServico[];
-	sistema: 'Softcom' | 'Adalberto'; // Identificador do sistema
+	sistema: 'Softcom' | 'Alberto'; // Identificador do sistema
 }
 
 interface UltimoDono {
@@ -51,7 +51,7 @@ interface HistoricoVeiculo {
 	historico: Historico[];
 }
 
-// Tipos do sistema antigo (Adalberto/Supabase)
+// Tipos do sistema antigo (Alberto/Supabase)
 interface BackupAutosVenda {
 	Codigo: number;
 	Cliente_Nome: string;
@@ -77,7 +77,7 @@ interface BackupAutosVenda {
 }
 
 /**
- * Mapeia dados do sistema antigo (Adalberto/Supabase) para o formato atual
+ * Mapeia dados do sistema antigo (Alberto/Supabase) para o formato atual
  */
 function mapearDadosAntigos(dadosSupabase: BackupAutosVenda[]): Partial<HistoricoVeiculo> {
 	if (!dadosSupabase.length) {
@@ -111,7 +111,7 @@ function mapearDadosAntigos(dadosSupabase: BackupAutosVenda[]): Partial<Historic
 		anoFabricacao: String(registro.Ano), // Usando ano da venda como aproximação
 		chassi: null,
 		observacaoGeral: null,
-					sistema: 'Adalberto',
+					sistema: 'Alberto',
 		itens: [
 			{
 				codigo: registro.Codigo,

@@ -40,11 +40,11 @@ export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVe
             if (dadosCombinados) {
                 // Combinar dados se ambos retornaram
                 dadosCombinados = combinarDados(dadosCombinados, resultadoSupabase.value);
-                fontes.push('Adalberto');
+                fontes.push('Alberto');
             } else {
                 // Usar apenas dados do Supabase se API externa falhou
                 dadosCombinados = resultadoSupabase.value;
-                fontes.push('Adalberto');
+                fontes.push('Alberto');
             }
         } else if (resultadoSupabase.status === 'rejected') {
             erros.push('Erro no Supabase: ' + resultadoSupabase.reason);
@@ -290,7 +290,7 @@ function combinarDados(dadosAPI: HistoricoVeiculo, dadosSupabase: HistoricoVeicu
         placa: dadosAPI.placa,
         ultimoDono,
         historico: historicoCombinado,
-        fontes: ['Softcom', 'Adalberto']
+        fontes: ['Softcom', 'Alberto']
     };
 }
 
