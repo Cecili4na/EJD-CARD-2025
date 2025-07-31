@@ -11,6 +11,7 @@ function ConsultaServicos() {
     const [dados, setDados] = useState<HistoricoVeiculo | null>(null);
     const [filtro, setFiltro] = useState('');
     const [mostrarUltimoDono, setMostrarUltimoDono] = useState(false);
+    const [fontesDados, setFontesDados] = useState<string[]>([]);
     const navigate = useNavigate();
 
     const handleBuscar = async () => {
@@ -20,12 +21,20 @@ function ConsultaServicos() {
         }
         setLoading(true);
         setError(null);
+        setFontesDados([]);
+        // Limpar dados anteriores imediatamente
+        setDados(null);
+        
         try {
             const resultado = await buscarHistoricoVeiculo(placa);
             setDados(resultado);
+            setFontesDados(resultado.fontes || []);
         } catch (err) {
             setError('Erro ao buscar histórico do veículo');
             console.error(err);
+            // Garantir que os dados sejam limpos em caso de erro
+            setDados(null);
+            setFontesDados([]);
         } finally {
             setLoading(false);
         }
@@ -72,7 +81,21 @@ function ConsultaServicos() {
                             <input
                                 type="text"
                                 value={placa}
-                                onChange={(e) => setPlaca(e.target.value.toUpperCase())}
+                                onChange={(e) => {
+                                    const novaPlaca = e.target.value.toUpperCase();
+                                    setPlaca(novaPlaca);
+                                    // Limpar dados e erros quando o usuário digita
+                                    if (novaPlaca !== dados?.placa) {
+                                        setDados(null);
+                                        setError(null);
+                                        setFontesDados([]);
+                                    }
+                                }}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleBuscar();
+                                    }
+                                }}
                                 placeholder="Digite a placa do veículo"
                                 className="w-56 px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-blue-50 text-blue-900 placeholder-blue-400 font-semibold"
                             />
@@ -133,7 +156,21 @@ function ConsultaServicos() {
                             <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-xl font-bold text-blue-900">Placa: {dados.placa}</h3>
+                                    {fontesDados.length > 0 && (
+                                        <div className="flex gap-2">
+                                            {fontesDados.map((fonte, index) => (
+                                                <span key={index} className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm font-semibold">
+                                                    {fonte}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
+                                {fontesDados.length > 0 && (
+                                    <div className="text-sm text-blue-600">
+                                        Dados obtidos de: {fontesDados.join(' e ')}
+                                    </div>
+                                )}
                             </div>
 
                             {mostrarUltimoDono && (
@@ -150,7 +187,12 @@ function ConsultaServicos() {
                                         </div>
                                         <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 col-span-2">
                                             <p className="text-blue-700">Endereço</p>
-                                            <p className="text-lg font-bold text-blue-900">{dados.ultimoDono.Endereço}, {dados.ultimoDono.Cidade} - {dados.ultimoDono.UF}</p>
+                                            <p className="text-lg font-bold text-blue-900">
+                                                {dados.ultimoDono.Endereço}
+                                                {dados.ultimoDono.Bairro && `, ${dados.ultimoDono.Bairro}`}
+                                                {dados.ultimoDono.Cidade && `, ${dados.ultimoDono.Cidade}`}
+                                                {dados.ultimoDono.UF && ` - ${dados.ultimoDono.UF}`}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -173,7 +215,14 @@ function ConsultaServicos() {
                                                 <div className="grid grid-cols-3 gap-4 mb-6">
                                                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                                                         <p className="text-blue-700">Data</p>
-                                                        <p className="text-lg font-bold text-blue-900">{new Date(servico.dataVenda).toLocaleDateString()}</p>
+                                                        <p className="text-lg font-bold text-blue-900">
+                                                            {(() => {
+                                                                const data = new Date(servico.dataVenda);
+                                                                return isNaN(data.getTime()) 
+                                                                    ? servico.dataVenda || 'Data não informada'
+                                                                    : data.toLocaleDateString('pt-BR');
+                                                            })()}
+                                                        </p>
                                                     </div>
                                                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                                                         <p className="text-blue-700">Quilometragem</p>
