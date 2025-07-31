@@ -20,6 +20,7 @@ export interface Historico {
     chassi: string | null;
     observacaoGeral: string | null;
     itens: ItemServico[];
+    sistema: 'Softcom' | 'Alberto';
 }
 
 export interface UltimoDono {
@@ -27,6 +28,7 @@ export interface UltimoDono {
     'Nome do Cliente': string;
     'Razão Social': string;
     'Endereço': string;
+    'Bairro'?: string;
     'Cidade': string;
     'UF': string;
     'Fone Resid': string;
@@ -37,4 +39,5 @@ export interface HistoricoVeiculo {
     placa: string;
     ultimoDono: UltimoDono;
     historico: Historico[];
+    fontes?: string[]; // Array com as fontes dos dados (API Externa, Supabase)
 }
