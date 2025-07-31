@@ -2,7 +2,8 @@
 import { HistoricoVeiculo } from '../types/veiculo';
 import { supabase } from './supabase';
 
-const API_URL = 'https://pp.campinagrande.br';
+// URL do Worker (será substituída pela URL de produção após deploy)
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://localhost:8787';
 
 export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVeiculo> {
     try {
@@ -72,7 +73,7 @@ export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVe
 }
 
 async function buscarNaAPIExterna(placa: string): Promise<HistoricoVeiculo> {
-    const response = await fetch(`${API_URL}/historico?placa=${placa}`, {
+    const response = await fetch(`${WORKER_URL}/historico?placa=${placa}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -318,7 +319,7 @@ function normalizarDados(dados: HistoricoVeiculo): HistoricoVeiculo {
 // Função para buscar sugestões de placas na API externa
 export async function buscarSugestoesAPI(prefixo: string): Promise<string[]> {
     try {
-        const response = await fetch(`${API_URL}/sugestoes?prefixo=${prefixo.toUpperCase()}`, {
+        const response = await fetch(`${WORKER_URL}/sugestoes?prefixo=${prefixo.toUpperCase()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
