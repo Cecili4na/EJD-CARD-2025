@@ -5,49 +5,114 @@ import { supabase } from './supabase';
 // URL da API externa
 const API_URL = 'https://pp.campinagrande.br';
 
+// Função para obter placas relacionadas (antiga e Mercosul)
+function obterPlacasRelacionadas(placa: string): string[] {
+    const placaNormalizada = placa.replace(/\s/g, '').toUpperCase();
+    const placasRelacionadas = [placaNormalizada];
+    
+    // Se é placa antiga (formato ABC1234), gerar versão Mercosul
+    if (/^[A-Z]{3}[0-9]{4}$/.test(placaNormalizada)) {
+        const letras = placaNormalizada.substring(0, 3);
+        const numeros = placaNormalizada.substring(3, 7);
+        // Mercosul: ABC1D23 (primeira letra + primeiro número + primeira letra + últimos 2 números)
+        const placaMercosul = `${letras}${numeros[0]}${letras[0]}${numeros.substring(1)}`;
+        placasRelacionadas.push(placaMercosul);
+    }
+    
+    // Se é placa Mercosul (formato ABC1D23), gerar versão antiga
+    if (/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(placaNormalizada)) {
+        const letras = placaNormalizada.substring(0, 3);
+        const primeiroNumero = placaNormalizada.substring(3, 4);
+        const ultimoNumero = placaNormalizada.substring(5, 7);
+        // Antiga: ABC1234 (letras + primeiro número + últimos 2 números)
+        const placaAntiga = `${letras}${primeiroNumero}${ultimoNumero}`;
+        placasRelacionadas.push(placaAntiga);
+    }
+    
+    // Remover duplicatas
+    return [...new Set(placasRelacionadas)];
+}
+
 export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVeiculo> {
     try {
-        // Normalizar a placa (remover espaços e converter para maiúsculas)
-        const placaNormalizada = placa.replace(/\s/g, '').toUpperCase();
+        // Validar se a placa não está vazia
+        if (!placa || !placa.trim()) {
+            throw new Error('Placa do veículo é obrigatória');
+        }
         
-        // Buscar dados da API externa (sem espaços)
-        const apiExternaPromise = buscarNaAPIExterna(placaNormalizada);
+        // Obter placas relacionadas (antiga e Mercosul)
+        const placasRelacionadas = obterPlacasRelacionadas(placa);
         
-        // Buscar dados do Supabase (com e sem espaços)
-        const supabasePromise = buscarNoSupabase(placaNormalizada);
+        // Log para debug (remover em produção)
+        console.log(`Buscando placas relacionadas para ${placa}:`, placasRelacionadas);
+        console.log(`Placa normalizada: ${placa.replace(/\s/g, '').toUpperCase()}`);
+        console.log(`É placa antiga? ${/^[A-Z]{3}[0-9]{4}$/.test(placa.replace(/\s/g, '').toUpperCase())}`);
+        console.log(`É placa Mercosul? ${/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(placa.replace(/\s/g, '').toUpperCase())}`);
         
-        // Aguardar ambas as buscas
-        const [resultadoAPI, resultadoSupabase] = await Promise.allSettled([
-            apiExternaPromise,
-            supabasePromise
-        ]);
+        // Buscar dados da API externa para todas as placas relacionadas
+        const apiExternaPromises = placasRelacionadas.map(placaRel => buscarNaAPIExterna(placaRel));
+        
+        // Buscar dados do Supabase para todas as placas relacionadas
+        const supabasePromises = placasRelacionadas.map(placaRel => buscarNoSupabase(placaRel));
+        
+        // Aguardar todas as buscas
+        const resultadosAPI = await Promise.allSettled(apiExternaPromises);
+        const resultadosSupabase = await Promise.allSettled(supabasePromises);
 
         // Processar resultados
         let dadosCombinados: HistoricoVeiculo | null = null;
         const erros: string[] = [];
         const fontes: string[] = [];
 
-        // Se a API externa retornou dados
-        if (resultadoAPI.status === 'fulfilled') {
-            dadosCombinados = resultadoAPI.value;
-            fontes.push('Softcom');
-        } else {
-            erros.push('Erro na API externa: ' + resultadoAPI.reason);
+        // Processar resultados da API externa
+        for (let i = 0; i < resultadosAPI.length; i++) {
+            const resultado = resultadosAPI[i];
+            if (resultado.status === 'fulfilled') {
+                if (!dadosCombinados) {
+                    dadosCombinados = resultado.value;
+                } else {
+                    dadosCombinados = combinarDados(dadosCombinados, resultado.value);
+                }
+                fontes.push('Softcom');
+            } else {
+                // Se foi erro 404 (não encontrado), não é um erro crítico
+                if (resultado.status === 'rejected' && resultado.reason) {
+                    const errorMsg = typeof resultado.reason === 'string' ? resultado.reason : 
+                                   resultado.reason?.message || 'Erro desconhecido';
+                    if (errorMsg.includes('404') || errorMsg.includes('CORS') || errorMsg.includes('Failed to fetch')) {
+                        // Placa não encontrada na API externa ou erro de CORS
+                        console.log('API externa não disponível ou placa não encontrada:', errorMsg);
+                    } else {
+                        erros.push('Erro na API externa: ' + errorMsg);
+                    }
+                }
+            }
         }
 
-        // Se o Supabase retornou dados
-        if (resultadoSupabase.status === 'fulfilled' && resultadoSupabase.value) {
-            if (dadosCombinados) {
-                // Combinar dados se ambos retornaram
-                dadosCombinados = combinarDados(dadosCombinados, resultadoSupabase.value);
+        // Processar resultados do Supabase
+        for (let i = 0; i < resultadosSupabase.length; i++) {
+            const resultado = resultadosSupabase[i];
+            if (resultado.status === 'fulfilled' && resultado.value) {
+                if (!dadosCombinados) {
+                    dadosCombinados = resultado.value;
+                } else {
+                    // Combinar dados se ambos retornaram
+                    dadosCombinados = combinarDados(dadosCombinados, resultado.value);
+                }
                 fontes.push('Alberto');
             } else {
-                // Usar apenas dados do Supabase se API externa falhou
-                dadosCombinados = resultadoSupabase.value;
-                fontes.push('Alberto');
+                // Se foi erro 404 (não encontrado), não é um erro crítico
+                if (resultado.status === 'rejected' && resultado.reason) {
+                    const errorMsg = typeof resultado.reason === 'string' ? resultado.reason : 
+                                   resultado.reason?.message || 'Erro desconhecido';
+                    if (errorMsg.includes('404')) {
+                        // Placa não encontrada no Supabase
+                        console.log('Placa não encontrada no Supabase:', errorMsg);
+                    } else {
+                        erros.push('Erro no Supabase: ' + errorMsg);
+                    }
+                }
             }
-        } else if (resultadoSupabase.status === 'rejected') {
-            erros.push('Erro no Supabase: ' + resultadoSupabase.reason);
         }
 
         if (!dadosCombinados) {
@@ -58,8 +123,8 @@ export async function buscarHistoricoVeiculo(placa: string): Promise<HistoricoVe
         if (dadosCombinados) {
             dadosCombinados = normalizarDados(dadosCombinados);
             dadosCombinados.fontes = fontes;
-            // Usar a placa normalizada no retorno
-            dadosCombinados.placa = placaNormalizada;
+            // Usar a placa original no retorno
+            dadosCombinados.placa = placa.replace(/\s/g, '').toUpperCase();
         }
         return dadosCombinados;
 
@@ -201,7 +266,6 @@ async function buscarNoSupabase(placa: string): Promise<HistoricoVeiculo | null>
                 const itensProcessados = (itens || []).map(item => ({
                     codigo: item.Codigo || 0,
                     quantidade: item.Quantidade || 1,
-                    valorUnitario: item.Valor || 0,
                     descricao: item.Descrição || 'Item não especificado',
                     observacao: null, // Removido texto específico
                     dataHora: dataVenda,
@@ -252,24 +316,9 @@ async function buscarNoSupabase(placa: string): Promise<HistoricoVeiculo | null>
 }
 
 function combinarDados(dadosAPI: HistoricoVeiculo, dadosSupabase: HistoricoVeiculo): HistoricoVeiculo {
-    // Combinar históricos, evitando duplicatas por data
-    const historicoCombinado = [...dadosAPI.historico];
-    
-    dadosSupabase.historico.forEach(servicoSupabase => {
-        // Verificar se já existe um serviço similar na API
-        const existe = historicoCombinado.some(servicoAPI => {
-            const mesmaData = servicoAPI.dataVenda === servicoSupabase.dataVenda;
-            const mesmaQuilometragem = servicoAPI.quilometragem === servicoSupabase.quilometragem;
-            const mesmoModelo = servicoAPI.modelo === servicoSupabase.modelo;
-            
-            // Considerar duplicata se tiver mesma data E (mesma quilometragem OU mesmo modelo)
-            return mesmaData && (mesmaQuilometragem || mesmoModelo);
-        });
-        
-        if (!existe) {
-            historicoCombinado.push(servicoSupabase);
-        }
-    });
+    // Combinar todos os históricos sem remover duplicatas
+    // Isso garante que históricos de placas diferentes (antiga e Mercosul) sejam preservados
+    const historicoCombinado = [...dadosAPI.historico, ...dadosSupabase.historico];
 
     // Ordenar por data (mais recente primeiro)
     historicoCombinado.sort((a, b) => {
@@ -287,7 +336,7 @@ function combinarDados(dadosAPI: HistoricoVeiculo, dadosSupabase: HistoricoVeicu
         placa: dadosAPI.placa,
         ultimoDono,
         historico: historicoCombinado,
-        fontes: ['Softcom', 'Alberto']
+        fontes: [...new Set([...(dadosAPI.fontes || []), ...(dadosSupabase.fontes || [])])]
     };
 }
 
@@ -307,7 +356,6 @@ function normalizarDados(dados: HistoricoVeiculo): HistoricoVeiculo {
         itens: servico.itens.map(item => ({
             codigo: item.codigo || 0,
             quantidade: item.quantidade || 1,
-            valorUnitario: item.valorUnitario || 0,
             descricao: item.descricao || 'Item não especificado',
             observacao: item.observacao || null,
             dataHora: item.dataHora || servico.dataVenda,
@@ -359,7 +407,16 @@ export async function buscarSugestoesSupabase(prefixo: string): Promise<string[]
 
         // Remover duplicatas e retornar placas únicas
         const placasUnicas = [...new Set(data.map(item => item.Placa))];
-        return placasUnicas;
+        
+        // Para cada placa encontrada, adicionar suas placas relacionadas
+        const placasComRelacionadas = new Set<string>();
+        placasUnicas.forEach(placa => {
+            placasComRelacionadas.add(placa);
+            const relacionadas = obterPlacasRelacionadas(placa);
+            relacionadas.forEach(rel => placasComRelacionadas.add(rel));
+        });
+        
+        return Array.from(placasComRelacionadas);
     } catch (error) {
         console.error('Erro ao buscar sugestões no Supabase:', error);
         return [];
