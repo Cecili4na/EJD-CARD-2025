@@ -1,0 +1,27 @@
+/* Configuração global de fundo - Força o gradiente */
+html, body {
+  background: linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#root {
+  background: transparent !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+}
+
+/* Garantir que não há fundo preto em nenhum elemento */
+* {
+  background-color: transparent !important;
+}
+
+/* Exceto para elementos que devem ter fundo específico */
+.bg-white, .bg-gray-50, .bg-emerald-50, .bg-wizard-50, .bg-sky-50, .bg-cotton-50 {
+  background-color: inherit !important;
+}
