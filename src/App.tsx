@@ -1,10 +1,11 @@
-import React,{ useState } from 'react'
+import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Login } from './components/ui'
 import AppLayout from './components/layouts/AppLayout'
 import { CardsRouter } from './pages/cards'
 import { LojinhaPage } from './pages/lojinha'
 import { LanchonetePage } from './pages/lanchonete'
+import { ToastProvider } from './contexts/ToastContext'
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -36,21 +37,23 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/cards" replace />} />
-        <Route path="/login" element={<Navigate to="/cards" replace />} />
-        <Route path="/*" element={
-          <AppLayout>
-            <Routes>
-              <Route path="/cards/*" element={<CardsRouter />} />
-              <Route path="/lojinha" element={<LojinhaPage />} />
-              <Route path="/lanchonete" element={<LanchonetePage />} />
-            </Routes>
-          </AppLayout>
-        } />
-      </Routes>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/cards" replace />} />
+          <Route path="/login" element={<Navigate to="/cards" replace />} />
+          <Route path="/*" element={
+            <AppLayout>
+              <Routes>
+                <Route path="/cards/*" element={<CardsRouter />} />
+                <Route path="/lojinha" element={<LojinhaPage />} />
+                <Route path="/lanchonete" element={<LanchonetePage />} />
+              </Routes>
+            </AppLayout>
+          } />
+        </Routes>
+      </Router>
+    </ToastProvider>
   )
 }
 

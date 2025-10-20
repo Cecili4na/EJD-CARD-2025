@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Button, Header } from '../../components/shared'
+import { Button, Header, ConfirmationModal } from '../../components/shared'
+import { useToastContext } from '../../contexts/ToastContext'
 
 interface Card {
   id: string
@@ -17,21 +18,88 @@ interface AddValueProps {
 const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
   const [amount, setAmount] = useState('')
+  const [formattedAmount, setFormattedAmount] = useState('')
+  const [cardNumber, setCardNumber] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const { showSuccess } = useToastContext()
+
+  const formatCurrency = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '')
+    
+    if (numbers === '') {
+      return ''
+    }
+    
+    // Converte para centavos e depois para reais
+    const cents = parseInt(numbers)
+    const reais = cents / 100
+    
+    // Formata com vírgula decimal
+    return reais.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    const formatted = formatCurrency(value)
+    setFormattedAmount(formatted)
+    
+    // Remove tudo que não é número e converte para centavos
+    const numbers = value.replace(/\D/g, '')
+    if (numbers === '') {
+      setAmount('0')
+    } else {
+      const cents = parseInt(numbers)
+      setAmount((cents / 100).toString())
+    }
+  }
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 16)
+    setCardNumber(value)
+    
+    // Busca o cartão pelo número digitado
+    const foundCard = cards.find(card => card.cardNumber === value)
+    setSelectedCard(foundCard || null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedCard) return
 
+    // Mostrar janela de confirmação
+    setShowConfirmation(true)
+  }
+
+  const handleConfirmAddValue = async () => {
+    if (!selectedCard) return
+
     setIsLoading(true)
+    setShowConfirmation(false)
     
     // Simular adição de valor
     setTimeout(() => {
       onAddValue(selectedCard.id, parseFloat(amount))
       setIsLoading(false)
       setAmount('')
+      setFormattedAmount('')
+      setCardNumber('')
       setSelectedCard(null)
+      
+      // Mostrar notificação de sucesso
+      showSuccess(
+        'Valor Adicionado!',
+        `R$ ${formattedAmount} foi adicionado ao cartão ${selectedCard.name} com sucesso.`
+      )
     }, 1000)
+  }
+
+  const handleCancelConfirmation = () => {
+    setShowConfirmation(false)
   }
 
   const formatCardNumber = (number: string) => {
@@ -64,27 +132,21 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
           {/* Formulário */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Seleção do Cartão */}
+              {/* Número do Cartão */}
               <div>
-                <label className="block text-sm font-semibold text-black mb-2">
-                  💳 Selecionar Cartão
+                <label htmlFor="cardNumber" className="block text-sm font-semibold text-black mb-2">
+                  💳 Número do Cartão
                 </label>
-                <select
-                  value={selectedCard?.id || ''}
-                  onChange={(e) => {
-                    const card = cards.find(c => c.id === e.target.value)
-                    setSelectedCard(card || null)
-                  }}
+                <input
+                  type="text"
+                  id="cardNumber"
+                  value={cardNumber}
+                  onChange={handleCardNumberChange}
                   required
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
-                >
-                  <option value="">Selecione um cartão</option>
-                  {cards.map((card) => (
-                    <option key={card.id} value={card.id}>
-                      {card.name} - {formatCardNumber(card.cardNumber)} (R$ {card.balance.toFixed(2).replace('.', ',')})
-                    </option>
-                  ))}
-                </select>
+                  placeholder="001"
+                  maxLength={3}
+                />
               </div>
 
               {/* Valor a ser adicionado */}
@@ -93,12 +155,10 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
                   💰 Valor a Adicionar (R$)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="amount"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  min="0.01"
-                  step="0.01"
+                  value={formattedAmount}
+                  onChange={handleAmountChange}
                   required
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
                   placeholder="0,00"
@@ -124,7 +184,7 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black shadow-lg hover:shadow-emerald-200 font-semibold"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 !text-black shadow-lg hover:shadow-emerald-200 font-semibold"
                 disabled={isLoading || !selectedCard}
               >
                 {isLoading ? (
@@ -141,26 +201,22 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
             </form>
           </div>
 
-          {/* Valores pré-definidos */}
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold text-black mb-4 text-center font-cardinal">
-              💡 Valores Rápidos
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[10, 25, 50, 100, 200, 500].map((value) => (
-                <Button
-                  key={value}
-                  onClick={() => setAmount(value.toString())}
-                  variant="outline"
-                  className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
-                >
-                  R$ {value.toFixed(2).replace('.', ',')}
-                </Button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
+
+      {/* Modal de Confirmação */}
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        onClose={handleCancelConfirmation}
+        onConfirm={handleConfirmAddValue}
+        title="Confirmar Adição de Valor"
+        icon="💰"
+        card={selectedCard}
+        transactionType="credit"
+        amount={amount}
+        formattedAmount={formattedAmount}
+        isLoading={isLoading}
+      />
     </div>
   )
 }

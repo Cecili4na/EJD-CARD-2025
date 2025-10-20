@@ -1,3 +1,6 @@
+/* Importação das fontes da identidade visual */
+@import url('https://fonts.googleapis.com/css2?family=Cardinal+Alternate:wght@400;700&family=Farmhand+Serif:wght@400;600;700&family=New+Yorker+Type+Classic:wght@400;600;700&display=swap');
+
 /* Configuração global de fundo - Força o gradiente */
 html, body {
   background: linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%) !important;
@@ -8,6 +11,7 @@ html, body {
   width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
+  font-family: 'Farmhand Serif', serif !important;
 }
 
 #root {
@@ -24,4 +28,54 @@ html, body {
 /* Exceto para elementos que devem ter fundo específico */
 .bg-white, .bg-gray-50, .bg-emerald-50, .bg-wizard-50, .bg-sky-50, .bg-cotton-50 {
   background-color: inherit !important;
+}
+
+/* Modal de confirmação - sobrescreve a regra transparent */
+.modal-confirmation {
+  background-color: white !important;
+}
+
+.modal-confirmation .card-data {
+  background-color: #d1fae5 !important;
+}
+
+.modal-confirmation .transaction-summary {
+  background-color: #fef3c7 !important;
+}
+
+/* Overlay escuro para modal */
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Tipografia da identidade visual */
+.font-cardinal {
+  font-family: 'Cardinal Alternate', serif !important;
+  font-weight: 700 !important;
+}
+
+.font-farmhand {
+  font-family: 'Farmhand Serif', serif !important;
+  font-weight: 600 !important;
+}
+
+.font-newyorker {
+  font-family: 'New Yorker Type Classic', serif !important;
+  font-weight: 600 !important;
+}
+
+/* Aplicação de fontes por hierarquia */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cardinal Alternate', serif !important;
+  font-weight: 700 !important;
+}
+
+p, span, div, input, textarea, select, button {
+  font-family: 'Farmhand Serif', serif !important;
+}
+
+/* Títulos especiais com New Yorker */
+.special-title {
+  font-family: 'New Yorker Type Classic', serif !important;
+  font-weight: 600 !important;
 }

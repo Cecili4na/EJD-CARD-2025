@@ -15,12 +15,12 @@ const CardsPage = () => {
             <h3 className="text-xl font-semibold text-black mb-4 font-cardinal">
               Criar Cartão
             </h3>
-            <p className="text-black mb-4">
+            <p className="text-black mb-4 font-farmhand">
               Emita um novo cartão de débito mágico
             </p>
             <Button 
               size="lg"
-              className="bg-emerald-500 hover:bg-emerald-600 text-black shadow-lg hover:shadow-emerald-200"
+              className="bg-emerald-500 hover:bg-emerald-600 !text-black shadow-lg hover:shadow-emerald-200"
             >
               🏦 Criar Novo Cartão
             </Button>
@@ -34,12 +34,12 @@ const CardsPage = () => {
             <h3 className="text-xl font-semibold text-black mb-4 font-cardinal">
               Consultar Saldo
             </h3>
-            <p className="text-black mb-4">
+            <p className="text-black mb-4 font-farmhand">
               Verifique o saldo do seu cartão
             </p>
             <Button 
               size="lg"
-              className="bg-yellow-500 hover:bg-yellow-600 text-black shadow-lg hover:shadow-yellow-200"
+              className="bg-yellow-500 hover:bg-yellow-600 !text-black shadow-lg hover:shadow-yellow-200"
             >
               💰 Consultar Saldo
             </Button>
@@ -53,12 +53,12 @@ const CardsPage = () => {
             <h3 className="text-xl font-semibold text-black mb-4 font-cardinal">
               Inserir Valor
             </h3>
-            <p className="text-black mb-4">
+            <p className="text-black mb-4 font-farmhand">
               Adicione valor ao seu cartão
             </p>
             <Button 
               size="lg"
-              className="bg-blue-500 hover:bg-blue-600 text-black shadow-lg hover:shadow-blue-200"
+              className="bg-blue-500 hover:bg-blue-600 !text-black shadow-lg hover:shadow-blue-200"
             >
               💳 Inserir Valor
             </Button>
@@ -72,12 +72,12 @@ const CardsPage = () => {
             <h3 className="text-xl font-semibold text-black mb-4 font-cardinal">
               Debitar Cartão
             </h3>
-            <p className="text-black mb-4">
+            <p className="text-black mb-4 font-farmhand">
               Realize um débito no seu cartão
             </p>
             <Button 
               size="lg"
-              className="bg-red-500 hover:bg-red-600 text-black shadow-lg hover:shadow-red-200"
+              className="bg-red-500 hover:bg-red-600 !text-black shadow-lg hover:shadow-red-200"
             >
               💸 Debitar Cartão
             </Button>

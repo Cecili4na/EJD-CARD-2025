@@ -60,10 +60,10 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
                   type="text"
                   id="cardNumber"
                   value={searchNumber}
-                  onChange={(e) => setSearchNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                  onChange={(e) => setSearchNumber(e.target.value.replace(/\D/g, '').slice(0, 3))}
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
-                  placeholder="0000 0000 0000 0000"
-                  maxLength={16}
+                  placeholder="001"
+                  maxLength={3}
                 />
               </div>
 
@@ -113,41 +113,6 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
               <p className="text-black">
                 ❌ Cartão não encontrado. Verifique o número digitado.
               </p>
-            </div>
-          )}
-
-          {/* Lista de cartões disponíveis */}
-          {cards.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold text-black mb-4 text-center font-cardinal">
-                📋 Cartões Disponíveis
-              </h3>
-              <div className="space-y-3">
-                {cards.map((card) => (
-                  <div 
-                    key={card.id}
-                    className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-emerald-200 cursor-pointer hover:bg-white/80 transition-colors duration-200"
-                    onClick={() => {
-                      setSearchNumber(card.cardNumber)
-                      setSelectedCard(card)
-                    }}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-black">{card.name}</p>
-                        <p className="text-sm text-black font-mono">
-                          {formatCardNumber(card.cardNumber)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-black">
-                          R$ {card.balance.toFixed(2).replace('.', ',')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>

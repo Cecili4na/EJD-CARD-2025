@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Button, Header } from '../../components/shared'
+import { useToastContext } from '../../contexts/ToastContext'
 
 interface CreateCardProps {
   onBack: () => void
@@ -10,7 +11,43 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
   const [name, setName] = useState('')
   const [cardNumber, setCardNumber] = useState('')
   const [initialBalance, setInitialBalance] = useState('')
+  const [formattedBalance, setFormattedBalance] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const { showSuccess } = useToastContext()
+
+  const formatCurrency = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '')
+    
+    if (numbers === '') {
+      return ''
+    }
+    
+    // Converte para centavos e depois para reais
+    const cents = parseInt(numbers)
+    const reais = cents / 100
+    
+    // Formata com vírgula decimal
+    return reais.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
+
+  const handleBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    const formatted = formatCurrency(value)
+    setFormattedBalance(formatted)
+    
+    // Remove tudo que não é número e converte para centavos
+    const numbers = value.replace(/\D/g, '')
+    if (numbers === '') {
+      setInitialBalance('0')
+    } else {
+      const cents = parseInt(numbers)
+      setInitialBalance((cents / 100).toString())
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,14 +61,17 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
         initialBalance: parseFloat(initialBalance) || 0
       })
       setIsLoading(false)
+      
+      // Mostrar notificação de sucesso
+      showSuccess(
+        'Cartão Criado!',
+        `Cartão para ${name} foi criado com sucesso com saldo inicial de R$ ${formattedBalance}.`
+      )
+      
       onBack()
     }, 1000)
   }
 
-  const generateCardNumber = () => {
-    const number = Math.floor(Math.random() * 9000000000000000) + 1000000000000000
-    setCardNumber(number.toString())
-  }
 
   return (
     <div className="min-h-screen w-full relative" style={{
@@ -61,7 +101,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Nome do Portador */}
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-black mb-2">
+                <label htmlFor="name" className="block text-sm font-semibold text-black mb-2 font-farmhand">
                   👤 Nome do Portador
                 </label>
                 <input
@@ -77,43 +117,31 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
 
               {/* Número do Cartão */}
               <div>
-                <label htmlFor="cardNumber" className="block text-sm font-semibold text-black mb-2">
+                <label htmlFor="cardNumber" className="block text-sm font-semibold text-black mb-2 font-farmhand">
                   💳 Número do Cartão
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    id="cardNumber"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
-                    required
-                    className="flex-1 px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
-                    placeholder="0000 0000 0000 0000"
-                    maxLength={16}
-                  />
-                  <Button
-                    type="button"
-                    onClick={generateCardNumber}
-                    variant="outline"
-                    className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
-                  >
-                    🎲 Gerar
-                  </Button>
-                </div>
+                <input
+                  type="text"
+                  id="cardNumber"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                  required
+                  className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+                  placeholder="001"
+                  maxLength={3}
+                />
               </div>
 
               {/* Saldo Inicial */}
               <div>
-                <label htmlFor="initialBalance" className="block text-sm font-semibold text-black mb-2">
+                <label htmlFor="initialBalance" className="block text-sm font-semibold text-black mb-2 font-farmhand">
                   💰 Saldo Inicial (R$)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="initialBalance"
-                  value={initialBalance}
-                  onChange={(e) => setInitialBalance(e.target.value)}
-                  min="0"
-                  step="0.01"
+                  value={formattedBalance}
+                  onChange={handleBalanceChange}
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
                   placeholder="0,00"
                 />
@@ -143,7 +171,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
           {/* Informações adicionais */}
           <div className="mt-8 text-center">
             <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
-              <p className="text-black text-sm">
+              <p className="text-black text-sm font-farmhand">
                 💡 <strong>Dica:</strong> O cartão será criado com as informações fornecidas e estará disponível imediatamente para uso.
               </p>
             </div>
