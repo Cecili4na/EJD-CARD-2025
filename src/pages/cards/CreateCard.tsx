@@ -89,7 +89,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
         <div className="max-w-2xl mx-auto w-full">
           {/* Header com botão de voltar */}
           <Header 
-            title="🏦 Criar Novo Cartão"
+            title="💳 CRIAR NOVO CARTÃO"
             subtitle="Emita um novo cartão de débito mágico"
             showLogo={false}
             showBackButton={true}
@@ -161,7 +161,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
                   </>
                 ) : (
                   <>
-                    🏦 Criar Cartão
+                    💳 CRIAR CARTÃO
                   </>
                 )}
               </Button>

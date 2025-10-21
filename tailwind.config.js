@@ -66,7 +66,7 @@ export default {
           600: '#0284c7',
           700: '#0369a1',
           800: '#075985',
-          900: '#0c4a6e',
+          900: '#581c87',
         },
         'cotton': {
           50: '#fdf2f8',
@@ -106,9 +106,9 @@ export default {
         }
       },
       fontFamily: {
-        'cardinal': ['Cardinal Alternate', 'serif'],
-        'farmhand': ['Farmhand Serif', 'serif'],
-        'newyorker': ['New Yorker Type Classic', 'serif'],
+        'cardinal': ['Playfair Display', 'serif'],
+        'farmhand': ['Crimson Text', 'serif'],
+        'newyorker': ['Cinzel', 'serif'],
       },
       backgroundImage: {
         'oz-gradient': 'linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%)',

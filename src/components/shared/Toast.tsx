@@ -56,7 +56,7 @@ const Toast: React.FC<ToastProps> = ({
   }
 
   return (
-    <div className={`${getColors()} bg-white text-black rounded-lg shadow-lg border-2 p-4 mb-3 max-w-sm w-full transform transition-all duration-300 ease-in-out`} style={{ zIndex: 10000,}}>
+    <div className={`toast-notification ${getColors()} text-black rounded-lg shadow-lg border-2 p-4 mb-3 max-w-sm w-full transform transition-all duration-300 ease-in-out`} style={{ zIndex: 10000 }}>
       <div className="flex items-start">
         <div className="flex-shrink-0 text-xl mr-3">
           {getIcon()}

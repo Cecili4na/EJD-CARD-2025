@@ -139,7 +139,7 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack, cards, onDebit }) => {
         <div className="max-w-2xl mx-auto w-full">
           {/* Header com botão de voltar */}
           <Header 
-            title="💸 Debitar Cartão"
+            title="💸 DEBITAR CARTÃO"
             subtitle="Realize um débito no seu cartão mágico"
             showLogo={false}
             showBackButton={true}
@@ -236,7 +236,7 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack, cards, onDebit }) => {
                   </>
                 ) : (
                   <>
-                    💸 Debitar Valor
+                    💸 DEBITAR VALOR
                   </>
                 )}
               </Button>

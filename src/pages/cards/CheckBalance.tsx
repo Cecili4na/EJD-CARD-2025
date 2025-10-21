@@ -42,8 +42,8 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
         <div className="max-w-2xl mx-auto w-full">
           {/* Header com botão de voltar */}
           <Header 
-            title="💰 Consultar Saldo"
-            subtitle="Verifique o saldo do seu cartão mágico"
+            title="🔍 CONSULTAR SALDO"
+            subtitle="Verifique o saldo disponível no seu cartão"
             showLogo={false}
             showBackButton={true}
             onBack={onBack}
@@ -72,7 +72,7 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
                 size="lg"
                 className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black shadow-lg hover:shadow-emerald-200 font-semibold"
               >
-                🔍 Consultar Saldo
+                🔍 CONSULTAR SALDO
               </Button>
             </div>
           </div>
@@ -82,10 +82,10 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">
               <div className="text-center">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-black mb-2 font-cardinal">
+                  <h3 className="font-bold text-black mb-2 font-cardinal">
                     💳 Cartão Encontrado
                   </h3>
-                  <p className="text-black font-farmhand">
+                  <p className="text-3xl text-black font-farmhand">
                     {selectedCard.name}
                   </p>
                 </div>

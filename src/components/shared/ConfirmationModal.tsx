@@ -108,7 +108,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <Button
             onClick={onClose}
             variant="outline"
-            className="flex-1 border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+            className="flex-1 border-magenta-300 !text-black hover:bg-magenta-100 hover:!text-black"
             disabled={isLoading}
           >
             ❌ Cancelar

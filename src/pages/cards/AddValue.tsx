@@ -122,7 +122,7 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
         <div className="max-w-2xl mx-auto w-full">
           {/* Header com botão de voltar */}
           <Header 
-            title="💰 Inserir Valor"
+            title="💰 ADICIONAR VALOR"
             subtitle="Adicione valor ao seu cartão mágico"
             showLogo={false}
             showBackButton={true}
@@ -194,7 +194,7 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
                   </>
                 ) : (
                   <>
-                    💰 Adicionar Valor
+                    💰 ADICIONAR VALOR
                   </>
                 )}
               </Button>

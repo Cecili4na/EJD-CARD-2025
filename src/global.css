@@ -1,5 +1,5 @@
 /* Importação das fontes da identidade visual */
-@import url('https://fonts.googleapis.com/css2?family=Cardinal+Alternate:wght@400;700&family=Farmhand+Serif:wght@400;600;700&family=New+Yorker+Type+Classic:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap');
 
 /* Configuração global de fundo - Força o gradiente */
 html, body {
@@ -48,34 +48,51 @@ html, body {
   background-color: rgba(0, 0, 0, 0.7) !important;
 }
 
+/* Notificações com fundo opaco */
+.toast-notification.bg-emerald-500 {
+  background-color: #22c55e !important;
+}
+
+.toast-notification.bg-red-500 {
+  background-color: #ef4444 !important;
+}
+
+.toast-notification.bg-yellow-500 {
+  background-color: #eab308 !important;
+}
+
+.toast-notification.bg-blue-500 {
+  background-color: #3b82f6 !important;
+}
+
 /* Tipografia da identidade visual */
 .font-cardinal {
-  font-family: 'Cardinal Alternate', serif !important;
+  font-family: 'Playfair Display', serif !important;
   font-weight: 700 !important;
 }
 
 .font-farmhand {
-  font-family: 'Farmhand Serif', serif !important;
+  font-family: 'Crimson Text', serif !important;
   font-weight: 600 !important;
 }
 
 .font-newyorker {
-  font-family: 'New Yorker Type Classic', serif !important;
+  font-family: 'Cinzel', serif !important;
   font-weight: 600 !important;
 }
 
 /* Aplicação de fontes por hierarquia */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Cardinal Alternate', serif !important;
+  font-family: 'Playfair Display', serif !important;
   font-weight: 700 !important;
 }
 
 p, span, div, input, textarea, select, button {
-  font-family: 'Farmhand Serif', serif !important;
+  font-family: 'Crimson Text', serif !important;
 }
 
-/* Títulos especiais com New Yorker */
+/* Títulos especiais com Cinzel */
 .special-title {
-  font-family: 'New Yorker Type Classic', serif !important;
+  font-family: 'Cinzel', serif !important;
   font-weight: 600 !important;
 }
