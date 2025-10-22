@@ -106,9 +106,9 @@ export default {
         }
       },
       fontFamily: {
-        'cardinal': ['Playfair Display', 'serif'],
-        'farmhand': ['Crimson Text', 'serif'],
-        'newyorker': ['Cinzel', 'serif'],
+        'cardinal': ['Cardinal Alternate', 'serif'],
+        'farmhand': ['Farmhand Serif', 'serif'],
+        'newyorker': ['New Yorker Type Classic', 'serif'],
       },
       backgroundImage: {
         'oz-gradient': 'linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%)',
