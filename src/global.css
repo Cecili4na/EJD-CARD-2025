@@ -1,5 +1,41 @@
 /* Importação das fontes da identidade visual */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap');
+/* PRIORIDADE MÁXIMA: Botões de paginação */
+button[data-btn-type="pagination"] {
+  background-color: #6b7280 !important;
+  color: #000000 !important;
+}
+
+button[data-btn-type="pagination"] * {
+  color: #000000 !important;
+  background-color: transparent !important;
+}
+
+button[data-btn-type="pagination"] span {
+  color: #000000 !important;
+  background-color: transparent !important;
+}
+
+button[data-btn-type="page-number"][data-active="true"] {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+button[data-btn-type="page-number"][data-active="true"] *,
+button[data-btn-type="page-number"][data-active="true"] span {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+
+button[data-btn-type="page-number"][data-active="false"] {
+  background-color: #ffffff !important;
+}
+
+button[data-btn-type="page-number"][data-active="false"],
+button[data-btn-type="page-number"][data-active="false"] *,
+button[data-btn-type="page-number"][data-active="false"] span {
+  color: #374151 !important;
+}
 
 /* Configuração global de fundo - Força o gradiente */
 html, body {
@@ -23,6 +59,16 @@ html, body {
 /* Garantir que não há fundo preto em nenhum elemento */
 * {
   background-color: transparent !important;
+}
+
+/* EXCEÇÃO: Botões de paginação DEVEM ter cores específicas */
+button[data-btn-type],
+button[data-btn-type] *,
+button[data-btn-type] span,
+button[data-btn-type]:hover,
+button[data-btn-type]:hover *,
+button[data-btn-type]:hover span {
+  background-color: inherit !important;
 }
 
 /* Exceto para elementos que devem ter fundo específico */
@@ -114,4 +160,112 @@ p, span, div, input, textarea, select, button {
 .special-title {
   font-family: 'Cinzel', serif !important;
   font-weight: 600 !important;
+/* Exceção para bg-gray-500 e bg-gray-600 */
+.bg-gray-500 {
+  background-color: #6b7280 !important;
+}
+
+.bg-gray-600 {
+  background-color: #4b5563 !important;
+}
+
+/* Exceção para bg-emerald-500 nos botões de paginação */
+button[data-btn-type="page-number"].bg-emerald-500 {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+button[data-btn-type="page-number"].bg-emerald-500 * {
+  color: #ffffff !important;
+}
+
+/* Modal de exclusão de produtos */
+.modal-delete-overlay {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.modal-delete-confirmation {
+  background-color: white !important;
+}
+
+.modal-delete-product-info {
+  background-color: #fef2f2 !important;
+}
+
+/* Botões de ação nos produtos */
+button.product-action-btn,
+button.product-action-btn *,
+.product-action-btn,
+.product-action-btn * {
+  color: white !important;
+}
+
+button.product-action-btn:hover,
+button.product-action-btn:hover *,
+.product-action-btn:hover,
+.product-action-btn:hover * {
+  color: white !important;
+}
+
+/* Botões do modal de exclusão */
+button.modal-delete-btn,
+button.modal-delete-btn *,
+.modal-delete-btn,
+.modal-delete-btn * {
+  color: white !important;
+}
+
+button.modal-delete-btn:hover,
+button.modal-delete-btn:hover *,
+.modal-delete-btn:hover,
+.modal-delete-btn:hover * {
+  color: white !important;
+}
+
+button.modal-cancel-btn,
+button.modal-cancel-btn *,
+.modal-cancel-btn,
+.modal-cancel-btn * {
+  color: #1f2937 !important;
+}
+
+button.modal-cancel-btn:hover,
+button.modal-cancel-btn:hover *,
+.modal-cancel-btn:hover,
+.modal-cancel-btn:hover * {
+  color: white !important;
+}
+
+/* Força texto branco em spans dentro de botões específicos */
+button span[style*="color: #ffffff"],
+button span[style*="color: rgb(255, 255, 255)"],
+button span[style*="color:#ffffff"],
+button span[style*="color:rgb(255, 255, 255)"] {
+  color: #ffffff !important;
+}
+
+/* Força texto escuro em spans dentro de botões específicos */
+button span[style*="color: #374151"],
+button span[style*="color:#374151"] {
+  color: #374151 !important;
+}
+
+/* Botões de paginação */
+button[data-btn-type="pagination"],
+button[data-btn-type="pagination"] *,
+button[data-btn-type="pagination"] span {
+  color: #ffffff !important;
+}
+
+button[data-btn-type="page-number"][data-active="true"],
+button[data-btn-type="page-number"][data-active="true"] *,
+button[data-btn-type="page-number"][data-active="true"] span {
+  color: #ffffff !important;
+}
+
+button[data-btn-type="page-number"][data-active="false"],
+button[data-btn-type="page-number"][data-active="false"] *,
+button[data-btn-type="page-number"][data-active="false"] span {
+  color: #374151 !important;
+}
 }

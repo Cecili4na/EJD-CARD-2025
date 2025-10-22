@@ -17,7 +17,7 @@ const BackButton: React.FC<BackButtonProps> = ({
       <Button 
         onClick={onClick}
         variant="outline"
-        size="sm"
+        size="xs"
         className="border-wizard-500 text-wizard-500 hover:bg-wizard-500 hover:text-black"
       >
         {text}

@@ -17,6 +17,7 @@ import { ToastProvider } from './contexts/ToastContext'
 import { isSupabaseConfigured } from './lib/supabase'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { queryClient } from './lib/query-client'
+import { ProductsPage, CreateProductPage, ListProductsPage } from './pages/products'
 
 function AppContent() {
   const { user, isLoading } = useAuth()
