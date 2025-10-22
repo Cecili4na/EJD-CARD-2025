@@ -65,7 +65,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
       // Mostrar notificação de sucesso
       showSuccess(
         'Cartão Criado!',
-        `Cartão para ${name} foi criado com sucesso com saldo inicial de R$ ${formattedBalance}.`
+        `Cartão de número ${cardNumber} para ${name} foi criado com sucesso com saldo inicial de R$ ${formattedBalance}.`
       )
       
       onBack()

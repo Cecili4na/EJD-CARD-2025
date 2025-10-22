@@ -110,7 +110,7 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack, cards, onDebit }) => {
       // Mostrar notificação de sucesso
       showSuccess(
         'Débito Realizado!',
-        `R$ ${formattedAmount} foi debitado do cartão ${selectedCard.name} com sucesso.`
+        `R$ ${formattedAmount} foi debitado do cartão ${selectedCard.cardNumber} de ${selectedCard.name} com sucesso.`
       )
     }, 1000)
   }

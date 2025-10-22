@@ -93,7 +93,7 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
       // Mostrar notificação de sucesso
       showSuccess(
         'Valor Adicionado!',
-        `R$ ${formattedAmount} foi adicionado ao cartão ${selectedCard.name} com sucesso.`
+        `R$ ${formattedAmount} foi adicionado ao cartão ${selectedCard.cardNumber} de ${selectedCard.name} com sucesso.`
       )
     }, 1000)
   }
