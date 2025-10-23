@@ -207,88 +207,102 @@ const CreateProductPage = () => {
             />
           </div>
 
-          {/* Valor e Quantidade */}
+          {/* Valor, Quantidade e Imagem */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Coluna da esquerda: Upload de Imagem */}
             <div>
-              <label htmlFor="price" className="block text-sm font-semibold text-black mb-2 font-cardinal">
-                💰 Valor (R$)
+              <label htmlFor="image" className="block text-sm font-semibold text-black mb-2 font-cardinal">
+                📸 Imagem do Produto
               </label>
-              <input
-                type="text"
-                id="price"
-                value={formData.price}
-                onChange={handlePriceChange}
-                required
-                className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90 font-farmhand"
-                placeholder="0,00"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="quantity" className="block text-sm font-semibold text-black mb-2 font-cardinal">
-                📦 Quantidade
-              </label>
-              <input
-                type="number"
-                id="quantity"
-                value={formData.quantity}
-                onChange={(e) => handleInputChange('quantity', e.target.value)}
-                min="1"
-                required
-                className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90 font-farmhand"
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          {/* Upload de Imagem */}
-          <div>
-            <label htmlFor="image" className="block text-sm font-semibold text-black mb-2 font-cardinal">
-              📸 Imagem do Produto
-            </label>
-            
-            {!imagePreview ? (
-              <div className="border-2 border-dashed border-emerald-300 rounded-lg p-8 text-center hover:border-emerald-500 transition-colors duration-200">
-                <input
-                  type="file"
-                  id="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-                <label 
-                  htmlFor="image" 
-                  className="cursor-pointer flex flex-col items-center"
-                >
-                  <div className="text-6xl mb-4">📷</div>
-                  <p className="text-black font-semibold mb-2 font-cardinal">
-                    Clique para selecionar uma imagem
-                  </p>
-                  <p className="text-sm text-gray-600 font-farmhand">
-                    PNG, JPG ou WEBP (máx. 5MB)
-                  </p>
-                </label>
-              </div>
-            ) : (
-              <div className="relative">
-                <img 
-                  src={imagePreview} 
-                  alt="Preview" 
-                  className="w-full h-64 object-contain rounded-lg border-2 border-emerald-200"
-                />
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors duration-200"
-                  title="Remover imagem"
-                >
-                  ❌
-                </button>
-                <div className="mt-2 text-sm text-gray-600 font-farmhand">
-                  {formData.image?.name}
+              
+              {!imagePreview ? (
+                <div className="border-2 border-dashed border-emerald-300 rounded-lg p-4 text-center hover:border-emerald-500 transition-colors duration-200" style={{ height: '155px' }}>
+                  <input
+                    type="file"
+                    id="image"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label 
+                    htmlFor="image" 
+                    className="cursor-pointer flex flex-col items-center justify-center h-full"
+                  >
+                    <div className="text-4xl mb-2">📷</div>
+                    <p className="text-black font-semibold mb-1 font-cardinal text-sm">
+                      Clique para selecionar
+                    </p>
+                    <p className="text-xs text-gray-600 font-farmhand">
+                      PNG, JPG ou WEBP
+                    </p>
+                  </label>
                 </div>
+              ) : (
+                <div className="relative rounded-lg border-2 border-emerald-200 overflow-hidden" style={{ height: '155px' }}>
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="w-full h-full object-contain"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-white hover:bg-red-50 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-red-500 hover:border-red-600 group"
+                    style={{ 
+                      width: '18px', 
+                      height: '18px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      padding: 0
+                    }}
+                    title="Remover imagem"
+                  >
+                    <span className="text-red-500 group-hover:text-red-600 font-bold" style={{ fontSize: '14px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      ✕
+                    </span>
+                  </button>
+                  <div className="absolute bottom-0 left-0 right-0 bg-white/90 px-2 py-1">
+                    <p className="text-xs text-gray-600 font-farmhand truncate">
+                      {formData.image?.name}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Coluna da direita: Valor e Quantidade */}
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="price" className="block text-sm font-semibold text-black mb-2 font-cardinal">
+                  💰 Valor (R$)
+                </label>
+                <input
+                  type="text"
+                  id="price"
+                  value={formData.price}
+                  onChange={handlePriceChange}
+                  required
+                  className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90 font-farmhand"
+                  placeholder="0,00"
+                />
               </div>
-            )}
+
+              <div>
+                <label htmlFor="quantity" className="block text-sm font-semibold text-black mb-2 font-cardinal">
+                  📦 Quantidade
+                </label>
+                <input
+                  type="number"
+                  id="quantity"
+                  value={formData.quantity}
+                  onChange={(e) => handleInputChange('quantity', e.target.value)}
+                  min="1"
+                  required
+                  className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90 font-farmhand [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  placeholder="0"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Botões */}
@@ -298,7 +312,7 @@ const CreateProductPage = () => {
               onClick={handleCancel}
               variant="outline"
               size="lg"
-              className="flex-1 bg-gradient-to-r !text-black from-ruby-600 to-ruby-700 hover:from-ruby-700 hover:to-ruby-800 hover:!text-black font-cardinal"
+              className="!text-white flex-1 bg-gradient-to-r from-ruby-600 to-ruby-700 hover:from-ruby-700 hover:to-ruby-800 font-cardinal"
               disabled={isLoading}
             >
               ❌ Cancelar
@@ -306,7 +320,7 @@ const CreateProductPage = () => {
             <Button
               type="submit"
               size="lg"
-              className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 !text-black shadow-lg hover:shadow-emerald-200 font-semibold font-cardinal"
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg hover:shadow-emerald-200 font-semibold font-cardinal"
               disabled={isLoading}
             >
               {isLoading ? (
