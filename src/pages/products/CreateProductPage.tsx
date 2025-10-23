@@ -298,7 +298,7 @@ const CreateProductPage = () => {
               onClick={handleCancel}
               variant="outline"
               size="lg"
-              className="flex-1 border-gray-500 text-gray-500 hover:bg-gray-500 hover:!text-black font-cardinal"
+              className="flex-1 bg-gradient-to-r !text-black from-ruby-600 to-ruby-700 hover:from-ruby-700 hover:to-ruby-800 hover:!text-black font-cardinal"
               disabled={isLoading}
             >
               ❌ Cancelar

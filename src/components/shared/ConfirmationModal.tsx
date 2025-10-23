@@ -8,6 +8,14 @@ interface Card {
   balance: number
 }
 
+interface Product {
+  id: string
+  name: string
+  price: number
+  quantity: number
+  image: string
+}
+
 interface ConfirmationModalProps {
   isOpen: boolean
   onClose: () => void
@@ -19,6 +27,11 @@ interface ConfirmationModalProps {
   amount: string
   formattedAmount: string
   description?: string
+  message?: string
+  variant: 'card-transaction' | 'delete-product'
+  // Props para exclusão de produto
+  product?: Product | null
+  // Estado de carregamento
   isLoading?: boolean
 }
 
@@ -28,20 +41,30 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   title,
   icon,
+  message,
+  variant,
   card,
   transactionType,
   amount,
   formattedAmount,
   description,
+  product,
   isLoading = false
 }) => {
-  if (!isOpen || !card) return null
+  if (!isOpen) return null
+  if (variant === 'card-transaction' && !card) return null
+  if (variant === 'delete-product' && !product) return null
 
   const formatCardNumber = (number: string) => {
     return number.replace(/(\d{4})(?=\d)/g, '$1 ')
   }
 
+  const formatPrice = (price: number): string => {
+    return price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  }
+
   const getNewBalance = () => {
+    if (!card || !amount) return 0
     const currentBalance = card.balance
     const transactionAmount = parseFloat(amount || '0')
     
@@ -56,84 +79,137 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     return transactionType === 'credit' ? 'Valor a Adicionar' : 'Valor do Débito'
   }
 
+  const getConfirmButtonClass = () => {
+    if (variant === 'delete-product') {
+      return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
+    }
+    if (transactionType === 'credit') {
+      return 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white'
+    }
+    return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
+  }
+
+  const getConfirmButtonText = () => {
+    if (isLoading) {
+      if (variant === 'delete-product') return 'Excluindo...'
+      return transactionType === 'credit' ? 'Adicionando...' : 'Processando...'
+    }
+    return '✅ Confirmar'
+  }
+
   return (
-    <div className="modal-overlay fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="modal-confirmation bg-white rounded-2xl shadow-2xl border border-yellow-200 max-w-md w-full p-6">
+    <div 
+      className="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+    >
+      <div 
+        data-modal="content"
+        className="modal-confirmation rounded-2xl shadow-2xl border-4 border-yellow-200 max-w-md w-full p-8"
+      >
         <div className="text-center mb-6">
-          <div className="text-4xl mb-4">{icon}</div>
-          <h3 className="text-xl font-semibold text-black mb-2 font-cardinal">
+          <div className="text-6xl mb-4">{icon}</div>
+          <h3 className="text-2xl font-bold text-black mb-4 font-cardinal">
             {title}
           </h3>
-          <p className="text-gray-600 font-farmhand">
-            Verifique os dados antes de confirmar
-          </p>
+          {message && (
+            <p className="text-gray-700 mb-4 font-farmhand">
+              {message}
+            </p>
+          )}
         </div>
 
-        {/* Dados do Cartão */}
-        <div className="card-data bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-xl p-4 mb-6">
-          <h4 className="font-semibold text-black mb-3 font-farmhand">📋 Dados do Cartão</h4>
-          <div className="space-y-2">
-            <p className="text-black font-farmhand">
-              <strong>Nome:</strong> {card.name}
-            </p>
-            <p className="text-black font-farmhand">
-              <strong>Número:</strong> {formatCardNumber(card.cardNumber)}
-            </p>
-            <p className="text-black font-farmhand">
-              <strong>Saldo Atual:</strong> R$ {card.balance.toFixed(2).replace('.', ',')}
-            </p>
-          </div>
-        </div>
+        {/* Conteúdo específico por variante */}
+        {variant === 'card-transaction' && card && (
+          <>
+            {/* Dados do Cartão */}
+            <div 
+              className="rounded-xl p-4 mb-6"
+              style={{ 
+                background: 'linear-gradient(to right, #d1fae5, #a7f3d0)',
+                backgroundColor: '#d1fae5'
+              }}
+            >
+              <h4 className="font-semibold text-black mb-3 font-farmhand">📋 Dados do Cartão</h4>
+              <div className="space-y-2">
+                <p className="text-black font-farmhand">
+                  <strong>Nome:</strong> {card.name}
+                </p>
+                <p className="text-black font-farmhand">
+                  <strong>Número:</strong> {formatCardNumber(card.cardNumber)}
+                </p>
+                <p className="text-black font-farmhand">
+                  <strong>Saldo Atual:</strong> R$ {card.balance.toFixed(2).replace('.', ',')}
+                </p>
+              </div>
+            </div>
 
-        {/* Resumo da Transação */}
-        <div className="transaction-summary bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl p-4 mb-6">
-          <h4 className="font-semibold text-black mb-3 font-farmhand">💳 Resumo da Transação</h4>
-          <div className="space-y-2">
-            <p className="text-black font-farmhand">
-              <strong>{getTransactionLabel()}:</strong> R$ {formattedAmount}
-            </p>
-            {description && (
-              <p className="text-black font-farmhand">
-                <strong>Descrição:</strong> {description}
-              </p>
-            )}
-            <p className="text-black font-farmhand">
-              <strong>Novo Saldo:</strong> R$ {getNewBalance().toFixed(2).replace('.', ',')}
-            </p>
+            {/* Resumo da Transação */}
+            <div 
+              className="transaction-summary rounded-xl p-4 mb-6"
+              style={{ 
+                background: 'linear-gradient(to right, #fef3c7, #fde68a)',
+                backgroundColor: '#fef3c7'
+              }}
+            >
+              <h4 className="font-semibold text-black mb-3 font-farmhand">💳 Resumo da Transação</h4>
+              <div className="space-y-2">
+                <p className="text-black font-farmhand">
+                  <strong>{getTransactionLabel()}:</strong> R$ {formattedAmount}
+                </p>
+                {description && (
+                  <p className="text-black font-farmhand">
+                    <strong>Descrição:</strong> {description}
+                  </p>
+                )}
+                <p className="text-black font-farmhand">
+                  <strong>Novo Saldo:</strong> R$ {getNewBalance().toFixed(2).replace('.', ',')}
+                </p>
+              </div>
+            </div>
+          </>
+        )}
+
+        {variant === 'delete-product' && product && (
+          <div 
+            className="modal-delete-product-info border-2 border-red-200 rounded-lg p-4 mb-6"
+            style={{ backgroundColor: '#fef2f2' }}
+          >
+            <div className="flex items-center space-x-4">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-16 h-16 object-cover rounded-lg"
+              />
+              <div className="flex-1">
+                <h4 className="font-bold text-gray-800 font-cardinal">{product.name}</h4>
+                <p className="text-sm text-gray-600 font-farmhand">
+                  R$ {formatPrice(product.price)}
+                </p>
+                <p className="text-sm text-gray-600 font-farmhand">
+                  Quantidade: {product.quantity}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Botões de Ação */}
-        <div className="flex gap-3">
-          <Button
+        <div className="flex space-x-4">
+          <button
             onClick={onClose}
-            variant="outline"
-            className="flex-1 border-magenta-300 !text-black hover:bg-magenta-100 hover:!text-black"
             disabled={isLoading}
+            className="flex-1 px-6 py-3 font-semibold rounded-lg shadow-lg transition-all duration-200 bg-white hover:bg-gray-100 text-gray-700 hover:text-gray-900 border-2 border-gray-300 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ❌ Cancelar
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={onConfirm}
-            size="lg"
-            className={`flex-1 shadow-lg font-semibold ${
-              transactionType === 'credit'
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 !text-black hover:shadow-emerald-200'
-                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 !text-black hover:shadow-red-200'
-            }`}
             disabled={isLoading}
+            className={`flex-1 px-6 py-3 font-semibold rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${getConfirmButtonClass()}`}
           >
-            {isLoading ? (
-              <>
-                <span className="animate-spin mr-2">✨</span>
-                {transactionType === 'credit' ? 'Adicionando...' : 'Processando...'}
-              </>
-            ) : (
-              <>
-                ✅ Confirmar
-              </>
-            )}
-          </Button>
+            {isLoading && <span className="animate-spin mr-2">✨</span>}
+            {getConfirmButtonText()}
+          </button>
         </div>
       </div>
     </div>

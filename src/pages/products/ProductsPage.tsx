@@ -13,7 +13,7 @@ const ProductsPage = () => {
     lojinha: {
       title: 'Produtos da Lojinha',
       icon: '🛍️',
-      color: 'purple',
+      color: 'emerald',
       createLabel: 'Cadastrar Produto',
       listLabel: 'Listar Produtos',
       createDescription: 'Adicione novos produtos da lojinha',
@@ -22,7 +22,7 @@ const ProductsPage = () => {
     lanchonete: {
       title: 'Cardápio da Lanchonete',
       icon: '🍔',
-      color: 'orange',
+      color: 'emerald',
       createLabel: 'Cadastrar Item',
       listLabel: 'Listar Cardápio',
       createDescription: 'Adicione novos itens ao cardápio',
@@ -39,21 +39,13 @@ const ProductsPage = () => {
     hover: string
     shadow: string
   }> = {
-    purple: {
-      from: 'from-purple-50',
-      to: 'to-purple-100',
-      border: 'border-purple-200',
-      bg: 'bg-purple-500',
-      hover: 'hover:bg-purple-600',
-      shadow: 'hover:shadow-purple-200'
-    },
-    orange: {
-      from: 'from-orange-50',
-      to: 'to-orange-100',
-      border: 'border-orange-200',
-      bg: 'bg-orange-500',
-      hover: 'hover:bg-orange-600',
-      shadow: 'hover:shadow-orange-200'
+    emerald: {
+      from: 'from-emerald-50',
+      to: 'to-emerald-100',
+      border: 'border-emerald-200',
+      bg: 'bg-emerald-500',
+      hover: 'hover:bg-emerald-600',
+      shadow: 'hover:shadow-emerald-200'
     }
   }
   
@@ -75,7 +67,7 @@ const ProductsPage = () => {
             </p>
             <Button 
               size="lg"
-              className={`${colors.bg} ${colors.hover} !text-sky-900 shadow-lg ${colors.shadow}`}
+              className={`${colors.bg} ${colors.hover} shadow-lg ${colors.shadow}`}
             >
               📦 {currentConfig.createLabel}
             </Button>
@@ -94,7 +86,7 @@ const ProductsPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-blue-500 hover:bg-blue-600 !text-sky-900 shadow-lg hover:shadow-blue-200"
+              className="bg-blue-500 hover:bg-blue-600 shadow-lg hover:shadow-blue-200"
             >
               📋 {currentConfig.listLabel}
             </Button>

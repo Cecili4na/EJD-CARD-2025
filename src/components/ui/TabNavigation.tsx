@@ -40,7 +40,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             onClick={() => onTabChange('lojinha')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
               activeTab === 'lojinha'
-                ? 'bg-emerald-500 text-black shadow-md'
+                ? 'bg-emerald-100 text-black shadow-md'
                 : 'text-black hover:bg-emerald-100'
             }`}
           >
@@ -52,7 +52,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             onClick={() => onTabChange('lanchonete')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
               activeTab === 'lanchonete'
-                ? 'bg-emerald-500 text-black shadow-md'
+                ? 'bg-emerald-100 text-black shadow-md'
                 : 'text-black hover:bg-emerald-100'
             }`}
           >

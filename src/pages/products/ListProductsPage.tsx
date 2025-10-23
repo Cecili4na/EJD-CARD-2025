@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Header } from '../../components/shared'
+import { Header, ConfirmationModal } from '../../components/shared'
 import { productService, Product } from '../../services/productService'
 
 const ListProductsPage = () => {
@@ -232,7 +232,7 @@ const ListProductsPage = () => {
                     data-active={currentPage === page ? "true" : "false"}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       currentPage === page 
-                        ? 'bg-emerald-500 hover:bg-emerald-600 shadow-lg' 
+                        ? 'bg-sky-200 hover:bg-sky-300 shadow-lg' 
                         : 'bg-white hover:bg-emerald-100 shadow'
                     }`}
                     style={{ 
@@ -276,55 +276,22 @@ const ListProductsPage = () => {
       )}
 
       {/* Modal de Confirmação de Exclusão */}
-      {productToDelete && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 modal-delete-overlay">
-          <div className="rounded-2xl shadow-2xl border-4 border-yellow-200 max-w-md w-full p-8 modal-delete-confirmation">
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h3 className="text-2xl font-bold text-red-600 mb-4 font-cardinal">
-                {currentConfig.deleteTitle}
-              </h3>
-              <p className="text-gray-700 mb-4 font-farmhand">
-                {currentConfig.deleteMessage}
-              </p>
-            </div>
-
-            {/* Informações do Produto */}
-            <div className="border-2 border-red-200 rounded-lg p-4 mb-6 modal-delete-product-info">
-              <div className="flex items-center space-x-4">
-                <img
-                  src={productToDelete.image}
-                  alt={productToDelete.name}
-                  className="w-16 h-16 object-cover rounded-lg"
-                />
-                <div className="flex-1">
-                  <h4 className="font-bold text-gray-800 font-cardinal">{productToDelete.name}</h4>
-                  <p className="text-sm text-gray-600 font-farmhand">
-                    R$ {formatPrice(productToDelete.price)}
-                  </p>
-                  <h4 className="font-bold text-gray-800 font-cardinal">{productToDelete.quantity} unidades</h4>
-                </div>
-              </div>
-            </div>
-
-            {/* Botões */}
-            <div className="flex space-x-4">
-              <button
-                onClick={handleConfirmDelete}
-                className="flex-1 px-6 py-3 font-semibold rounded-lg shadow-lg transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white hover:shadow-xl"
-              >
-                ✓ Confirmar Exclusão
-              </button>
-              <button
-                onClick={handleCancelDelete}
-                className="flex-1 px-6 py-3 font-semibold rounded-lg shadow-lg transition-all duration-200 bg-white hover:bg-gray-100 text-gray-700 hover:text-gray-900 border-2 border-gray-300 hover:border-gray-400"
-              >
-                ✗ Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={!!productToDelete}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title={currentConfig.deleteTitle}
+        icon="⚠️"
+        message={currentConfig.deleteMessage}
+        variant="delete-product"
+        product={productToDelete ? {
+          id: productToDelete.id,
+          name: productToDelete.name,
+          price: productToDelete.price,
+          quantity: productToDelete.quantity,
+          image: productToDelete.image
+        } : null}
+      />
     </div>
   )
 }

@@ -56,21 +56,6 @@ html, body {
   width: 100% !important;
 }
 
-/* Garantir que não há fundo preto em nenhum elemento */
-* {
-  background-color: transparent !important;
-}
-
-/* EXCEÇÃO: Botões de paginação DEVEM ter cores específicas */
-button[data-btn-type],
-button[data-btn-type] *,
-button[data-btn-type] span,
-button[data-btn-type]:hover,
-button[data-btn-type]:hover *,
-button[data-btn-type]:hover span {
-  background-color: inherit !important;
-}
-
 /* Exceto para elementos que devem ter fundo específico */
 .bg-white, .bg-gray-50, .bg-emerald-50, .bg-wizard-50, .bg-sky-50, .bg-cotton-50 {
   background-color: inherit !important;
@@ -165,96 +150,65 @@ p, span, div, input, textarea, select, button {
   background-color: #6b7280 !important;
 }
 
-.bg-gray-600 {
-  background-color: #4b5563 !important;
+.modal-confirmation .card-data {
+  background-color: #d1fae5 !important;
 }
 
-/* Exceção para bg-emerald-500 nos botões de paginação */
-button[data-btn-type="page-number"].bg-emerald-500 {
-  background-color: #10b981 !important;
-  color: #ffffff !important;
-}
-
-button[data-btn-type="page-number"].bg-emerald-500 * {
-  color: #ffffff !important;
-}
-
-/* Modal de exclusão de produtos */
-.modal-delete-overlay {
-  background-color: rgba(0, 0, 0, 0.7) !important;
+.modal-confirmation .transaction-summary {
+  background-color: #fef3c7 !important;
 }
 
 .modal-delete-confirmation {
   background-color: white !important;
+
 }
 
-.modal-delete-product-info {
-  background-color: #fef2f2 !important;
+/* Overlay escuro para modal */
+.modal-delete-overlay {
+  background-color: rgba(0, 0, 0, 0.7) !important;
 }
 
-/* Botões de ação nos produtos */
-button.product-action-btn,
-button.product-action-btn *,
-.product-action-btn,
-.product-action-btn * {
-  color: white !important;
+/* Notificações com fundo opaco */
+.toast-notification.bg-emerald-500 {
+  background-color: #22c55e !important;
 }
 
-button.product-action-btn:hover,
-button.product-action-btn:hover *,
-.product-action-btn:hover,
-.product-action-btn:hover * {
-  color: white !important;
+.toast-notification.bg-red-500 {
+  background-color: #ef4444 !important;
 }
 
-/* Botões do modal de exclusão */
-button.modal-delete-btn,
-button.modal-delete-btn *,
-.modal-delete-btn,
-.modal-delete-btn * {
-  color: white !important;
+.toast-notification.bg-yellow-500 {
+  background-color: #eab308 !important;
 }
 
-button.modal-delete-btn:hover,
-button.modal-delete-btn:hover *,
-.modal-delete-btn:hover,
-.modal-delete-btn:hover * {
-  color: white !important;
+.toast-notification.bg-blue-500 {
+  background-color: #3b82f6 !important;
 }
 
-button.modal-cancel-btn,
-button.modal-cancel-btn *,
-.modal-cancel-btn,
-.modal-cancel-btn * {
-  color: #1f2937 !important;
+/* Tipografia da identidade visual */
+.font-cardinal {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 700 !important;
 }
 
-button.modal-cancel-btn:hover,
-button.modal-cancel-btn:hover *,
-.modal-cancel-btn:hover,
-.modal-cancel-btn:hover * {
-  color: white !important;
+.font-farmhand {
+  font-family: 'Crimson Text', serif !important;
+  font-weight: 600 !important;
 }
 
-/* Força texto branco em spans dentro de botões específicos */
-button span[style*="color: #ffffff"],
-button span[style*="color: rgb(255, 255, 255)"],
-button span[style*="color:#ffffff"],
-button span[style*="color:rgb(255, 255, 255)"] {
-  color: #ffffff !important;
+.font-newyorker {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 600 !important;
 }
 
-/* Força texto escuro em spans dentro de botões específicos */
-button span[style*="color: #374151"],
-button span[style*="color:#374151"] {
-  color: #374151 !important;
+/* Aplicação de fontes por hierarquia */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 700 !important;
 }
 
-/* Botões de paginação */
-button[data-btn-type="pagination"],
-button[data-btn-type="pagination"] *,
-button[data-btn-type="pagination"] span {
-  color: #ffffff !important;
+p, span, div, input, textarea, select, button {
+  font-family: 'Crimson Text', serif !important;
 }
 
 button[data-btn-type="page-number"][data-active="true"],
@@ -268,4 +222,8 @@ button[data-btn-type="page-number"][data-active="false"] *,
 button[data-btn-type="page-number"][data-active="false"] span {
   color: #374151 !important;
 }
+/* Títulos especiais com Cinzel */
+.special-title {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 600 !important;
 }

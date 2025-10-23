@@ -1,5 +1,1 @@
-export { default as LojinhaStore } from './LojinhaStore'
-export { default as ProductList } from './ProductList'
-export { default as ProductForm } from './ProductForm'
-export { default as ProductView } from './ProductView'
 export { default as LojinhaPage } from './LojinhaPage'

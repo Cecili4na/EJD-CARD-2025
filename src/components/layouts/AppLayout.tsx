@@ -135,7 +135,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 onClick={handleBackToContext}
                 variant="outline"
                 size="sm"
-                className="border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:!text-black font-semibold font-cardinal shadow-md"
+                className="border-emerald-500 !text-black hover:bg-emerald-200 hover:!text-black font-semibold font-cardinal shadow-md"
               >
                 {getBackButtonText()}
               </Button>
