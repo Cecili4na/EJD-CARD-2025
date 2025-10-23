@@ -16,10 +16,18 @@ interface CheckBalanceProps {
 const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
   const [searchNumber, setSearchNumber] = useState('')
+  const [hasSearched, setHasSearched] = useState(false)
 
   const handleSearch = () => {
+    setHasSearched(true)
     const card = cards.find(c => c.cardNumber === searchNumber.replace(/\D/g, ''))
     setSelectedCard(card || null)
+  }
+
+  const handleInputChange = (value: string) => {
+    setSearchNumber(value)
+    setHasSearched(false)
+    setSelectedCard(null)
   }
 
   const formatCardNumber = (number: string) => {
@@ -60,7 +68,7 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
                   type="text"
                   id="cardNumber"
                   value={searchNumber}
-                  onChange={(e) => setSearchNumber(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                  onChange={(e) => handleInputChange(e.target.value.replace(/\D/g, '').slice(0, 3))}
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
                   placeholder="001"
                   maxLength={3}
@@ -108,7 +116,7 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
           )}
 
           {/* Mensagem de erro */}
-          {searchNumber && !selectedCard && (
+          {hasSearched && !selectedCard && (
             <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-center">
               <p className="text-black">
                 ❌ Cartão não encontrado. Verifique o número digitado.
