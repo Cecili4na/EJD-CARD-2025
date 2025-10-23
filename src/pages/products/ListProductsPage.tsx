@@ -302,6 +302,7 @@ const ListProductsPage = () => {
                   <p className="text-sm text-gray-600 font-farmhand">
                     R$ {formatPrice(productToDelete.price)}
                   </p>
+                  <h4 className="font-bold text-gray-800 font-cardinal">{productToDelete.quantity} unidades</h4>
                 </div>
               </div>
             </div>
