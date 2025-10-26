@@ -1,7 +1,8 @@
-import { useState, ReactNode } from 'react'
+import { ReactNode } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Header, Button } from '../shared'
 import { TabNavigation } from '../ui'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface AppLayoutProps {
   children?: ReactNode
@@ -10,24 +11,31 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const [, setUser] = useState<{ email: string; password: string } | null>(null)
+  const { user, logout } = useAuth()
 
   // Determinar aba ativa baseada na rota
   const getActiveTab = () => {
     const path = location.pathname
+    if (path.startsWith('/mycard')) return 'mycard'
     if (path.startsWith('/cards')) return 'cards'
     if (path.startsWith('/lojinha')) return 'lojinha'
     if (path.startsWith('/lanchonete')) return 'lanchonete'
-    return 'cards'
+    if (path.startsWith('/admin')) return 'admin'
+    return 'mycard'
   }
 
-  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete') => {
+  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard') => {
     navigate(`/${tab}`)
   }
 
-  const handleLogout = () => {
-    setUser(null)
-    navigate('/login')
+  const handleLogout = async () => {
+    try {
+      console.log('Iniciando logout...')
+      await logout()
+      console.log('Logout concluído')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+    }
   }
 
   return (
@@ -44,16 +52,37 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       
       <div className="w-full px-4 py-8 relative z-10">
         <div className="max-w-4xl mx-auto w-full">
-          {/* Botão de Logout */}
-          <div className="flex justify-end mb-4">
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="border-wizard-500 text-wizard-500 hover:bg-wizard-500 hover:text-black"
-            >
-              🚪 Sair
-            </Button>
+          {/* Header com informações do usuário e logout */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm text-gray-600">
+              👋 Olá, <span className="font-semibold text-black">{user?.name || user?.email}</span>
+              <span className="ml-2 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                {user?.role === 'admin' ? '👑 Admin' : 
+                 user?.role === 'manager' ? '👨‍💼 Manager' : 
+                 user?.role === 'user' ? '👤 User' : '👻 Guest'}
+              </span>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="border-wizard-500 text-wizard-500 hover:bg-wizard-500 hover:text-black"
+              >
+                🚪 Sair
+              </Button>
+              <Button 
+                onClick={() => {
+                  localStorage.clear()
+                  window.location.href = '/'
+                }}
+                variant="outline"
+                size="sm"
+                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-black"
+              >
+                🔄 Logout Simples
+              </Button>
+            </div>
           </div>
           
           <Header 

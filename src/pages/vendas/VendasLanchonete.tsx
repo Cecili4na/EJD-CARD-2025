@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useData } from '../../contexts/DataContext'
 import { usePermissions } from '../../hooks/usePermissions'
 import { Product, SaleItem } from '../../contexts/DataContext'
 import { Button } from '../../components/shared'
 
-const LanchonetePage = () => {
+const VendasLanchonete: React.FC = () => {
   const { user } = useAuth()
   const { getProducts, getBalance, makeSale } = useData()
   const { canSellLanchonete } = usePermissions()
@@ -24,12 +24,19 @@ const LanchonetePage = () => {
     { id: 'encontrista_3', name: 'Pedro Costa', email: 'pedro@encontrao.com' }
   ]
 
-  React.useEffect(() => {
-    if (canSellLanchonete) {
-      const lanchoneteProducts = getProducts('lanchonete')
-      setProducts(lanchoneteProducts)
+  useEffect(() => {
+    if (!canSellLanchonete) {
+      setMessage({ type: 'error', text: 'Você não tem permissão para realizar vendas na lanchonete' })
+      return
     }
+    
+    loadProducts()
   }, [canSellLanchonete])
+
+  const loadProducts = () => {
+    const lanchoneteProducts = getProducts('lanchonete')
+    setProducts(lanchoneteProducts)
+  }
 
   const handleCustomerSelect = (userId: string) => {
     setSelectedUserId(userId)
@@ -130,7 +137,7 @@ const LanchonetePage = () => {
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">
-      <h2 className="text-2xl font-bold text-black mb-6">🍔 Lanchonete - Sistema de Vendas</h2>
+      <h2 className="text-2xl font-bold text-black mb-6">🍔 Vendas - Lanchonete</h2>
       
       {message && (
         <div className={`mb-4 p-4 rounded-lg ${
@@ -152,8 +159,8 @@ const LanchonetePage = () => {
                 onClick={() => handleCustomerSelect(encontrista.id)}
                 className={`w-full p-3 rounded-lg border-2 transition-colors ${
                   selectedUserId === encontrista.id
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
-                    : 'border-gray-300 hover:border-orange-300'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                    : 'border-gray-300 hover:border-emerald-300'
                 }`}
               >
                 <div className="text-left">
@@ -165,8 +172,8 @@ const LanchonetePage = () => {
           </div>
 
           {selectedUserId && (
-            <div className="p-4 bg-orange-50 rounded-lg">
-              <div className="text-sm text-orange-700">
+            <div className="p-4 bg-emerald-50 rounded-lg">
+              <div className="text-sm text-emerald-700">
                 <strong>Saldo atual:</strong> R$ {customerBalance.toFixed(2)}
               </div>
             </div>
@@ -175,7 +182,7 @@ const LanchonetePage = () => {
 
         {/* Produtos */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-black">🍔 Cardápio</h3>
+          <h3 className="text-lg font-semibold text-black">🍽️ Produtos Disponíveis</h3>
           
           <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
             {products.map(product => (
@@ -183,11 +190,11 @@ const LanchonetePage = () => {
                 <div className="flex-1">
                   <div className="font-medium text-black">{product.name}</div>
                   <div className="text-sm text-gray-600">{product.description}</div>
-                  <div className="text-lg font-bold text-orange-600">R$ {product.price.toFixed(2)}</div>
+                  <div className="text-lg font-bold text-emerald-600">R$ {product.price.toFixed(2)}</div>
                 </div>
                 <Button
                   onClick={() => addToCart(product)}
-                  className="bg-orange-500 hover:bg-orange-600 text-black px-4 py-2"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-black px-4 py-2"
                 >
                   ➕ Adicionar
                 </Button>
@@ -241,10 +248,10 @@ const LanchonetePage = () => {
             ))}
           </div>
 
-          <div className="mt-4 p-4 bg-orange-50 rounded-lg">
+          <div className="mt-4 p-4 bg-emerald-50 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold text-black">Total:</span>
-              <span className="text-2xl font-bold text-orange-600">
+              <span className="text-2xl font-bold text-emerald-600">
                 R$ {getCartTotal().toFixed(2)}
               </span>
             </div>
@@ -257,15 +264,15 @@ const LanchonetePage = () => {
           </div>
 
           <div className="mt-4 flex space-x-4">
-            <Button 
+            <Button
               onClick={handleFinalizeSale}
               disabled={!selectedUserId || isProcessing}
-              className="bg-orange-500 hover:bg-orange-600 text-black px-6 py-3 disabled:opacity-50"
+              className="bg-emerald-500 hover:bg-emerald-600 text-black px-6 py-3 disabled:opacity-50"
             >
               {isProcessing ? '⏳ Processando...' : '✅ Finalizar Venda'}
             </Button>
             
-            <Button 
+            <Button
               onClick={() => {
                 setCart([])
                 setMessage(null)
@@ -275,10 +282,11 @@ const LanchonetePage = () => {
               🗑️ Limpar Carrinho
             </Button>
           </div>
-      </div>
+        </div>
       )}
     </div>
   )
 }
 
-export default LanchonetePage
+export default VendasLanchonete
+

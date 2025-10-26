@@ -152,7 +152,7 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
                   key={value}
                   onClick={() => setAmount(value.toString())}
                   variant="outline"
-                  className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
+                  className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-black"
                 >
                   R$ {value.toFixed(2).replace('.', ',')}
                 </Button>

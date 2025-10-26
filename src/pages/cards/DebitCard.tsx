@@ -185,7 +185,7 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack, cards, onDebit }) => {
                   key={value}
                   onClick={() => setAmount(value.toString())}
                   variant="outline"
-                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-black"
                 >
                   R$ {value.toFixed(2).replace('.', ',')}
                 </Button>

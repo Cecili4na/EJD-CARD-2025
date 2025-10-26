@@ -95,7 +95,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
                     type="button"
                     onClick={generateCardNumber}
                     variant="outline"
-                    className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
+                    className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-black"
                   >
                     🎲 Gerar
                   </Button>

@@ -1,26 +1,33 @@
 import React, { useState } from 'react'
 import { Button } from '../shared'
+import { useAuth } from '../../contexts/AuthContext'
 
-interface LoginProps {
-  onLogin?: (credentials: { email: string; password: string }) => void
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [isLogin, setIsLogin] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  
+  const { login, register } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // Simular delay de login
-    setTimeout(() => {
-      if (onLogin) {
-        onLogin({ email, password })
+    try {
+      if (isLogin) {
+        await login(email, password)
+      } else {
+        await register(email, password, name)
       }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login/registro')
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -51,9 +58,59 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </p>
         </div>
 
-        {/* Formulário de Login */}
+        {/* Formulário de Login/Registro */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">
+          {/* Toggle Login/Registro */}
+          <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                isLogin 
+                  ? 'bg-white text-black shadow-sm' 
+                  : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              🏰 Entrar
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                !isLogin 
+                  ? 'bg-white text-black shadow-sm' 
+                  : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              🎭 Registrar
+            </button>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Campo Nome (apenas para registro) */}
+            {!isLogin && (
+              <div>
+                <label htmlFor="name" className="block text-sm font-semibold text-black mb-2">
+                  👤 Nome
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required={!isLogin}
+                  className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+                  placeholder="Seu nome completo"
+                />
+              </div>
+            )}
+
             {/* Campo Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-black mb-2">
@@ -86,7 +143,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               />
             </div>
 
-            {/* Botão de Login */}
+            {/* Botão de Login/Registro */}
             <Button
               type="submit"
               size="lg"
@@ -96,11 +153,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {isLoading ? (
                 <>
                   <span className="animate-spin mr-2">✨</span>
-                  Entrando na Cidade Esmeralda...
+                  {isLogin ? 'Entrando na Cidade Esmeralda...' : 'Criando sua conta...'}
                 </>
               ) : (
                 <>
-                  🏰 Entrar na Cidade Esmeralda
+                  {isLogin ? '🏰 Entrar na Cidade Esmeralda' : '🎭 Criar Conta'}
                 </>
               )}
             </Button>
@@ -115,13 +172,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               🧭 Esqueceu sua senha?
             </a>
             <div className="text-sm text-black">
-              Não tem uma conta? 
-              <a 
-                href="#" 
+              {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
+              <button 
+                onClick={() => setIsLogin(!isLogin)}
                 className="text-black hover:text-gray-600 font-semibold ml-1 transition-colors duration-200"
               >
-                🎭 Crie uma aqui
-              </a>
+                {isLogin ? '🎭 Crie uma aqui' : '🏰 Faça login'}
+              </button>
             </div>
           </div>
         </div>
