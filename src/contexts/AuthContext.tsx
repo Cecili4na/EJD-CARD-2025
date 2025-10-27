@@ -4,7 +4,7 @@ interface User {
   id: string
   email: string
   name: string
-  role: 'admin' | 'manager' | 'user' | 'guest'
+  role: 'admin' | 'genios_card' | 'coord_lojinha' | 'coord_lanchonete' | 'comunicacao' | 'vendedor_lojinha' | 'entregador_lojinha' | 'vendedor_lanchonete' | 'encontrista'
 }
 
 interface AuthContextType {
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return
       }
 
-      const response = await fetch('http://localhost:3000/api/auth/get-session', {
+      const response = await fetch('http://localhost:3000/api/auth/session', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const data = await response.json()
       setUser(data.user)
-      localStorage.setItem('auth_token', data.session.token)
+      localStorage.setItem('auth_token', data.session.accessToken)
     } catch (error) {
       console.error('Erro no login:', error)
       throw error
@@ -92,12 +92,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, name: string) => {
     try {
+      // Definir role baseado no email
+      let role = 'encontrista'
+      if (email === 'ana.ceci7373@gmail.com') {
+        role = 'admin'
+      } else if (email.includes('admin')) {
+        role = 'admin'
+      } else if (email.includes('genios')) {
+        role = 'genios_card'
+      } else if (email.includes('coord_lojinha')) {
+        role = 'coord_lojinha'
+      } else if (email.includes('coord_lanchonete')) {
+        role = 'coord_lanchonete'
+      } else if (email.includes('comunicacao')) {
+        role = 'comunicacao'
+      } else if (email.includes('vendedor_lojinha')) {
+        role = 'vendedor_lojinha'
+      } else if (email.includes('entregador')) {
+        role = 'entregador_lojinha'
+      } else if (email.includes('vendedor_lanchonete')) {
+        role = 'vendedor_lanchonete'
+      }
+
       const response = await fetch('http://localhost:3000/api/auth/sign-up/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, role }),
       })
 
       if (!response.ok) {
@@ -107,7 +129,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const data = await response.json()
       setUser(data.user)
-      localStorage.setItem('auth_token', data.session.token)
+      localStorage.setItem('auth_token', data.session.accessToken)
     } catch (error) {
       console.error('Erro no registro:', error)
       throw error

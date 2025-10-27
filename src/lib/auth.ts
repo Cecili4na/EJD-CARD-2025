@@ -1,14 +1,23 @@
 import { betterAuth } from "better-auth"
 
-// Configuração do Better Auth
+// Configuração do Better Auth com Supabase
 export const auth = betterAuth({
   database: {
-    provider: "sqlite",
-    url: ":memory:" // Banco em memória para teste
+    provider: "postgresql",
+    url: process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5432/postgres"
   },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: true,
+        defaultValue: "encontrista"
+      }
+    }
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 dias
