@@ -10,13 +10,13 @@ const mockCards = [
   {
     id: '1',
     name: 'João Silva',
-    cardNumber: '1234567890123456',
+    cardNumber: '123',
     balance: 150.00
   },
   {
     id: '2',
     name: 'Maria Santos',
-    cardNumber: '9876543210987654',
+    cardNumber: '987',
     balance: 75.50
   }
 ]
@@ -24,17 +24,33 @@ const mockCards = [
 const CardsRouter = () => {
   const handleCreateCard = (cardData: { name: string; cardNumber: string; initialBalance: number }) => {
     console.log('Creating card:', cardData)
-    // Aqui você pode adicionar a lógica para criar o cartão
+    mockCards.push({
+      id: (mockCards.length + 1).toString(),
+      name: cardData.name,
+      cardNumber: cardData.cardNumber,
+      balance: cardData.initialBalance
+    })
+
   }
 
   const handleAddValue = (cardId: string, amount: number) => {
     console.log('Adding value:', cardId, amount)
-    // Aqui você pode adicionar a lógica para adicionar valor
+    const card = mockCards.find(card => card.id === cardId)
+    if (card) {
+      card.balance += amount
+    } else {
+      console.error(`Card with id ${cardId} not found.`)
+    }
   }
 
   const handleDebit = (cardId: string, amount: number) => {
     console.log('Debiting:', cardId, amount)
-    // Aqui você pode adicionar a lógica para debitar
+    const card = mockCards.find(card => card.id === cardId)
+    if (card) {
+      card.balance -= amount
+    } else {
+      console.error(`Card with id ${cardId} not found.`)
+    }
   }
 
   return (

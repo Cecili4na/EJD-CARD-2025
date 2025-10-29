@@ -16,10 +16,18 @@ interface CheckBalanceProps {
 const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
   const [searchNumber, setSearchNumber] = useState('')
+  const [hasSearched, setHasSearched] = useState(false)
 
   const handleSearch = () => {
+    setHasSearched(true)
     const card = cards.find(c => c.cardNumber === searchNumber.replace(/\D/g, ''))
     setSelectedCard(card || null)
+  }
+
+  const handleInputChange = (value: string) => {
+    setSearchNumber(value)
+    setHasSearched(false)
+    setSelectedCard(null)
   }
 
   const formatCardNumber = (number: string) => {
@@ -42,8 +50,8 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
         <div className="max-w-2xl mx-auto w-full">
           {/* Header com botão de voltar */}
           <Header 
-            title="💰 Consultar Saldo"
-            subtitle="Verifique o saldo do seu cartão mágico"
+            title="🔍 CONSULTAR SALDO"
+            subtitle="Verifique o saldo disponível no seu cartão"
             showLogo={false}
             showBackButton={true}
             onBack={onBack}
@@ -60,10 +68,10 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
                   type="text"
                   id="cardNumber"
                   value={searchNumber}
-                  onChange={(e) => setSearchNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                  onChange={(e) => handleInputChange(e.target.value.replace(/\D/g, '').slice(0, 3))}
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
-                  placeholder="0000 0000 0000 0000"
-                  maxLength={16}
+                  placeholder="001"
+                  maxLength={3}
                 />
               </div>
 
@@ -72,7 +80,7 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
                 size="lg"
                 className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black shadow-lg hover:shadow-emerald-200 font-semibold"
               >
-                🔍 Consultar Saldo
+                🔍 CONSULTAR SALDO
               </Button>
             </div>
           </div>
@@ -82,10 +90,10 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">
               <div className="text-center">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-black mb-2 font-cardinal">
+                  <h3 className="font-bold text-black mb-2 font-cardinal">
                     💳 Cartão Encontrado
                   </h3>
-                  <p className="text-black font-farmhand">
+                  <p className="text-3xl text-black font-farmhand">
                     {selectedCard.name}
                   </p>
                 </div>
@@ -108,46 +116,11 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
           )}
 
           {/* Mensagem de erro */}
-          {searchNumber && !selectedCard && (
+          {hasSearched && !selectedCard && (
             <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-center">
               <p className="text-black">
                 ❌ Cartão não encontrado. Verifique o número digitado.
               </p>
-            </div>
-          )}
-
-          {/* Lista de cartões disponíveis */}
-          {cards.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold text-black mb-4 text-center font-cardinal">
-                📋 Cartões Disponíveis
-              </h3>
-              <div className="space-y-3">
-                {cards.map((card) => (
-                  <div 
-                    key={card.id}
-                    className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-emerald-200 cursor-pointer hover:bg-white/80 transition-colors duration-200"
-                    onClick={() => {
-                      setSearchNumber(card.cardNumber)
-                      setSelectedCard(card)
-                    }}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-black">{card.name}</p>
-                        <p className="text-sm text-black font-mono">
-                          {formatCardNumber(card.cardNumber)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-black">
-                          R$ {card.balance.toFixed(2).replace('.', ',')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>

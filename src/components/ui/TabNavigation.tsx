@@ -18,7 +18,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
                 : 'text-black hover:bg-emerald-100'
             }`}
           >
-            💳 Cartões
+            💳 CARTÕES
           </button>
           <button
             onClick={() => onTabChange('lojinha')}
@@ -28,7 +28,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
                 : 'text-black hover:bg-emerald-100'
             }`}
           >
-            🏪 Lojinha
+            🏪 LOJINHA
           </button>
           <button
             onClick={() => onTabChange('lanchonete')}
@@ -38,7 +38,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
                 : 'text-black hover:bg-emerald-100'
             }`}
           >
-            🍔 Lanchonete
+            🍔 LANCHONETE
           </button>
         </div>
       </div>
