@@ -10,9 +10,7 @@ interface TabNavigationProps {
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
   const navigate = useNavigate()
   const { 
-    canViewCards, 
-    canViewLojinha, 
-    canViewLanchonete, 
+    canViewCards,
     canViewAdmin,
     canSellLojinha,
     canSellLanchonete,
@@ -35,6 +33,27 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             }`}
           >
             💳 Meu Cartão
+            💳 CARTÕES
+          </button>
+          <button
+            onClick={() => onTabChange('lojinha')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+              activeTab === 'lojinha'
+                ? 'bg-emerald-500 text-black shadow-md'
+                : 'text-black hover:bg-emerald-100'
+            }`}
+          >
+            🏪 LOJINHA
+          </button>
+          <button
+            onClick={() => onTabChange('lanchonete')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+              activeTab === 'lanchonete'
+                ? 'bg-emerald-500 text-black shadow-md'
+                : 'text-black hover:bg-emerald-100'
+            }`}
+          >
+            🍔 LANCHONETE
           </button>
           
           {canViewCards && (
@@ -49,7 +68,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               💳 Comunicação
             </button>
           )}
-          {canViewLojinha && (
+          { (
             <button
               onClick={() => onTabChange('lojinha')}
               className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
@@ -81,7 +100,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               📊 Histórico Lojinha
             </button>
           )}
-          {canViewLanchonete && (
+          { (
             <button
               onClick={() => onTabChange('lanchonete')}
               className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${

@@ -19,7 +19,7 @@ const Button: React.FC<ButtonProps> = ({
   type = 'button',
   disabled = false
 }) => {
-  const baseClasses = 'font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2'
+  const baseClasses = 'font-farmhand font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2'
   
   const variantClasses = {
     primary: 'bg-blue-500 hover:bg-blue-600 text-black focus:ring-blue-500',
