@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { Button, Header } from '../../components/shared'
+import { useToastContext } from '../../contexts/ToastContext'
 import { productService } from '../../services/productService'
 
 const CreateProductPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { id } = useParams<{ id: string }>()
+  const { showSuccess, showError, showWarning } = useToastContext()
   
   // Determinar o contexto baseado na rota (lojinha ou lanchonete)
   const context = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
@@ -35,7 +37,7 @@ const CreateProductPage = () => {
         })
         setImagePreview(product.image)
       } else {
-        alert('Produto não encontrado!')
+        showError('Erro', 'Produto não encontrado!')
         navigate(`/${context}/products/list`)
       }
     }
@@ -87,13 +89,13 @@ const CreateProductPage = () => {
     if (file) {
       // Validar tipo de arquivo
       if (!file.type.startsWith('image/')) {
-        alert('Por favor, selecione apenas arquivos de imagem.')
+        showWarning('Arquivo inválido', 'Por favor, selecione apenas arquivos de imagem.')
         return
       }
       
       // Validar tamanho (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('A imagem deve ter no máximo 5MB.')
+        showWarning('Imagem muito grande', 'A imagem deve ter no máximo 5MB.')
         return
       }
       
@@ -234,17 +236,17 @@ const CreateProductPage = () => {
     
     // Validações
     if (!formData.name.trim()) {
-      alert('Por favor, preencha o nome do produto.')
+      showWarning('Campo obrigatório', 'Por favor, preencha o nome do produto.')
       return
     }
     
     if (!formData.price) {
-      alert('Por favor, preencha o valor.')
+      showWarning('Campo obrigatório', 'Por favor, preencha o valor.')
       return
     }
     
     if (!formData.quantity || parseInt(formData.quantity) <= 0) {
-      alert('Por favor, preencha uma quantidade válida.')
+      showWarning('Quantidade inválida', 'Por favor, preencha uma quantidade válida.')
       return
     }
     
@@ -276,11 +278,11 @@ const CreateProductPage = () => {
         })
       }
       
-      alert(currentConfig.successMessage)
+      showSuccess('Sucesso', currentConfig.successMessage)
       navigate(`/${context}/products/list`)
     } catch (error) {
       console.error('Erro ao salvar produto:', error)
-      alert('Erro ao salvar produto. Tente novamente.')
+      showError('Erro', 'Erro ao salvar produto. Tente novamente.')
     } finally {
       setIsLoading(false)
     }

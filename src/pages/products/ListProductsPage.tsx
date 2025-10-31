@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Header, ConfirmationModal } from '../../components/shared'
+import { useToastContext } from '../../contexts/ToastContext'
 import { productService, Product } from '../../services/productService'
 
 const ListProductsPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { showSuccess, showError, showInfo } = useToastContext()
   
   // Determinar o contexto baseado na rota (lojinha ou lanchonete)
   const context = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
@@ -99,6 +101,9 @@ const ListProductsPage = () => {
         if (currentPage > newTotalPages && newTotalPages > 0) {
           setCurrentPage(newTotalPages)
         }
+        showSuccess('Sucesso', context === 'lojinha' ? 'Produto excluído com sucesso!' : 'Item excluído com sucesso!')
+      } else {
+        showError('Erro', context === 'lojinha' ? 'Falha ao excluir o produto.' : 'Falha ao excluir o item.')
       }
       setProductToDelete(null)
     }
@@ -106,6 +111,7 @@ const ListProductsPage = () => {
 
   const handleCancelDelete = () => {
     setProductToDelete(null)
+    showInfo('Cancelado', 'Exclusão cancelada.')
   }
 
   const formatPrice = (price: number): string => {

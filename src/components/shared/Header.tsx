@@ -1,4 +1,5 @@
 import React from 'react'
+import Button from './Button'
 
 interface HeaderProps {
   title?: string
@@ -24,12 +25,14 @@ const Header: React.FC<HeaderProps> = ({
       {/* Botão de voltar */}
       {showBackButton && onBack && (
         <div className="flex justify-start mb-6">
-          <button
+          <Button
             onClick={onBack}
-            className="px-4 py-2 border-2 border-wizard-500 text-wizard-500 hover:bg-wizard-500 hover:text-black rounded-lg font-semibold transition-colors duration-200"
+            variant="outline"
+            size="sm"
+            className="border-emerald-500 !text-black hover:bg-emerald-200 hover:!text-black font-semibold font-cardinal shadow-md"
           >
             {backButtonText}
-          </button>
+          </Button>
         </div>
       )}
 

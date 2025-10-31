@@ -1,5 +1,4 @@
 import React from 'react'
-import { Button } from './index'
 
 interface Card {
   id: string
@@ -22,13 +21,13 @@ interface ConfirmationModalProps {
   onConfirm: () => void
   title: string
   icon: string
-  card: Card | null
-  transactionType: 'credit' | 'debit'
-  amount: string
-  formattedAmount: string
+  card?: Card | null
+  transactionType?: 'credit' | 'debit'
+  amount?: string
+  formattedAmount?: string
   description?: string
   message?: string
-  variant: 'card-transaction' | 'delete-product'
+  variant?: 'card-transaction' | 'delete-product'
   // Props para exclusão de produto
   product?: Product | null
   // Estado de carregamento
@@ -52,8 +51,18 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isLoading = false
 }) => {
   if (!isOpen) return null
-  if (variant === 'card-transaction' && !card) return null
-  if (variant === 'delete-product' && !product) return null
+
+  // Inferir variante quando não informada
+  const computedVariant: 'card-transaction' | 'delete-product' | undefined = variant
+    ? variant
+    : product
+      ? 'delete-product'
+      : card
+        ? 'card-transaction'
+        : undefined
+
+  if (computedVariant === 'card-transaction' && !card) return null
+  if (computedVariant === 'delete-product' && !product) return null
 
   const formatCardNumber = (number: string) => {
     return number.replace(/(\d{4})(?=\d)/g, '$1 ')
@@ -80,7 +89,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   }
 
   const getConfirmButtonClass = () => {
-    if (variant === 'delete-product') {
+    if (computedVariant === 'delete-product') {
       return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
     }
     if (transactionType === 'credit') {
@@ -91,7 +100,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   const getConfirmButtonText = () => {
     if (isLoading) {
-      if (variant === 'delete-product') return 'Excluindo...'
+      if (computedVariant === 'delete-product') return 'Excluindo...'
       return transactionType === 'credit' ? 'Adicionando...' : 'Processando...'
     }
     return '✅ Confirmar'
@@ -119,7 +128,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         </div>
 
         {/* Conteúdo específico por variante */}
-        {variant === 'card-transaction' && card && (
+        {(computedVariant === 'card-transaction' || (!!card && !computedVariant)) && card && (
           <>
             {/* Dados do Cartão */}
             <div 
@@ -169,7 +178,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </>
         )}
 
-        {variant === 'delete-product' && product && (
+        {computedVariant === 'delete-product' && product && (
           <div 
             className="modal-delete-product-info border-2 border-red-200 rounded-lg p-4 mb-6"
             style={{ backgroundColor: '#fef2f2' }}

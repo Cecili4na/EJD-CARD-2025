@@ -13,7 +13,7 @@ const CardsPage = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">💳</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              CRIAR CARTÃO
+              Criar Cartão
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Emita um novo cartão de débito mágico
@@ -36,7 +36,7 @@ const CardsPage = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              CONSULTAR SALDO
+              Consultar Saldo
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Verifique o saldo do seu cartão
@@ -59,7 +59,7 @@ const CardsPage = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">💰</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              INSERIR VALOR
+              Inserir Valor
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Adicione valor ao seu cartão
@@ -82,7 +82,7 @@ const CardsPage = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">💸</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              DEBITAR CARTÃO
+              Debitar Cartão
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Realize um débito no seu cartão
