@@ -1,0 +1,117 @@
+/* Importação das fontes da identidade visual */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap');
+
+/* Configuração global de fundo - Força o gradiente */
+html, body {
+  background: linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Farmhand Serif', serif !important;
+}
+
+#root {
+  background: transparent !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+}
+
+/* Garantir que não há fundo preto em nenhum elemento */
+* {
+  background-color: transparent !important;
+}
+
+/* Exceto para elementos que devem ter fundo específico */
+.bg-white, .bg-gray-50, .bg-emerald-50, .bg-wizard-50, .bg-sky-50, .bg-cotton-50 {
+  background-color: inherit !important;
+}
+
+/* Modal de confirmação - sobrescreve a regra transparent */
+.modal-confirmation {
+  background-color: white !important;
+}
+
+.modal-confirmation .card-data {
+  background-color: #d1fae5 !important;
+}
+
+.modal-confirmation .transaction-summary {
+  background-color: #fef3c7 !important;
+}
+
+/* Modal PIX - sobrescreve a regra transparent com fundo branco sólido */
+.pix-modal-wrapper {
+  background-color: #ffffff !important;
+}
+
+.pix-modal-content {
+  background-color: #ffffff !important;
+}
+
+.pix-modal-wrapper div:not(button):not(.pix-modal-button),
+.pix-modal-content div:not(button):not(.pix-modal-button) {
+  background-color: #ffffff !important;
+}
+
+.pix-modal-wrapper p,
+.pix-modal-content p {
+  background-color: transparent !important;
+}
+
+/* Overlay escuro para modal */
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Notificações com fundo opaco */
+.toast-notification.bg-emerald-500 {
+  background-color: #22c55e !important;
+}
+
+.toast-notification.bg-red-500 {
+  background-color: #ef4444 !important;
+}
+
+.toast-notification.bg-yellow-500 {
+  background-color: #eab308 !important;
+}
+
+.toast-notification.bg-blue-500 {
+  background-color: #3b82f6 !important;
+}
+
+/* Tipografia da identidade visual */
+.font-cardinal {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 700 !important;
+}
+
+.font-farmhand {
+  font-family: 'Crimson Text', serif !important;
+  font-weight: 600 !important;
+}
+
+.font-newyorker {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 600 !important;
+}
+
+/* Aplicação de fontes por hierarquia */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 700 !important;
+}
+
+p, span, div, input, textarea, select, button {
+  font-family: 'Crimson Text', serif !important;
+}
+
+/* Títulos especiais com Cinzel */
+.special-title {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 600 !important;
+}
