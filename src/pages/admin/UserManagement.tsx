@@ -1,66 +1,136 @@
 import React, { useState, useEffect } from 'react'
 import { usePermissions } from '../../hooks/usePermissions'
+import { useAuth } from '../../contexts/AuthContext'
 import { Button } from '../../components/shared'
+import { supabase } from '../../lib/supabase'
+import { UserRole } from '../../lib/roles'
+import { useToastContext } from '../../contexts/ToastContext'
 
 interface User {
   id: string
   email: string
-  name: string
-  role: 'admin' | 'manager' | 'user' | 'guest'
-  createdAt: string
+  name: string | null
+  role: UserRole
+  created_at?: string
+}
+
+// Mapeamento de cores e ícones para cada role
+const getRoleBadge = (role: UserRole) => {
+  const badges: Record<UserRole, { color: string; text: string; emoji: string }> = {
+    admin: { color: 'bg-purple-100 text-purple-700', text: 'Admin', emoji: '👑' },
+    genios_card: { color: 'bg-yellow-100 text-yellow-700', text: 'Genios Card', emoji: '✨' },
+    coord_lojinha: { color: 'bg-blue-100 text-blue-700', text: 'Coord Lojinha', emoji: '🏪' },
+    coord_lanchonete: { color: 'bg-orange-100 text-orange-700', text: 'Coord Lanchonete', emoji: '🍔' },
+    comunicacao: { color: 'bg-green-100 text-green-700', text: 'Comunicação', emoji: '📢' },
+    vendedor_lojinha: { color: 'bg-cyan-100 text-cyan-700', text: 'Vendedor Lojinha', emoji: '💼' },
+    entregador_lojinha: { color: 'bg-yellow-100 text-yellow-700', text: 'Entregador Lojinha', emoji: '🚴' },
+    vendedor_lanchonete: { color: 'bg-orange-100 text-orange-700', text: 'Vendedor Lanchonete', emoji: '🍕' },
+    encontrista: { color: 'bg-gray-100 text-gray-700', text: 'Encontrista', emoji: '👤' },
+  }
+  return badges[role] || badges.encontrista
 }
 
 const UserManagement: React.FC = () => {
   const { canManageUsers } = usePermissions()
+  const { user: currentUser } = useAuth()
+  const { showSuccess, showError } = useToastContext()
   const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
+  const [searchEmail, setSearchEmail] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [newRole, setNewRole] = useState<'admin' | 'manager' | 'user' | 'guest'>('user')
+  const [newRole, setNewRole] = useState<UserRole>('encontrista')
 
+  // Debounce para busca
   useEffect(() => {
-    if (canManageUsers) {
-      fetchUsers()
-    }
-  }, [canManageUsers])
+    if (!canManageUsers) return
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/admin/users')
-      if (response.ok) {
-        const data = await response.json()
-        setUsers(data)
+    const timeoutId = setTimeout(() => {
+      if (searchEmail.trim()) {
+        searchUsers(searchEmail.trim())
+      } else {
+        setUsers([])
       }
-    } catch (error) {
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchEmail, canManageUsers])
+
+  const searchUsers = async (email: string) => {
+    setIsLoading(true)
+    try {
+      // Buscar diretamente de app_users (email e name são salvos automaticamente no login/registro)
+      const { data, error } = await supabase
+        .from('app_users')
+        .select('id, email, name, role, created_at')
+        .ilike('email', `%${email}%`)
+        .order('email', { ascending: true })
+        .limit(50)
+
+      if (error) {
+        // Se erro for sobre coluna não existir, sugerir adicionar colunas
+        if (error.message?.includes('does not exist') || error.message?.includes('column')) {
+          showError(
+            'Configuração necessária',
+            'Execute: ALTER TABLE public.app_users ADD COLUMN IF NOT EXISTS email text; ALTER TABLE public.app_users ADD COLUMN IF NOT EXISTS name text;'
+          )
+          setUsers([])
+          return
+        }
+        throw error
+      }
+
+      setUsers((data as User[]) || [])
+    } catch (error: any) {
       console.error('Erro ao buscar usuários:', error)
+      showError('Erro ao buscar usuários', error?.message || 'Não foi possível buscar usuários')
+      setUsers([])
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
-  const updateUserRole = async (userId: string, role: string) => {
+  const updateUserRole = async (userId: string, role: UserRole) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/users/${userId}/role`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ role }),
-      })
-
-      if (response.ok) {
-        setUsers(users.map(user => 
-          user.id === userId ? { ...user, role: role as any } : user
-        ))
+      // Validar que não está alterando o próprio role
+      if (userId === currentUser?.id) {
+        showError('Ação não permitida', 'Você não pode alterar seu próprio role. Peça a outro administrador para fazer isso.')
         setEditingUser(null)
-        alert(`✅ Role alterado para ${role} com sucesso!`)
-      } else {
-        const error = await response.json()
-        alert(`❌ Erro: ${error.error || 'Falha ao alterar role'}`)
+        return
       }
-    } catch (error) {
+
+      // Validar que a role é válida
+      const validRoles: UserRole[] = ['admin', 'genios_card', 'coord_lojinha', 'coord_lanchonete', 'comunicacao', 'vendedor_lojinha', 'entregador_lojinha', 'vendedor_lanchonete', 'encontrista']
+      if (!validRoles.includes(role)) {
+        showError('Role inválido', 'O role selecionado não é válido.')
+        return
+      }
+
+      const { error } = await supabase
+        .from('app_users')
+        .update({ role })
+        .eq('id', userId)
+
+      if (error) throw error
+
+      // Atualizar estado local imediatamente
+      setUsers(users.map(user =>
+        user.id === userId ? { ...user, role } : user
+      ))
+      setEditingUser(null)
+      showSuccess('Role Alterado', `Role alterado para ${getRoleBadge(role).text} com sucesso!`)
+    } catch (error: any) {
       console.error('Erro ao atualizar role:', error)
-      alert('❌ Erro de conexão ao alterar role')
+      showError('Erro ao alterar role', error?.message || 'Não foi possível alterar o role')
     }
+  }
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user)
+    setNewRole(user.role)
+  }
+
+  const handleCancel = () => {
+    setEditingUser(null)
   }
 
   if (!canManageUsers) {
@@ -73,115 +143,188 @@ const UserManagement: React.FC = () => {
     )
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-      </div>
-    )
-  }
-
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">
-      <h2 className="text-2xl font-bold text-black mb-6">👥 Gerenciar Usuários</h2>
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-4 md:p-8 overflow-x-hidden max-w-full">
+      <h2 className="text-xl md:text-2xl font-bold text-black mb-6">👥 Gerenciar Usuários</h2>
       
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">Nome</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Role</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Criado em</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="border border-gray-300 px-4 py-2">{user.name}</td>
-                <td className="border border-gray-300 px-4 py-2">{user.email}</td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {editingUser?.id === user.id ? (
-                    <select
-                      value={newRole}
-                      onChange={(e) => setNewRole(e.target.value as any)}
-                      className="px-2 py-1 border rounded"
-                    >
-                      <option value="admin">👑 Admin</option>
-                      <option value="manager">👨‍💼 Manager</option>
-                      <option value="user">👤 User</option>
-                      <option value="guest">👻 Guest</option>
-                    </select>
-                  ) : (
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.role === 'admin' ? 'bg-purple-100 text-purple-700' :
-                      user.role === 'manager' ? 'bg-blue-100 text-blue-700' :
-                      user.role === 'user' ? 'bg-green-100 text-green-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {user.role === 'admin' ? '👑 Admin' : 
-                       user.role === 'manager' ? '👨‍💼 Manager' : 
-                       user.role === 'user' ? '👤 User' : '👻 Guest'}
-                    </span>
-                  )}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {new Date(user.createdAt).toLocaleString('pt-BR')}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {editingUser?.id === user.id ? (
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        onClick={() => updateUserRole(user.id, newRole)}
-                        className="bg-green-500 hover:bg-green-600 text-black"
-                      >
-                        ✅ Salvar
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => setEditingUser(null)}
-                        className="bg-gray-500 hover:bg-gray-600 text-black"
-                      >
-                        ❌ Cancelar
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex space-x-2">
-                      {user.role !== 'admin' ? (
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setEditingUser(user)
-                            setNewRole(user.role)
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 text-black"
-                        >
-                          ✏️ Editar
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          🔒 Protegido
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Campo de busca */}
+      <div className="mb-6">
+        <label htmlFor="search-email" className="block text-sm font-semibold text-black mb-2">
+          🔍 Buscar por Email
+        </label>
+        <div className="relative">
+          <input
+            id="search-email"
+            type="email"
+            value={searchEmail}
+            onChange={(e) => setSearchEmail(e.target.value)}
+            placeholder="Digite o email do usuário..."
+            className="w-full px-4 py-3 pl-10 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+          />
+          <span className="absolute left-3 top-3.5 text-gray-400">📧</span>
+          {isLoading && (
+            <span className="absolute right-3 top-3.5">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-500"></div>
+            </span>
+          )}
+        </div>
+        {searchEmail && !isLoading && (
+          <p className="text-sm text-gray-600 mt-2">
+            {users.length === 0 ? 'Nenhum usuário encontrado' : `${users.length} usuário(s) encontrado(s)`}
+          </p>
+        )}
       </div>
 
-      <div className="mt-6 text-center">
-        <Button 
-          onClick={fetchUsers}
-          className="bg-emerald-500 hover:bg-emerald-600 text-black px-4 py-2 rounded-lg"
-        >
-          🔄 Atualizar Lista
-        </Button>
-      </div>
+      {/* Lista de usuários */}
+      {searchEmail && (
+        <div className="overflow-x-hidden">
+          {users.length === 0 && !isLoading ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-6xl mb-4">🔍</div>
+              <p className="text-lg font-medium">Nenhum usuário encontrado com este email.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {users.map((user) => {
+                const badge = getRoleBadge(user.role)
+                const isCurrentUser = user.id === currentUser?.id
+                const isEditing = editingUser?.id === user.id
+                
+                return (
+                  <div
+                    key={user.id}
+                    className={`bg-gradient-to-r from-white to-gray-50 rounded-xl border-2 p-4 md:p-6 shadow-lg transition-all duration-300 overflow-hidden ${
+                      isCurrentUser
+                        ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-yellow-100'
+                        : isEditing
+                        ? 'border-emerald-400 shadow-emerald-200'
+                        : 'border-gray-200 hover:border-emerald-300 hover:shadow-xl'
+                    }`}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                      {/* Informações do usuário */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-3 md:gap-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-xl md:text-2xl font-bold text-white shadow-lg">
+                              {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <h3 className="text-base md:text-lg font-bold text-black truncate">
+                                {user.name || 'Sem nome'}
+                              </h3>
+                              {isCurrentUser && (
+                                <span className="px-2 py-1 rounded-full text-xs font-bold bg-yellow-400 text-black shadow-sm whitespace-nowrap">
+                                  Você
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2 truncate">{user.email}</p>
+                            {user.created_at && (
+                              <p className="text-xs text-gray-500">
+                                Criado em {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Role e Ações */}
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:flex-shrink-0 lg:w-auto">
+                        {/* Role */}
+                        <div className="flex-1 sm:flex-initial min-w-0">
+                          {isEditing ? (
+                            <div className="space-y-3">
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Selecionar Novo Role:
+                              </label>
+                              <select
+                                value={newRole}
+                                onChange={(e) => setNewRole(e.target.value as UserRole)}
+                                className="w-full max-w-full sm:w-56 px-3 py-2 md:px-4 md:py-3 border-2 border-emerald-300 rounded-lg bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors font-medium shadow-sm text-sm md:text-base"
+                              >
+                                {(['admin', 'genios_card', 'coord_lojinha', 'coord_lanchonete', 'comunicacao', 'vendedor_lojinha', 'entregador_lojinha', 'vendedor_lanchonete', 'encontrista'] as UserRole[]).map((role) => {
+                                  const b = getRoleBadge(role)
+                                  return (
+                                    <option key={role} value={role}>
+                                      {b.emoji} {b.text}
+                                    </option>
+                                  )
+                                })}
+                              </select>
+                              {newRole !== user.role && (
+                                <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+                                  <span className="text-gray-600">De:</span>
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${badge.color}`}>
+                                    {badge.emoji} {badge.text}
+                                  </span>
+                                  <span className="text-gray-600">→</span>
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadge(newRole).color}`}>
+                                    {getRoleBadge(newRole).emoji} {getRoleBadge(newRole).text}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-2">
+                                Role Atual:
+                              </label>
+                              <div className={`inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-semibold text-xs md:text-sm shadow-md ${badge.color} border-2 border-opacity-30`}>
+                                <span className="text-lg md:text-xl">{badge.emoji}</span>
+                                <span>{badge.text}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Botões de ação */}
+                        <div className="flex gap-2 flex-shrink-0">
+                          {isEditing ? (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => updateUserRole(user.id, newRole)}
+                                className="!bg-gradient-to-r !from-emerald-500 !to-emerald-600 hover:!from-emerald-600 hover:!to-emerald-700 !text-white !shadow-lg hover:!shadow-xl !font-bold px-4 md:px-6 py-2 whitespace-nowrap"
+                              >
+                                💾 Salvar
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={handleCancel}
+                                className="!bg-gray-500 hover:!bg-gray-600 !text-white !shadow-md !font-bold px-4 md:px-6 py-2 whitespace-nowrap !opacity-100"
+                              >
+                                ✖️ Cancelar
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => handleEdit(user)}
+                              className="!bg-gradient-to-r !from-blue-500 !to-blue-600 hover:!from-blue-600 hover:!to-blue-700 !text-white !shadow-lg hover:!shadow-xl !font-bold px-4 md:px-6 py-2 whitespace-nowrap"
+                              disabled={isCurrentUser}
+                            >
+                              {isCurrentUser ? '🔒 Bloqueado' : '✏️ Alterar Role'}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!searchEmail && (
+        <div className="text-center py-8 text-gray-500">
+          <p>Digite um email no campo de busca para encontrar usuários.</p>
+        </div>
+      )}
     </div>
   )
 }

@@ -43,6 +43,25 @@ html, body {
   background-color: #fef3c7 !important;
 }
 
+/* Modal PIX - sobrescreve a regra transparent com fundo branco sólido */
+.pix-modal-wrapper {
+  background-color: #ffffff !important;
+}
+
+.pix-modal-content {
+  background-color: #ffffff !important;
+}
+
+.pix-modal-wrapper div:not(button):not(.pix-modal-button),
+.pix-modal-content div:not(button):not(.pix-modal-button) {
+  background-color: #ffffff !important;
+}
+
+.pix-modal-wrapper p,
+.pix-modal-content p {
+  background-color: transparent !important;
+}
+
 /* Overlay escuro para modal */
 .modal-overlay {
   background-color: rgba(0, 0, 0, 0.7) !important;

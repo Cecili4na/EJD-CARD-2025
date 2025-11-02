@@ -10,6 +10,7 @@ interface TabNavigationProps {
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
   const navigate = useNavigate()
   const { 
+    userRole,
     canViewCards,
     canViewAdmin,
     canSellLojinha,
@@ -23,7 +24,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
     <div className="flex justify-center mb-8">
       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-yellow-200">
         <div className="flex space-x-2">
-          {/* Meu Cartão - sempre visível para usuários logados */}
+          {/* Meu Cartão - sempre visível */}
           <button
             onClick={() => onTabChange('mycard')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
@@ -33,8 +34,8 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             }`}
           >
             💳 Meu Cartão
-            💳 CARTÕES
           </button>
+          {userRole !== 'encontrista' && (
           <button
             onClick={() => onTabChange('lojinha')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
@@ -45,6 +46,8 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           >
             🏪 LOJINHA
           </button>
+          )}
+          {userRole !== 'encontrista' && (
           <button
             onClick={() => onTabChange('lanchonete')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
@@ -55,7 +58,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           >
             🍔 LANCHONETE
           </button>
-          
+          )}
           {canViewCards && (
             <button
               onClick={() => onTabChange('cards')}
@@ -68,19 +71,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               💳 Comunicação
             </button>
           )}
-          { (
-            <button
-              onClick={() => onTabChange('lojinha')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
-                activeTab === 'lojinha'
-                  ? 'bg-emerald-500 text-black shadow-md'
-                  : 'text-black hover:bg-emerald-100'
-              }`}
-            >
-              🏪 Lojinha
-            </button>
-          )}
-          {canSellLojinha && (
+          {userRole !== 'encontrista' && canSellLojinha && (
             <button
               onClick={() => onTabChange('lojinha')}
               className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
@@ -100,19 +91,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               📊 Histórico Lojinha
             </button>
           )}
-          { (
-            <button
-              onClick={() => onTabChange('lanchonete')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
-                activeTab === 'lanchonete'
-                  ? 'bg-emerald-500 text-black shadow-md'
-                  : 'text-black hover:bg-emerald-100'
-              }`}
-            >
-              🍔 Lanchonete
-            </button>
-          )}
-          {canSellLanchonete && (
+          {userRole !== 'encontrista' && canSellLanchonete && (
             <button
               onClick={() => onTabChange('lanchonete')}
               className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${

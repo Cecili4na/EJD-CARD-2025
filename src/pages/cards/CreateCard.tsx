@@ -1,18 +1,24 @@
 import React, { useState } from 'react'
 import { Button, Header } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
+import { useNavigate } from 'react-router-dom'
 
 interface CreateCardProps {
   onBack: () => void
-  onCreateCard: (cardData: { name: string; cardNumber: string; initialBalance: number }) => void
 }
 
-const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
+const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
+  const { createCard } = useSupabaseData()
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [cardNumber, setCardNumber] = useState('')
+  const [cardCode, setCardCode] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [initialBalance, setInitialBalance] = useState('')
   const [formattedBalance, setFormattedBalance] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { showSuccess } = useToastContext()
 
   const formatCurrency = (value: string) => {
@@ -51,25 +57,30 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
     
-    // Simular criação do cartão
-    setTimeout(() => {
-      onCreateCard({
+    try {
+      await createCard({
         name,
         cardNumber,
+        cardCode,
+        phoneNumber,
         initialBalance: parseFloat(initialBalance) || 0
       })
-      setIsLoading(false)
       
-      // Mostrar notificação de sucesso
       showSuccess(
         'Cartão Criado!',
         `Cartão de número ${cardNumber} para ${name} foi criado com sucesso com saldo inicial de R$ ${formattedBalance}.`
       )
       
-      onBack()
-    }, 1000)
+      navigate('/cards')
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao criar cartão')
+      console.error('Erro ao criar cartão:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
 
@@ -132,6 +143,38 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
                 />
               </div>
 
+              {/* Código do Cartão */}
+              <div>
+                <label htmlFor="cardCode" className="block text-sm font-semibold text-black mb-2 font-farmhand">
+                  🔑 Código do Cartão
+                </label>
+                <input
+                  type="text"
+                  id="cardCode"
+                  value={cardCode}
+                  onChange={(e) => setCardCode(e.target.value.replace(/\s+/g, ''))}
+                  required
+                  className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+                  placeholder="Digite o código do cartão"
+                />
+              </div>
+
+              {/* Telefone */}
+              <div>
+                <label htmlFor="phoneNumber" className="block text-sm font-semibold text-black mb-2 font-farmhand">
+                  📱 Telefone
+                </label>
+                <input
+                  type="text"
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                  required
+                  className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+                  placeholder="11999999999"
+                />
+              </div>
+
               {/* Saldo Inicial */}
               <div>
                 <label htmlFor="initialBalance" className="block text-sm font-semibold text-black mb-2 font-farmhand">
@@ -146,6 +189,13 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack, onCreateCard }) => {
                   placeholder="0,00"
                 />
               </div>
+
+              {/* Mensagem de erro */}
+              {error && (
+                <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-center">
+                  <p className="text-red-800">{error}</p>
+                </div>
+              )}
 
               {/* Botão de Criar */}
               <Button

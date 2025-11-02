@@ -54,29 +54,62 @@ const MyCardPage: React.FC = () => {
     if (!user?.id) return
 
     loadUserData()
-  }, [user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   const loadUserData = async () => {
     try {
-      if (supabaseData) {
-        // Usar Supabase se configurado
+      if (supabaseData && isSupabaseConfigured()) {
+        // Primeiro tentar buscar do contexto (mais rápido)
         let userCard = supabaseData.getCardByUserId(user?.id || '')
         
+        // Se não encontrar no contexto, buscar diretamente no Supabase
         if (!userCard) {
-          // Criar cartão se não existir
-          userCard = await supabaseData.createCard(
-            user?.id || '',
-            user?.name || 'Usuário',
-            '11999999999' // TODO: Adicionar campo phone ao User
-          )
+          console.log('Cartão não encontrado no contexto, buscando diretamente no Supabase para user:', user?.id)
+          const { data: cardData, error } = await supabase
+            .from('cards')
+            .select('*')
+            .eq('user_id', user?.id || '')
+            .eq('is_associated', true)
+            .maybeSingle()
+          
+          if (error) {
+            console.error('Erro ao buscar cartão:', error)
+          }
+          
+          if (cardData) {
+            console.log('Cartão encontrado no Supabase:', cardData)
+            // Mapear do formato Supabase para Card
+            userCard = {
+              id: cardData.id,
+              userId: cardData.user_id || '',
+              userName: cardData.user_name || '',
+              cardNumber: cardData.card_number || '',
+              phoneNumber: cardData.phone_number || '',
+              balance: parseFloat(cardData.balance) || 0,
+              createdAt: cardData.created_at || '',
+              updatedAt: cardData.updated_at || ''
+            }
+          } else {
+            console.log('Nenhum cartão associado encontrado para o usuário')
+          }
+        } else {
+          console.log('Cartão encontrado no contexto:', userCard)
+        }
+        
+        if (!userCard) {
+          // Sem cartão associado: redirecionar para associação
+          console.log('Redirecionando para página de associação...')
+          window.location.href = '/cards/associate'
+          return
         }
 
         setCard({
           id: userCard.id,
-          name: userCard.userName,
-          cardNumber: userCard.cardNumber,
-          balance: userCard.balance,
-          phoneNumber: userCard.phoneNumber
+          name: userCard.userName || 'Sem nome',
+          cardNumber: userCard.cardNumber || '',
+          balance: userCard.balance || 0,
+          phoneNumber: userCard.phoneNumber || ''
         })
 
         // Carregar histórico de compras
@@ -84,12 +117,12 @@ const MyCardPage: React.FC = () => {
         
         // Converter vendas em compras do usuário
         const userPurchases: Purchase[] = sales
-          .filter(sale => sale.userId === userCard.id)
-          .map(sale => ({
+          .filter((sale: any) => sale.userId === userCard.id)
+          .map((sale: any) => ({
             id: sale.id,
             date: sale.createdAt.split('T')[0],
             store: sale.category === 'lojinha' ? 'Lojinha Mágica' : 'Lanchonete do Feiticeiro',
-            product: sale.items.map(item => item.productName).join(', '),
+            product: sale.items.map((item: any) => item.productName).join(', '),
             amount: sale.total,
             type: sale.category
           }))
@@ -177,8 +210,7 @@ const MyCardPage: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 2000))
 
       if (supabaseData && isSupabaseConfigured()) {
-        // Usar Supabase se configurado
-        // Atualizar status do pagamento
+        // Atualizar status do pagamento PIX
         await supabase
           .from('pix_payments')
           .update({
@@ -187,27 +219,34 @@ const MyCardPage: React.FC = () => {
           })
           .eq('pix_code', pixPayment.pixCode)
 
-        // Adicionar saldo ao cartão
-        await supabase
+        // Usar a função do contexto para atualizar o saldo do cartão no banco
+        // Isso já atualiza o saldo, cria a transação e recarrega os dados
+        await supabaseData.updateCardBalance(
+          card.id,
+          parseFloat(amount),
+          'credit',
+          'Abastecimento via PIX'
+        )
+
+        // Buscar cartão atualizado diretamente do banco para garantir dados atualizados
+        const { data: updatedCardData, error: cardError } = await supabase
           .from('cards')
-          .update({
-            balance: parseFloat(amount), // TODO: Implementar incremento correto
-            updated_at: new Date().toISOString()
-          })
+          .select('*')
           .eq('id', card.id)
+          .single()
 
-        // Criar transação
-        await supabase
-          .from('transactions')
-          .insert({
-            card_id: card.id,
-            amount: parseFloat(amount),
-            type: 'credit',
-            description: 'Abastecimento via PIX',
-            created_by: 'user'
+        if (!cardError && updatedCardData) {
+          // Atualizar estado do cartão imediatamente com dados do banco
+          setCard({
+            id: updatedCardData.id,
+            name: updatedCardData.user_name || 'Sem nome',
+            cardNumber: updatedCardData.card_number || '',
+            balance: parseFloat(updatedCardData.balance) || 0,
+            phoneNumber: updatedCardData.phone_number || ''
           })
+        }
 
-        // Recarregar dados
+        // Recarregar dados do usuário para atualizar a UI completa
         await loadUserData()
       } else {
         // Usar dados locais
@@ -335,27 +374,9 @@ const MyCardPage: React.FC = () => {
               onChange={(e) => setAmount(e.target.value)}
               min="0.01"
               step="0.01"
-              className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+              className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               placeholder="0,00"
             />
-          </div>
-
-          {/* Valores pré-definidos */}
-          <div>
-            <p className="text-sm font-semibold text-black mb-2">💡 Valores Rápidos</p>
-            <div className="grid grid-cols-3 gap-2">
-              {[10, 25, 50, 100, 200, 500].map((value) => (
-                <Button
-                  key={value}
-                  onClick={() => setAmount(value.toString())}
-                  variant="outline"
-                  size="sm"
-                  className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-black"
-                >
-                  R$ {value}
-                </Button>
-              ))}
-            </div>
           </div>
 
           <Button
@@ -422,39 +443,87 @@ const MyCardPage: React.FC = () => {
 
       {/* Modal de PIX */}
       {showPixInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-yellow-200 p-8 max-w-md w-full">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-black mb-4 font-cardinal">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" style={{ backdropFilter: 'none' }}>
+          <div 
+            className="pix-modal-content text-center"
+            style={{ 
+              backgroundColor: '#ffffff',
+              borderRadius: '1rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '2px solid #10b981',
+              padding: '1.5rem',
+              minHeight: '400px',
+              maxWidth: '480px',
+              width: '90%'
+            }}
+          >
+              <h3 className="text-2xl font-bold text-black mb-6 font-cardinal">
                 📱 PIX Gerado
               </h3>
               
-                <div className="bg-gradient-to-r from-green-100 to-green-200 rounded-xl p-6 mb-6">
-                  <p className="text-black text-sm mb-2">Código PIX</p>
-                  <p className="text-lg font-mono font-bold text-black break-all">
+              {/* Código PIX */}
+              <div 
+                style={{ 
+                  border: '2px solid #10b981',
+                  borderRadius: '0.75rem',
+                  padding: '1.25rem',
+                  marginBottom: '1.25rem',
+                  backgroundColor: '#ffffff'
+                }}
+              >
+                <p className="text-black text-sm font-semibold mb-3">Código PIX</p>
+                <div 
+                  style={{ 
+                    border: '2px solid #34d399',
+                    borderRadius: '0.5rem',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    backgroundColor: '#ffffff'
+                  }}
+                >
+                  <p className="text-base font-mono font-bold text-black break-all leading-relaxed">
                     {pixPayment?.pixCode}
                   </p>
-                  <Button
-                    onClick={copyPixCode}
-                    size="sm"
-                    className="mt-2 bg-green-500 hover:bg-green-600 text-black"
-                  >
-                    📋 Copiar Código
-                  </Button>
                 </div>
+                <Button
+                  onClick={copyPixCode}
+                  size="sm"
+                  className="w-full !bg-emerald-500 hover:!bg-emerald-600 !text-white !shadow-md !font-bold !opacity-100"
+                >
+                  📋 Copiar Código
+                </Button>
+              </div>
 
-              <div className="bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl p-6 mb-6">
-                <p className="text-black text-sm mb-2">Valor</p>
-                <p className="text-2xl font-bold text-black">
+              {/* Valor */}
+              <div 
+                style={{ 
+                  border: '2px solid #fbbf24',
+                  borderRadius: '0.75rem',
+                  padding: '1.25rem',
+                  marginBottom: '1.25rem',
+                  backgroundColor: '#ffffff'
+                }}
+              >
+                <p className="text-black text-sm font-semibold mb-2">Valor a Pagar</p>
+                <p className="text-3xl font-bold text-black">
                   R$ {parseFloat(amount).toFixed(2).replace('.', ',')}
                 </p>
               </div>
 
-              <div className="space-y-3">
+              {/* Botões */}
+              <div 
+                style={{ 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                  marginBottom: '1.25rem',
+                  backgroundColor: '#ffffff'
+                }}
+              >
                 <Button
                   onClick={handleConfirmPayment}
                   size="lg"
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-black shadow-lg"
+                  className="w-full !bg-gradient-to-r !from-green-500 !to-green-600 hover:!from-green-600 hover:!to-green-700 !text-white !shadow-lg !font-bold !opacity-100"
                   disabled={isCheckingPayment}
                 >
                   {isCheckingPayment ? (
@@ -471,23 +540,33 @@ const MyCardPage: React.FC = () => {
                   onClick={() => setShowPixInfo(false)}
                   variant="outline"
                   size="lg"
-                  className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-black"
+                  className="w-full !border-2 !border-red-400 !text-red-600 hover:!bg-red-500 hover:!text-white !font-bold !opacity-100"
                 >
                   ❌ Cancelar
                 </Button>
               </div>
 
-              <div className="mt-6 p-4 bg-blue-100 rounded-lg">
-                <p className="text-sm text-black">
-                  <strong>💡 Instruções:</strong><br/>
-                  1. Copie o código PIX<br/>
-                  2. Abra seu app bancário<br/>
-                  3. Cole o código e faça o pagamento<br/>
-                  4. Clique em "Confirmar Pagamento" após o pagamento
+              {/* Instruções */}
+              <div 
+                style={{ 
+                  marginTop: '1.25rem',
+                  padding: '1rem',
+                  border: '2px solid #93c5fd',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#ffffff'
+                }}
+              >
+                <p className="text-sm text-black font-medium">
+                  <strong className="text-blue-700">💡 Instruções:</strong><br/>
+                  <span className="text-gray-800">
+                    1. Copie o código PIX acima<br/>
+                    2. Abra seu app bancário<br/>
+                    3. Cole o código e faça o pagamento<br/>
+                    4. Clique em "Confirmar Pagamento" após pagar
+                  </span>
                 </p>
               </div>
             </div>
-          </div>
         </div>
       )}
     </div>

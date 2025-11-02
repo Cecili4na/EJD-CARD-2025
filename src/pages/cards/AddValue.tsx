@@ -1,27 +1,22 @@
 import React, { useState } from 'react'
 import { Button, Header, ConfirmationModal } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
-
-interface Card {
-  id: string
-  name: string
-  cardNumber: string
-  balance: number
-}
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
 
 interface AddValueProps {
   onBack: () => void
-  cards: Card[]
-  onAddValue: (cardId: string, amount: number) => void
 }
 
-const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null)
+const AddValue: React.FC<AddValueProps> = ({ onBack }) => {
+  const { getCardByNumber, updateCardBalance } = useSupabaseData()
+  const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [amount, setAmount] = useState('')
   const [formattedAmount, setFormattedAmount] = useState('')
   const [cardNumber, setCardNumber] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { showSuccess } = useToastContext()
 
   const formatCurrency = (value: string) => {
@@ -58,13 +53,23 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
     }
   }
 
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 16)
+  const handleCardNumberChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\s+/g, '')
     setCardNumber(value)
+    setError(null)
+    setSelectedCard(null)
     
-    // Busca o cartão pelo número digitado
-    const foundCard = cards.find(card => card.cardNumber === value)
-    setSelectedCard(foundCard || null)
+    if (value.length >= 3) {
+      setIsSearching(true)
+      try {
+        const foundCard = await getCardByNumber(value)
+        setSelectedCard(foundCard)
+      } catch (err: any) {
+        setError(err?.message || 'Erro ao buscar cartão')
+      } finally {
+        setIsSearching(false)
+      }
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,21 +86,23 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
     setIsLoading(true)
     setShowConfirmation(false)
     
-    // Simular adição de valor
-    setTimeout(() => {
-      onAddValue(selectedCard.id, parseFloat(amount))
-      setIsLoading(false)
+    try {
+      await updateCardBalance(selectedCard.id, parseFloat(amount), 'credit', 'Crédito adicionado')
+      
+      showSuccess(
+        'Valor Adicionado!',
+        `R$ ${formattedAmount} foi adicionado ao cartão ${selectedCard.card_number} de ${selectedCard.user_name || 'usuário'} com sucesso.`
+      )
+      
       setAmount('')
       setFormattedAmount('')
       setCardNumber('')
       setSelectedCard(null)
-      
-      // Mostrar notificação de sucesso
-      showSuccess(
-        'Valor Adicionado!',
-        `R$ ${formattedAmount} foi adicionado ao cartão ${selectedCard.cardNumber} de ${selectedCard.name} com sucesso.`
-      )
-    }, 1000)
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao adicionar valor')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleCancelConfirmation = () => {
@@ -149,6 +156,12 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
                 />
               </div>
 
+              {error && (
+                <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-center">
+                  <p className="text-red-800">{error}</p>
+                </div>
+              )}
+
               {/* Valor a ser adicionado */}
               <div>
                 <label htmlFor="amount" className="block text-sm font-semibold text-black mb-2">
@@ -169,12 +182,12 @@ const AddValue: React.FC<AddValueProps> = ({ onBack, cards, onAddValue }) => {
               {selectedCard && (
                 <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-xl p-4">
                   <h4 className="font-semibold text-black mb-2">📋 Cartão Selecionado</h4>
-                  <p className="text-black"><strong>Nome:</strong> {selectedCard.name}</p>
-                  <p className="text-black"><strong>Número:</strong> {formatCardNumber(selectedCard.cardNumber)}</p>
-                  <p className="text-black"><strong>Saldo Atual:</strong> R$ {selectedCard.balance.toFixed(2).replace('.', ',')}</p>
+                  <p className="text-black"><strong>Nome:</strong> {selectedCard.user_name || 'Sem nome'}</p>
+                  <p className="text-black"><strong>Número:</strong> {formatCardNumber(selectedCard.card_number || '')}</p>
+                  <p className="text-black"><strong>Saldo Atual:</strong> R$ {(selectedCard.balance || 0).toFixed(2).replace('.', ',')}</p>
                   {amount && (
                     <p className="text-black mt-2">
-                      <strong>Novo Saldo:</strong> R$ {(selectedCard.balance + parseFloat(amount || '0')).toFixed(2).replace('.', ',')}
+                      <strong>Novo Saldo:</strong> R$ {((selectedCard.balance || 0) + parseFloat(amount || '0')).toFixed(2).replace('.', ',')}
                     </p>
                   )}
                 </div>

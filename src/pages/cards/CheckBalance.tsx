@@ -1,27 +1,36 @@
 import { useState } from 'react'
 import { Button, Header } from '../../components/shared'
-
-interface Card {
-  id: string
-  name: string
-  cardNumber: string
-  balance: number
-}
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
 
 interface CheckBalanceProps {
   onBack: () => void
-  cards: Card[]
 }
 
-const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null)
+const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack }) => {
+  const { getCardByNumber } = useSupabaseData()
+  const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [searchNumber, setSearchNumber] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
+    setError(null)
+    setIsLoading(true)
     setHasSearched(true)
-    const card = cards.find(c => c.cardNumber === searchNumber.replace(/\D/g, ''))
-    setSelectedCard(card || null)
+    
+    try {
+      const card = await getCardByNumber(searchNumber.replace(/\s+/g, ''))
+      setSelectedCard(card)
+      if (!card) {
+        setError('Cartão não encontrado')
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao buscar cartão')
+      setSelectedCard(null)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (value: string) => {
@@ -71,16 +80,22 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
                   onChange={(e) => handleInputChange(e.target.value.replace(/\D/g, '').slice(0, 3))}
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
                   placeholder="001"
-                  maxLength={3}
                 />
               </div>
+
+              {error && (
+                <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-center">
+                  <p className="text-red-800">{error}</p>
+                </div>
+              )}
 
               <Button
                 onClick={handleSearch}
                 size="lg"
                 className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black shadow-lg hover:shadow-emerald-200 font-semibold"
+                disabled={isLoading || !searchNumber}
               >
-                🔍 CONSULTAR SALDO
+                {isLoading ? '🔍 Buscando...' : '🔍 CONSULTAR SALDO'}
               </Button>
             </div>
           </div>
@@ -94,35 +109,27 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack, cards }) => {
                     💳 Cartão Encontrado
                   </h3>
                   <p className="text-3xl text-black font-farmhand">
-                    {selectedCard.name}
+                    {selectedCard.user_name || 'Sem nome'}
                   </p>
                 </div>
 
                 <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-xl p-6 mb-6">
                   <p className="text-black text-sm mb-2">Número do Cartão</p>
                   <p className="text-2xl font-mono font-bold text-black">
-                    {formatCardNumber(selectedCard.cardNumber)}
+                    {formatCardNumber(selectedCard.card_number || '')}
                   </p>
                 </div>
 
                 <div className="bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl p-6">
                   <p className="text-black text-sm mb-2">Saldo Disponível</p>
                   <p className="text-4xl font-bold text-black">
-                    R$ {selectedCard.balance.toFixed(2).replace('.', ',')}
+                    R$ {(selectedCard.balance || 0).toFixed(2).replace('.', ',')}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Mensagem de erro */}
-          {hasSearched && !selectedCard && (
-            <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-center">
-              <p className="text-black">
-                ❌ Cartão não encontrado. Verifique o número digitado.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

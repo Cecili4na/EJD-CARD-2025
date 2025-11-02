@@ -11,6 +11,7 @@ import MyCardPage from './pages/MyCardPage'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { DataProvider } from './contexts/DataContext'
 import { SupabaseDataProvider } from './contexts/SupabaseDataContext'
+import { ToastProvider } from './contexts/ToastContext'
 import { isSupabaseConfigured } from './lib/supabase'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 
@@ -143,7 +144,9 @@ function App() {
   return (
     <AuthProvider>
       <DataProviderComponent>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
       </DataProviderComponent>
     </AuthProvider>
   )

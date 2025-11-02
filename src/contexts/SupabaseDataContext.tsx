@@ -102,7 +102,10 @@ interface SupabaseDataContextType {
   
   // Funções de cartão
   getCardByUserId: (userId: string) => Card | null
-  createCard: (userId: string, userName: string, phoneNumber: string) => Promise<Card>
+  createCard: (params: { name: string; cardNumber: string; cardCode: string; phoneNumber: string; initialBalance?: number }) => Promise<Card>
+  associateCard: (params: { cardNumber: string; cardCode: string }) => Promise<Card>
+  getCardByNumber: (cardNumber: string) => Promise<Card | null>
+  updateCardBalance: (cardId: string, amount: number, type: 'credit' | 'debit', description?: string) => Promise<void>
   
   // Utilitários
   resetData: () => Promise<void>
@@ -259,12 +262,24 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
         deliveredAt: order.delivered_at
       })) || []
 
+      // Mapear cartões do formato Supabase (snake_case) para formato Card (camelCase)
+      const mappedCards: Card[] = (cards || []).map((card: any) => ({
+        id: card.id,
+        userId: card.user_id || '',
+        userName: card.user_name || '',
+        cardNumber: card.card_number || '',
+        phoneNumber: card.phone_number || '',
+        balance: parseFloat(card.balance) || 0,
+        createdAt: card.created_at || '',
+        updatedAt: card.updated_at || ''
+      }))
+
       setData({
         balances,
         products: productsByCategory,
         sales: processedSales,
         orders: processedOrders,
-        cards: cards || []
+        cards: mappedCards
       })
 
     } catch (err) {
@@ -499,19 +514,18 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     return data.cards.find(c => c.userId === userId) || null
   }
 
-  const createCard = async (userId: string, userName: string, phoneNumber: string): Promise<Card> => {
+  const createCard = async (params: { name: string; cardNumber: string; cardCode: string; phoneNumber: string; initialBalance?: number }): Promise<Card> => {
     try {
-      // Gerar número do cartão
-      const cardNumber = Math.random().toString().slice(2, 18).padStart(16, '0')
-
       const { data: card, error } = await supabase
         .from('cards')
         .insert({
-          user_id: userId,
-          user_name: userName,
-          card_number: cardNumber,
-          phone_number: phoneNumber,
-          balance: 0
+          card_number: params.cardNumber,
+          card_code: params.cardCode,
+          user_name: params.name,
+          phone_number: params.phoneNumber,
+          balance: params.initialBalance || 0,
+          is_associated: false, // Por padrão não associado
+          user_id: null // Não associado a nenhum usuário ainda
         })
         .select()
         .single()
@@ -519,9 +533,135 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
       if (error) throw error
 
       await loadData()
-      return card
+      return card as any
     } catch (err) {
       console.error('Erro ao criar cartão:', err)
+      throw err
+    }
+  }
+
+  // Associação de cartão existente ao usuário atual
+  const associateCard = async (params: { cardNumber: string; cardCode: string }): Promise<Card> => {
+    try {
+      // Verificar existência e status (valida por card_number + card_code)
+      const { data: existing, error: findError } = await supabase
+        .from('cards')
+        .select('id, is_associated, card_code')
+        .eq('card_number', params.cardNumber)
+        .maybeSingle()
+      if (findError) throw findError
+      if (!existing) throw new Error('Cartão inexistente')
+      if (existing.card_code !== params.cardCode) throw new Error('Código do cartão inválido')
+      if (existing.is_associated) throw new Error('Cartão já associado, fale com a coordenação do encontro se quiser mudar a conta do cartão associado')
+
+      // Obter usuário
+      const { data: session } = await supabase.auth.getSession()
+      const userId = session.session?.user?.id
+      if (!userId) throw new Error('Sessão inválida')
+
+      const { data: authUser } = await supabase.auth.getUser()
+      const userName = authUser.user?.user_metadata?.name || null
+
+      // Associar
+      const { data: updated, error: updError } = await supabase
+        .from('cards')
+        .update({
+          user_id: userId,
+          user_name: userName,
+          is_associated: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id)
+        .eq('is_associated', false)
+        .select('*')
+        .single()
+      if (updError) throw updError
+
+      // Mapear do formato Supabase para Card
+      const mappedCard: Card = {
+        id: updated.id,
+        userId: updated.user_id || '',
+        userName: updated.user_name || '',
+        cardNumber: updated.card_number || '',
+        phoneNumber: updated.phone_number || '',
+        balance: parseFloat(updated.balance) || 0,
+        createdAt: updated.created_at || '',
+        updatedAt: updated.updated_at || ''
+      }
+
+      await loadData()
+      return mappedCard
+    } catch (err) {
+      console.error('Erro ao associar cartão:', err)
+      throw err
+    }
+  }
+
+  // Buscar cartão por número
+  const getCardByNumber = async (cardNumber: string): Promise<Card | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('card_number', cardNumber)
+        .maybeSingle()
+      
+      if (error) throw error
+      return data as any || null
+    } catch (err) {
+      console.error('Erro ao buscar cartão:', err)
+      throw err
+    }
+  }
+
+  // Atualizar saldo do cartão
+  const updateCardBalance = async (cardId: string, amount: number, type: 'credit' | 'debit', description?: string): Promise<void> => {
+    try {
+      // Buscar cartão atual
+      const { data: card, error: cardError } = await supabase
+        .from('cards')
+        .select('balance')
+        .eq('id', cardId)
+        .single()
+      
+      if (cardError) throw cardError
+      
+      // Calcular novo saldo
+      const newBalance = type === 'credit' 
+        ? (card.balance + amount)
+        : (card.balance - amount)
+      
+      if (newBalance < 0) {
+        throw new Error('Saldo insuficiente')
+      }
+
+      // Atualizar saldo
+      const { error: updateError } = await supabase
+        .from('cards')
+        .update({
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cardId)
+
+      if (updateError) throw updateError
+
+      // Criar transação
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          card_id: cardId,
+          amount: type === 'credit' ? amount : -amount,
+          type,
+          description: description || `${type === 'credit' ? 'Crédito' : 'Débito'} no cartão`,
+          created_by: 'admin'
+        })
+
+      if (transactionError) throw transactionError
+
+      await loadData()
+    } catch (err) {
+      console.error('Erro ao atualizar saldo:', err)
       throw err
     }
   }
@@ -586,6 +726,9 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     markAsDelivered,
     getCardByUserId,
     createCard,
+    associateCard,
+    getCardByNumber,
+    updateCardBalance,
     resetData,
     loadSeedData
   }

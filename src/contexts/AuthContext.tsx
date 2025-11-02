@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 interface User {
   id: string
   email: string
-  name: string
+  name?: string | null
   role: 'admin' | 'genios_card' | 'coord_lojinha' | 'coord_lanchonete' | 'comunicacao' | 'vendedor_lojinha' | 'entregador_lojinha' | 'vendedor_lanchonete' | 'encontrista'
 }
 
@@ -33,141 +34,163 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Verificar sessão ao carregar
+  // Verificar sessão via Supabase
   useEffect(() => {
-    checkSession()
+    const init = async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        // Finalizar loading imediatamente
+        setIsLoading(false)
+        // Não bloquear a UI esperando o carregamento de role
+        void handleAuthChange(data.session?.user?.id || null)
+      } catch (e) {
+        console.error('Auth init error:', e)
+        setIsLoading(false)
+      }
+    }
+    void init()
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        // também não bloquear
+        void handleAuthChange(session?.user?.id || null)
+      } catch (e) {
+        console.error('handleAuthChange error (onAuthStateChange):', e)
+      }
+    })
+    return () => {
+      sub.subscription.unsubscribe()
+    }
   }, [])
 
-  const checkSession = async () => {
+  const loadUserWithRole = async (userId: string): Promise<User | null> => {
+    const { data: authUser } = await supabase.auth.getUser()
+    if (!authUser.user) return null
+
+    const { data: profile } = await supabase
+      .from('app_users')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle()
+
+    return {
+      id: authUser.user.id,
+      email: authUser.user.email || '',
+      name: authUser.user.user_metadata?.name || null,
+      role: (profile?.role as any) || 'encontrista',
+    }
+  }
+
+  const ensureAppUserRow = async (userId: string) => {
+    // Verificar se linha já existe
+    const { data: existing } = await supabase
+      .from('app_users')
+      .select('id, email, name, role')
+      .eq('id', userId)
+      .maybeSingle()
+
+    // Se já existe e tem email/name preenchidos, não fazer nada
+    if (existing && existing.email && existing.name) {
+      return // Linha já existe e está completa, não precisa atualizar
+    }
+
+    // Só buscar dados de auth.users se precisar preencher email/name
+    const { data: authUser } = await supabase.auth.getUser()
+    if (!authUser.user) return
+
+    const email = authUser.user.email || ''
+    const name = authUser.user.user_metadata?.name || null
+
+    // Criar ou atualizar apenas se não existir ou se faltar email/name
+    if (!existing) {
+      // Criar nova linha
+      const { error } = await supabase
+        .from('app_users')
+        .insert({ 
+          id: userId, 
+          role: 'encontrista',
+          email: email,
+          name: name
+        })
+      if (error) {
+        console.warn('ensureAppUserRow insert warning:', error.message)
+      }
+    } else if (!existing.email || !existing.name) {
+      // Atualizar apenas email/name se estiverem vazios (preservar role)
+      const updates: any = {}
+      if (!existing.email) updates.email = email
+      if (!existing.name) updates.name = name
+
+      const { error } = await supabase
+        .from('app_users')
+        .update(updates)
+        .eq('id', userId)
+      if (error) {
+        console.warn('ensureAppUserRow update warning:', error.message)
+      }
+    }
+  }
+
+  const handleAuthChange = async (userId: string | null) => {
     try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) {
-        setIsLoading(false)
+      if (!userId) {
+        setUser(null)
         return
       }
-
-      const response = await fetch('http://localhost:3000/api/auth/session', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setUser(data.user)
-      } else {
-        localStorage.removeItem('auth_token')
+      // Definir usuário básico imediatamente
+      const { data: authUser } = await supabase.auth.getUser()
+      if (!authUser.user) {
+        setUser(null)
+        return
       }
-    } catch (error) {
-      console.error('Erro ao verificar sessão:', error)
-      localStorage.removeItem('auth_token')
-    } finally {
-      setIsLoading(false)
+      setUser({
+        id: authUser.user.id,
+        email: authUser.user.email || '',
+        name: authUser.user.user_metadata?.name || null,
+        role: 'encontrista',
+      })
+      // Em segundo plano: garantir linha e carregar role real
+      await ensureAppUserRow(userId)
+      const u = await loadUserWithRole(userId)
+      setUser(prev => prev ? { ...prev, role: u?.role || 'encontrista' } : u)
+    } catch (e) {
+      console.error('handleAuthChange fatal:', e)
+      setUser(null)
     }
   }
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await fetch('http://localhost:3000/api/auth/sign-in/email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Erro no login')
-      }
-
-      const data = await response.json()
-      setUser(data.user)
-      localStorage.setItem('auth_token', data.session.accessToken)
-    } catch (error) {
-      console.error('Erro no login:', error)
-      throw error
-    }
+    const cleanEmail = (email || '').trim().toLowerCase()
+    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
+    if (error) throw error
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData.session?.user?.id
+    if (!userId) return
+    await ensureAppUserRow(userId)
+    const u = await loadUserWithRole(userId)
+    setUser(u)
   }
 
   const register = async (email: string, password: string, name: string) => {
-    try {
-      // Definir role baseado no email
-      let role = 'encontrista'
-      if (email === 'ana.ceci7373@gmail.com') {
-        role = 'admin'
-      } else if (email.includes('admin')) {
-        role = 'admin'
-      } else if (email.includes('genios')) {
-        role = 'genios_card'
-      } else if (email.includes('coord_lojinha')) {
-        role = 'coord_lojinha'
-      } else if (email.includes('coord_lanchonete')) {
-        role = 'coord_lanchonete'
-      } else if (email.includes('comunicacao')) {
-        role = 'comunicacao'
-      } else if (email.includes('vendedor_lojinha')) {
-        role = 'vendedor_lojinha'
-      } else if (email.includes('entregador')) {
-        role = 'entregador_lojinha'
-      } else if (email.includes('vendedor_lanchonete')) {
-        role = 'vendedor_lanchonete'
+    const cleanEmail = (email || '').trim().toLowerCase()
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password,
+      options: { data: { name } }
+    })
+    if (error) {
+      const anyErr: any = error
+      if (anyErr?.code === 'user_already_exists' || anyErr?.message === 'User already registered') {
+        throw new Error('Email já cadastrado')
       }
-
-      const response = await fetch('http://localhost:3000/api/auth/sign-up/email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name, role }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Erro no registro')
-      }
-
-      const data = await response.json()
-      setUser(data.user)
-      localStorage.setItem('auth_token', data.session.accessToken)
-    } catch (error) {
-      console.error('Erro no registro:', error)
-      throw error
+      throw new Error(anyErr?.message || 'Erro no cadastro')
     }
   }
 
   const logout = async () => {
-    console.log('Logout iniciado...')
-    try {
-      // Limpar estado local primeiro
-      setUser(null)
-      localStorage.removeItem('auth_token')
-      
-      // Tentar notificar o servidor (não crítico se falhar)
-      const token = localStorage.getItem('auth_token')
-      if (token) {
-        try {
-          await fetch('http://localhost:3000/api/auth/sign-out', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-        } catch (serverError) {
-          console.log('Servidor não disponível para logout, continuando...')
-        }
-      }
-      
-      console.log('Logout concluído, redirecionando...')
-      // Forçar reload da página para garantir que o estado seja limpo
-      window.location.href = '/'
-    } catch (error) {
-      console.error('Erro no logout:', error)
-      // Mesmo com erro, limpar estado local
-      setUser(null)
-      localStorage.removeItem('auth_token')
-      window.location.href = '/'
-    }
+    await supabase.auth.signOut()
+    setUser(null)
+    window.location.href = '/'
   }
 
   const value: AuthContextType = {
