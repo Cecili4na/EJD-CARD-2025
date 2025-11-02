@@ -63,17 +63,14 @@ const ProductList: React.FC<ProductListProps> = ({
           {products.map((product) => (
             <Card key={product.id} className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-lg transition-shadow duration-300">
               <div className="space-y-4">
-                {/* Categoria */}
-                <div className="flex justify-between items-start">
-                  <span className="px-3 py-1 bg-ruby-100 text-ruby-800 rounded-full text-sm font-semibold">
-                    {product.category}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                {/* Estoque */}
+                <div className="flex justify-end items-start">
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold text-black ${
                     product.stock > 10 
-                      ? 'bg-green-100 text-green-800' 
+                      ? 'bg-green-100' 
                       : product.stock > 0 
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
+                        ? 'bg-yellow-100'
+                        : 'bg-red-100'
                   }`}>
                     {product.stock} em estoque
                   </span>

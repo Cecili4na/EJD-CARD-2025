@@ -22,22 +22,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel, is
     name: '',
     description: '',
     price: '',
-    category: '',
+    category: 'Produto',
     stock: ''
   })
-
-  const categories = [
-    'Sapatos',
-    'Tênis',
-    'Sandálias',
-    'Botas',
-    'Chinelos',
-    'Acessórios',
-    'Inverno',
-    'Verão',
-    'Esportivo',
-    'Outros'
-  ]
 
   useEffect(() => {
     if (product) {
@@ -154,26 +141,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onCancel, is
             </div>
           </div>
 
-          {/* Categoria */}
-          <div>
-            <label htmlFor="category" className="block text-sm font-semibold text-black mb-2">
-              🏪 Categoria
-            </label>
-            <select
-              id="category"
-              value={formData.category}
-              onChange={(e) => handleInputChange('category', e.target.value)}
-              required
-              className="w-full px-4 py-3 border-2 border-ruby-200 rounded-lg focus:border-ruby-500 focus:ring-2 focus:ring-ruby-200 transition-colors duration-200 bg-white/90 text-black"
-            >
-              <option value="">Selecione uma categoria</option>
-              {categories.map((category) => (
-                <option key={category} value={category} className="text-black">
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Hidden Category Field */}
+          <input 
+            type="hidden" 
+            id="category" 
+            value={formData.category} 
+          />
 
           {/* Botões */}
           <div className="flex space-x-4">
