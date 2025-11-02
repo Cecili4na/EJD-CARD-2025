@@ -18,10 +18,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     if (path.startsWith('/cards')) return 'cards'
     if (path.startsWith('/lojinha')) return 'lojinha'
     if (path.startsWith('/lanchonete')) return 'lanchonete'
+    if (path.startsWith('/sapatinho-velozes')) return 'sapatinho-velozes'
     return 'cards'
   }
 
-  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete') => {
+  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'sapatinho-velozes') => {
     navigate(`/${tab}`)
   }
 

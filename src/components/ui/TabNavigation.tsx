@@ -1,15 +1,15 @@
 import React from 'react'
 
 interface TabNavigationProps {
-  activeTab: 'cards' | 'lojinha' | 'lanchonete'
-  onTabChange: (tab: 'cards' | 'lojinha' | 'lanchonete') => void
+  activeTab: 'cards' | 'lojinha' | 'lanchonete' | 'sapatinho-velozes'
+  onTabChange: (tab: 'cards' | 'lojinha' | 'lanchonete' | 'sapatinho-velozes') => void
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
   return (
     <div className="flex justify-center mb-8">
       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-yellow-200">
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 flex-wrap justify-center">
           <button
             onClick={() => onTabChange('cards')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
@@ -39,6 +39,16 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             }`}
           >
             🍔 LANCHONETE
+          </button>
+          <button
+            onClick={() => onTabChange('sapatinho-velozes')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+              activeTab === 'sapatinho-velozes'
+                ? 'bg-ruby-500 text-white shadow-md'
+                : 'text-black hover:bg-ruby-100'
+            }`}
+          >
+            👟 SAPATINHO VELOZES
           </button>
         </div>
       </div>

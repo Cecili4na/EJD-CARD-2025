@@ -5,6 +5,7 @@ import AppLayout from './components/layouts/AppLayout'
 import { CardsRouter } from './pages/cards'
 import { LojinhaPage } from './pages/lojinha'
 import { LanchonetePage } from './pages/lanchonete'
+import { SapatinhoVelozesPage } from './pages/sapatinho-velozes'
 import { ToastProvider } from './contexts/ToastContext'
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/cards/*" element={<CardsRouter />} />
                 <Route path="/lojinha" element={<LojinhaPage />} />
                 <Route path="/lanchonete" element={<LanchonetePage />} />
+                <Route path="/sapatinho-velozes" element={<SapatinhoVelozesPage />} />
               </Routes>
             </AppLayout>
           } />
