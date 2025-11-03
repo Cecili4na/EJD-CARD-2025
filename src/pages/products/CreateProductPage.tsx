@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { Button, Header } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
-import { productService } from '../../services/productService'
+import { supabase } from '../../lib/supabase'
 
 const CreateProductPage = () => {
   const navigate = useNavigate()
@@ -12,12 +12,12 @@ const CreateProductPage = () => {
   
   // Determinar o contexto baseado na rota (lojinha ou lanchonete)
   const context = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
-  const isEditing = !!id
+  const isEditing = !!id // mantenha esta linha
   
   const [formData, setFormData] = useState({
     name: '',
     price: '',
-    quantity: '',
+    stock: '',
     image: null as File | null
   })
   
@@ -27,21 +27,47 @@ const CreateProductPage = () => {
   // Carregar produto para edição
   useEffect(() => {
     if (isEditing && id) {
-      const product = productService.getProductById(context, id)
-      if (product) {
-        setFormData({
-          name: product.name,
-          price: product.price.toFixed(2).replace('.', ','),
-          quantity: product.quantity.toString(),
-          image: null
-        })
-        setImagePreview(product.image)
-      } else {
-        showError('Erro', 'Produto não encontrado!')
-        navigate(`/${context}/products/list`)
+      const fetchProduct = async () => {
+        try {
+          setIsLoading(true)
+          
+          const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', id) // agora usando id direto como string
+            .single()
+
+          if (error) {
+            console.error('Supabase fetch product error:', error)
+            showError('Erro', 'Erro ao carregar produto.')
+            navigate(`/${context}/products/list`)
+            return
+          }
+
+          if (data) {
+            setFormData({
+              name: data.name ?? '',
+              price: (Number(data.price) || 0).toFixed(2).replace('.', ','),
+              stock: String(data.stock ?? 0),
+              image: null
+            })
+            setImagePreview(data.image ?? null)
+          } else {
+            showError('Erro', 'Produto não encontrado!')
+            navigate(`/${context}/products/list`)
+          }
+        } catch (err) {
+          console.error(err)
+          showError('Erro', 'Erro ao carregar produto.')
+          navigate(`/${context}/products/list`)
+        } finally {
+          setIsLoading(false)
+        }
       }
+
+      fetchProduct()
     }
-  }, [isEditing, id, context, navigate])
+  }, [isEditing, id, context, navigate, showError])
 
   // Configurações específicas por contexto
   const config = {
@@ -245,39 +271,51 @@ const CreateProductPage = () => {
       return
     }
     
-    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
+    if (!formData.stock || parseInt(formData.stock) <= 0) {
       showWarning('Quantidade inválida', 'Por favor, preencha uma quantidade válida.')
       return
     }
     
     setIsLoading(true)
-    
+
     try {
-      // Simular delay de rede
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
       // Usar imagem padrão se nenhuma imagem foi selecionada
       const finalImage = imagePreview || getDefaultImage()
-      
+
       if (isEditing && id) {
-        // Atualizar produto existente
-        productService.updateProduct(context, id, {
-          name: formData.name,
-          price: parseFloat(formData.price.replace(',', '.')),
-          quantity: parseInt(formData.quantity),
-          image: finalImage
-        })
+        const { error } = await supabase
+          .from('products')
+          .update({
+            name: formData.name,
+            price: parseFloat(formData.price.replace(',', '.')),
+            stock: parseInt(formData.stock, 10),
+            category: context,
+            description: formData.name
+          })
+          .eq('id', id)
+
+        if (error) {
+          console.error('Supabase update error:', error)
+          throw error
+        }
       } else {
-        // Criar novo produto
-        productService.addProduct({
-          name: formData.name,
-          price: parseFloat(formData.price.replace(',', '.')),
-          quantity: parseInt(formData.quantity),
-          image: finalImage,
-          context: context
-        })
+        console.log(formData.name)
+        const { error } = await supabase
+          .from('products')
+          .insert([{
+            name: formData.name,
+            price: parseFloat(formData.price.replace(',', '.')),
+            stock: parseInt(formData.stock, 10),
+            category: context,
+            description: formData.name
+          }])
+
+        if (error) {
+          console.error('Supabase insert error:', error)
+          throw error
+        }
       }
-      
+
       showSuccess('Sucesso', currentConfig.successMessage)
       navigate(`/${context}/products/list`)
     } catch (error) {
@@ -406,9 +444,9 @@ const CreateProductPage = () => {
                 </label>
                 <input
                   type="number"
-                  id="quantity"
-                  value={formData.quantity}
-                  onChange={(e) => handleInputChange('quantity', e.target.value)}
+                  id="stock"
+                  value={formData.stock}
+                  onChange={(e) => handleInputChange('stock', e.target.value)}
                   min="1"
                   required
                   className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90 font-farmhand [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"

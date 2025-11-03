@@ -2,7 +2,16 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Header, ConfirmationModal } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
-import { productService, Product } from '../../services/productService'
+import { productService, Product as ProductType } from '../../services/productService'
+
+interface Product {
+  id: string  // alterado de number para string
+  name: string
+  price: number
+  stock: number,
+  description?: string
+  // ...outros campos...
+}
 
 const ListProductsPage = () => {
   const navigate = useNavigate()
@@ -45,11 +54,11 @@ const ListProductsPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context])
 
-  const loadProducts = () => {
+  const loadProducts = async () => {
     // Inicializar produtos mock se não houver produtos
-    productService.initializeMockProducts(context)
-    const loadedProducts = productService.getProducts(context)
-    setProducts(loadedProducts)
+    const loadedProducts = await productService.getProducts(context)
+    console.log('Produtos carregados:', loadedProducts)
+    setProducts(loadedProducts || [])
     // Resetar para a primeira página ao recarregar produtos
     setCurrentPage(1)
   }
@@ -84,28 +93,27 @@ const ListProductsPage = () => {
   }
 
   const handleEdit = (product: Product) => {
-    navigate(`/${context}/products/edit/${product.id}`)
+    if (product.id) {
+      navigate(`/${context}/products/edit/${product.id}`)
+    } else {
+      showError('Erro', 'ID do produto não encontrado')
+    }
   }
 
   const handleDeleteClick = (product: Product) => {
     setProductToDelete(product)
   }
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (productToDelete) {
-      const success = productService.deleteProduct(context, productToDelete.id)
+      const success = await productService.deleteProduct(context, productToDelete.id)
       if (success) {
-        loadProducts()
-        // Se a página atual ficar vazia, voltar para a página anterior
-        const newTotalPages = Math.ceil((products.length - 1) / itemsPerPage)
-        if (currentPage > newTotalPages && newTotalPages > 0) {
-          setCurrentPage(newTotalPages)
-        }
+        await loadProducts()
         showSuccess('Sucesso', context === 'lojinha' ? 'Produto excluído com sucesso!' : 'Item excluído com sucesso!')
+        setProductToDelete(null)
       } else {
-        showError('Erro', context === 'lojinha' ? 'Falha ao excluir o produto.' : 'Falha ao excluir o item.')
+        showError('Erro', 'Falha ao excluir item.')
       }
-      setProductToDelete(null)
     }
   }
 
@@ -156,7 +164,6 @@ const ListProductsPage = () => {
                 {/* Imagem do Produto */}
                 <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
                   <img
-                    src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
@@ -178,8 +185,8 @@ const ListProductsPage = () => {
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600 font-farmhand">📦 Quantidade:</span>
-                      <span className={`font-bold font-cardinal ${product.quantity > 10 ? 'text-emerald-600' : product.quantity > 5 ? 'text-yellow-600' : 'text-red-600'}`}>
-                        {product.quantity}
+                      <span className={`font-bold font-cardinal ${product.stock > 10 ? 'text-emerald-600' : product.stock > 5 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        {product.stock}
                       </span>
                     </div>
                   </div>
@@ -291,11 +298,11 @@ const ListProductsPage = () => {
         message={currentConfig.deleteMessage}
         variant="delete-product"
         product={productToDelete ? {
-          id: productToDelete.id,
+          id: String(productToDelete.id),
           name: productToDelete.name,
           price: productToDelete.price,
-          quantity: productToDelete.quantity,
-          image: productToDelete.image
+          stock: productToDelete.stock,
+          description: productToDelete.description
         } : null}
       />
     </div>

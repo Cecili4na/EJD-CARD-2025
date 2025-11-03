@@ -79,9 +79,49 @@ function AppContent() {
                       <LojinhaPage />
                     </ProtectedRoute>
                   } />
+                  <Route path="/lojinha/products" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <ProductsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lojinha/products/create" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <CreateProductPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lojinha/products/edit/:id" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <CreateProductPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lojinha/products/list" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <ListProductsPage />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/lanchonete" element={
                     <ProtectedRoute requiredPermission="canSellLanchonete">
                       <LanchonetePage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lanchonete/products" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <ProductsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lanchonete/products/create" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <CreateProductPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lanchonete/products/edit/:id" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <CreateProductPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lanchonete/products/list" element={
+                    <ProtectedRoute requiredPermission="canSellLojinha">
+                      <ListProductsPage />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin" element={

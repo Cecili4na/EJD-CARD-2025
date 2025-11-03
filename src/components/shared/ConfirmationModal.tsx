@@ -11,8 +11,8 @@ interface Product {
   id: string
   name: string
   price: number
-  quantity: number
-  image: string
+  stock: number
+  description?: string
 }
 
 interface ConfirmationModalProps {
