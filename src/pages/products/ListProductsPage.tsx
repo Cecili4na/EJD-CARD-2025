@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Header, ConfirmationModal } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
 import { productService, Product as ProductType } from '../../services/productService'
+import OptimizedImage from '../../components/ui/OptimizedImage';
 
 interface Product {
   id: string  // alterado de number para string
@@ -10,6 +11,7 @@ interface Product {
   price: number
   stock: number,
   description?: string
+  image_url?: string | null
   // ...outros campos...
 }
 
@@ -126,6 +128,14 @@ const ListProductsPage = () => {
     return price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
+  // Adicione esta função para obter imagem padrão
+  const getDefaultImage = (context: 'lojinha' | 'lanchonete'): string => {
+    const svg = context === 'lanchonete' 
+      ? `<svg>...</svg>` // seu SVG da lanchonete atual
+      : `<svg>...</svg>` // seu SVG da lojinha atual
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -161,14 +171,12 @@ const ListProductsPage = () => {
                 key={product.id}
                 className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-yellow-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300"
               >
-                {/* Imagem do Produto */}
-                <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
-                  <img
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
+                <OptimizedImage
+                src={product.image_url || getDefaultImage(context)}
+                alt={product.name}
+                className="h-48 bg-gradient-to-br from-gray-100 to-gray-200"
+                context={context}
+              />
                 {/* Informações do Produto */}
                 <div className="p-4">
                   <h3 className="text-lg font-bold text-emerald-600 mb-2 font-cardinal truncate" title={product.name}>

@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { Button, Header } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
 import { supabase } from '../../lib/supabase'
+import { productService } from '../../services'
 
 const CreateProductPage = () => {
   const navigate = useNavigate()
@@ -49,9 +50,10 @@ const CreateProductPage = () => {
               name: data.name ?? '',
               price: (Number(data.price) || 0).toFixed(2).replace('.', ','),
               stock: String(data.stock ?? 0),
-              image: null
+              image: data.image_url ?? null
             })
-            setImagePreview(data.image ?? null)
+            setImagePreview(data.image_url ?? null)
+            console.log(imagePreview)
           } else {
             showError('Erro', 'Produto não encontrado!')
             navigate(`/${context}/products/list`)
@@ -279,45 +281,14 @@ const CreateProductPage = () => {
     setIsLoading(true)
 
     try {
-      // Usar imagem padrão se nenhuma imagem foi selecionada
-      const finalImage = imagePreview || getDefaultImage()
-
-      if (isEditing && id) {
-        const { error } = await supabase
-          .from('products')
-          .update({
-            name: formData.name,
+      productService.saveProduct(context, {id: id ? id : null, name: formData.name,
             price: parseFloat(formData.price.replace(',', '.')),
             stock: parseInt(formData.stock, 10),
             category: context,
-            description: formData.name
-          })
-          .eq('id', id)
-
-        if (error) {
-          console.error('Supabase update error:', error)
-          throw error
-        }
-      } else {
-        console.log(formData.name)
-        const { error } = await supabase
-          .from('products')
-          .insert([{
-            name: formData.name,
-            price: parseFloat(formData.price.replace(',', '.')),
-            stock: parseInt(formData.stock, 10),
-            category: context,
-            description: formData.name
-          }])
-
-        if (error) {
-          console.error('Supabase insert error:', error)
-          throw error
-        }
-      }
+            description: formData.name}, formData.image as unknown as File);
 
       showSuccess('Sucesso', currentConfig.successMessage)
-      navigate(`/${context}/products/list`)
+      navigate(`/${context}/products`)
     } catch (error) {
       console.error('Erro ao salvar produto:', error)
       showError('Erro', 'Erro ao salvar produto. Tente novamente.')
