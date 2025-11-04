@@ -36,7 +36,88 @@ Migrar o sistema de gerenciamento de estado de Context API para **Tanstack Query
 
 ---
 
-## 📦 Fase 1: Setup e Instalação
+## 📊 Status Atual da Migração
+
+### ✅ Já Implementado
+
+#### Tanstack Query
+- ✅ Dependências instaladas (`@tanstack/react-query`, `@tanstack/react-query-devtools`)
+- ✅ `QueryClient` configurado em `src/lib/query-client.ts`
+- ✅ `QueryClientProvider` configurado em `src/main.tsx`
+- ✅ API functions criadas:
+  - ✅ `src/api/cards.api.ts`
+  - ✅ `src/api/products.api.ts`
+  - ✅ `src/api/sales.api.ts`
+  - ✅ `src/api/transactions.api.ts`
+  - ✅ `src/api/orders.api.ts`
+- ✅ Hooks criados:
+  - ✅ `src/hooks/useCards.ts` (parcialmente completo)
+  - ✅ `src/hooks/useProducts.ts`
+  - ✅ `src/hooks/useSales.ts`
+  - ✅ `src/hooks/useTransactions.ts`
+  - ✅ `src/hooks/useOrders.ts`
+- ✅ Componentes de loading criados:
+  - ✅ `src/components/shared/LoadingSpinner.tsx`
+  - ✅ `src/components/shared/PageSkeleton.tsx`
+- ✅ Types centralizados em `src/types/index.ts`
+
+#### Tanstack Router
+- ✅ Dependências instaladas (`@tanstack/react-router`, `@tanstack/react-router-devtools`, `@tanstack/router-vite-plugin`)
+- ✅ Plugin Vite configurado em `vite.config.ts`
+- ✅ Router instance criado em `src/router.tsx`
+- ✅ Route tree gerado (`src/routeTree.gen.ts`)
+- ✅ Rotas criadas em `src/routes/`:
+  - ✅ `__root.tsx`
+  - ✅ `_layout.tsx`
+  - ✅ `index.tsx`
+  - ✅ `mycard.tsx`
+  - ✅ `cards/index.tsx`, `cards/create.tsx`, `cards/balance.tsx`, `cards/add.tsx`, `cards/debit.tsx`, `cards/associate.tsx`
+  - ✅ `lojinha.tsx`, `lanchonete.tsx`, `admin.tsx`
+  - ✅ `vendas/lojinha.tsx`, `vendas/lanchonete.tsx`
+  - ✅ `historico/lojinha.tsx`, `historico/lanchonete.tsx`
+  - ✅ `pedidos-lojinha.tsx`
+- ✅ `RouterProvider` configurado em `src/main.tsx`
+
+### ⚠️ Pendente de Migração
+
+#### Componentes que ainda usam `useSupabaseData` (Context API):
+1. **`src/pages/cards/CheckBalance.tsx`**
+   - ❌ Usa `useSupabaseData().getCardByNumber`
+   - ✅ Deve usar `useCard(cardNumber)` hook
+
+2. **`src/pages/cards/AddValue.tsx`**
+   - ❌ Usa `useSupabaseData().getCardByNumber` e `updateCardBalance`
+   - ✅ Deve usar `useCard(cardNumber)` e `useUpdateCardBalance()` hooks
+
+3. **`src/pages/cards/DebitCard.tsx`**
+   - ❌ Usa `useSupabaseData().getCardByNumber` e `updateCardBalance`
+   - ✅ Deve usar `useCard(cardNumber)` e `useUpdateCardBalance()` hooks
+
+4. **`src/pages/cards/AssociateCard.tsx`**
+   - ❌ Usa `useSupabaseData()`
+   - ✅ Deve usar `useAssociateCard()` hook (já existe)
+
+5. **`src/pages/MyCardPage.tsx`**
+   - ❌ Usa `useSupabaseData().getCardByUserId`
+   - ✅ Deve usar `useCardByUserId(userId)` hook
+
+6. **`src/pages/cards/CreateCard.tsx`**
+   - ✅ Já usa `useCreateCard()` hook
+   - ❌ Ainda usa `useNavigate` do `react-router-dom`
+   - ✅ Deve usar `useNavigate` do `@tanstack/react-router`
+
+#### Navegação
+- ❌ Alguns componentes ainda usam `react-router-dom` ao invés de `@tanstack/react-router`
+- ❌ `src/App.tsx` ainda tem código do React Router (mas não é usado, já que `main.tsx` usa Tanstack Router)
+
+#### Otimizações
+- ❌ Loaders nas rotas não estão implementados (pre-fetch de dados)
+- ❌ Optimistic updates podem ser melhorados
+- ❌ Loading states podem ser mais granulares
+
+---
+
+## 📦 Fase 1: Setup e Instalação (✅ COMPLETO)
 
 ### 1.1 Instalar Dependências
 
@@ -97,7 +178,207 @@ src/
 
 ---
 
-## 🔄 Fase 2: Migração de Data Fetching (Context → Tanstack Query)
+## 🔄 Fase 2: Migração de Componentes (Context → Tanstack Query)
+
+### 2.1 Migrar Componentes de Cartões
+
+#### Migração 1: `src/pages/cards/CheckBalance.tsx`
+
+**Antes:**
+```typescript
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
+
+const { getCardByNumber } = useSupabaseData()
+const card = await getCardByNumber(cardNumber)
+```
+
+**Depois:**
+```typescript
+import { useCard } from '../../hooks/useCards'
+
+const { data: card, isLoading, error } = useCard(cardNumber, enabled={!!cardNumber})
+```
+
+**Checklist:**
+- [ ] Substituir `useSupabaseData()` por `useCard()`
+- [ ] Adicionar loading state usando `isLoading`
+- [ ] Adicionar tratamento de erro usando `error`
+- [ ] Testar busca de cartão por número
+
+---
+
+#### Migração 2: `src/pages/cards/AddValue.tsx`
+
+**Antes:**
+```typescript
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
+
+const { getCardByNumber, updateCardBalance } = useSupabaseData()
+const card = await getCardByNumber(cardNumber)
+await updateCardBalance(cardId, amount, 'credit', description)
+```
+
+**Depois:**
+```typescript
+import { useCard, useUpdateCardBalance } from '../../hooks/useCards'
+
+const { data: card, isLoading } = useCard(cardNumber, enabled={!!cardNumber})
+const updateBalanceMutation = useUpdateCardBalance()
+
+await updateBalanceMutation.mutateAsync({
+  cardId: card.id,
+  amount,
+  type: 'credit',
+  description
+})
+```
+
+**Checklist:**
+- [ ] Substituir `useSupabaseData()` por `useCard()` e `useUpdateCardBalance()`
+- [ ] Adicionar loading state durante busca e atualização
+- [ ] Adicionar tratamento de erro
+- [ ] Testar adição de valor
+
+---
+
+#### Migração 3: `src/pages/cards/DebitCard.tsx`
+
+**Antes:**
+```typescript
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
+
+const { getCardByNumber, updateCardBalance } = useSupabaseData()
+```
+
+**Depois:**
+```typescript
+import { useCard, useUpdateCardBalance } from '../../hooks/useCards'
+
+const { data: card, isLoading } = useCard(cardNumber, enabled={!!cardNumber})
+const updateBalanceMutation = useUpdateCardBalance()
+```
+
+**Checklist:**
+- [ ] Substituir `useSupabaseData()` por hooks do Tanstack Query
+- [ ] Adicionar loading states
+- [ ] Adicionar tratamento de erro
+- [ ] Testar débito de valor
+
+---
+
+#### Migração 4: `src/pages/cards/AssociateCard.tsx`
+
+**Antes:**
+```typescript
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
+
+const dataCtx = useSupabaseData()
+await dataCtx.associateCard({ cardNumber, cardCode })
+```
+
+**Depois:**
+```typescript
+import { useAssociateCard } from '../../hooks/useCards'
+
+const associateCardMutation = useAssociateCard()
+
+await associateCardMutation.mutateAsync({ cardNumber, cardCode })
+```
+
+**Checklist:**
+- [ ] Substituir `useSupabaseData()` por `useAssociateCard()`
+- [ ] Adicionar loading state durante associação
+- [ ] Adicionar tratamento de erro
+- [ ] Testar associação de cartão
+
+---
+
+#### Migração 5: `src/pages/MyCardPage.tsx`
+
+**Antes:**
+```typescript
+import { useSupabaseData } from '../contexts/SupabaseDataContext'
+
+const supabaseData = useSupabaseData()
+const card = supabaseData.getCardByUserId(user?.id || '')
+```
+
+**Depois:**
+```typescript
+import { useCardByUserId } from '../hooks/useCards'
+import { useAuth } from '../contexts/AuthContext'
+
+const { user } = useAuth()
+const { data: card, isLoading, error } = useCardByUserId(user?.id || '', enabled={!!user?.id})
+```
+
+**Checklist:**
+- [ ] Substituir `useSupabaseData()` por `useCardByUserId()`
+- [ ] Adicionar loading state com skeleton
+- [ ] Adicionar tratamento de erro
+- [ ] Adicionar estado vazio quando não há cartão
+- [ ] Testar visualização do cartão do usuário
+
+---
+
+#### Migração 6: `src/pages/cards/CreateCard.tsx`
+
+**Antes:**
+```typescript
+import { useNavigate } from 'react-router-dom'
+
+const navigate = useNavigate()
+navigate('/cards')
+```
+
+**Depois:**
+```typescript
+import { useNavigate } from '@tanstack/react-router'
+
+const navigate = useNavigate()
+navigate({ to: '/cards' })
+```
+
+**Checklist:**
+- [ ] Substituir `useNavigate` do `react-router-dom` por `@tanstack/react-router`
+- [ ] Atualizar chamadas de navegação para usar formato tipado
+- [ ] Testar criação e navegação após criação
+
+---
+
+### 2.2 Migrar Navegação em Outros Componentes
+
+**Buscar todos os arquivos que usam `react-router-dom`:**
+```bash
+grep -r "from 'react-router-dom'" src/
+grep -r 'from "react-router-dom"' src/
+```
+
+**Substituições necessárias:**
+- `import { useNavigate } from 'react-router-dom'` → `import { useNavigate } from '@tanstack/react-router'`
+- `import { useParams } from 'react-router-dom'` → `import { useParams } from '@tanstack/react-router'`
+- `import { Link } from 'react-router-dom'` → `import { Link } from '@tanstack/react-router'`
+- `navigate('/path')` → `navigate({ to: '/path' })`
+- `useParams()` → `useParams({ from: route.fullPath })` (quando necessário)
+
+**Checklist:**
+- [ ] Identificar todos os componentes que usam React Router
+- [ ] Substituir imports
+- [ ] Atualizar chamadas de navegação
+- [ ] Testar todas as rotas
+
+---
+
+### 2.3 Remover Dependências Antigas
+
+**Após migração completa:**
+- [ ] Remover `SupabaseDataProvider` de `src/main.tsx` (ou manter temporariamente para compatibilidade)
+- [ ] Remover importações de `react-router-dom` não utilizadas
+- [ ] Verificar se `src/App.tsx` ainda é necessário (pode ser removido se não usado)
+
+---
+
+## 🔄 Fase 2 Original: Migração de Data Fetching (Context → Tanstack Query) - ✅ PARCIALMENTE COMPLETO
 
 ### 2.1 Criar QueryClient Configurado
 
@@ -500,15 +781,81 @@ function App() {
 
 ---
 
-## 🛣️ Fase 3: Migração do Router (React Router → Tanstack Router)
+## 🛣️ Fase 3: Migração do Router (React Router → Tanstack Router) - ✅ ESTRUTURA COMPLETA, ⚠️ LOADERS PENDENTES
 
-### 3.1 Criar Route Tree
+### 3.0 Status Atual
+- ✅ Estrutura de rotas criada
+- ✅ Router instance configurado
+- ✅ Rotas básicas funcionando
+- ❌ Loaders não implementados (pre-fetch de dados)
+- ❌ Alguns componentes ainda usam `react-router-dom`
+
+### 3.1 Implementar Loaders nas Rotas
+
+Loaders pre-fetcham dados antes da navegação, eliminando piscadas e melhorando UX.
+
+#### **Exemplo: `src/routes/mycard.tsx`**
+
+**Antes:**
+```typescript
+export const Route = createFileRoute('/mycard')({
+  component: MyCardPage,
+})
+```
+
+**Depois:**
+```typescript
+import { cardsApi } from '../api/cards.api'
+import { cardKeys } from '../hooks/useCards'
+
+export const Route = createFileRoute('/mycard')({
+  component: MyCardPage,
+  loader: async ({ context }) => {
+    if (context.user?.id) {
+      await context.queryClient.ensureQueryData({
+        queryKey: cardKeys.byUserId(context.user.id),
+        queryFn: () => cardsApi.getByUserId(context.user!.id),
+      })
+    }
+  },
+})
+```
+
+#### **Exemplo: `src/routes/cards/index.tsx`**
+
+```typescript
+import { cardsApi } from '../../api/cards.api'
+import { cardKeys } from '../../hooks/useCards'
+
+export const Route = createFileRoute('/cards/')({
+  component: CardsPage,
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData({
+      queryKey: cardKeys.lists(),
+      queryFn: cardsApi.getAll,
+    })
+  },
+})
+```
+
+**Checklist de Loaders:**
+- [ ] Adicionar loader em `src/routes/mycard.tsx`
+- [ ] Adicionar loader em `src/routes/cards/index.tsx`
+- [ ] Adicionar loader em `src/routes/cards/balance.tsx` (se necessário)
+- [ ] Adicionar loader em `src/routes/cards/add.tsx` (se necessário)
+- [ ] Adicionar loader em `src/routes/cards/debit.tsx` (se necessário)
+- [ ] Adicionar loader em rotas de produtos (`lojinha.tsx`, `lanchonete.tsx`)
+- [ ] Testar pre-fetch de dados ao navegar
+
+---
+
+### 3.2 Rotas Existentes (Referência)
 
 #### **Arquivo**: `src/routes/__root.tsx`
 
 ```typescript
-import { createRootRoute, Outlet } from '@tanstack/router'
-import { TanStackRouterDevtools } from '@tanstack/router-devtools'
+import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 export const Route = createRootRoute({
   component: () => (
@@ -523,7 +870,7 @@ export const Route = createRootRoute({
 #### **Arquivo**: `src/routes/index.tsx`
 
 ```typescript
-import { createFileRoute, redirect } from '@tanstack/router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
   beforeLoad: () => {
@@ -535,7 +882,7 @@ export const Route = createFileRoute('/')({
 #### **Arquivo**: `src/routes/mycard.tsx`
 
 ```typescript
-import { createFileRoute } from '@tanstack/router'
+import { createFileRoute } from '@tanstack/react-router'
 import MyCardPage from '../pages/MyCardPage'
 import { useCardByUserId } from '../hooks/useCards'
 import { useAuth } from '../contexts/AuthContext'
@@ -561,7 +908,7 @@ function MyCardPageRoute() {
 #### **Arquivo**: `src/routes/cards/index.tsx`
 
 ```typescript
-import { createFileRoute } from '@tanstack/router'
+import { createFileRoute } from '@tanstack/react-router'
 import CardsPage from '../../pages/cards/CardsPage'
 import { cardKeys } from '../../hooks/useCards'
 import { cardsApi } from '../../api/cards.api'
@@ -581,7 +928,7 @@ export const Route = createFileRoute('/cards/')({
 #### **Arquivo**: `src/routes/cards/create.tsx`
 
 ```typescript
-import { createFileRoute } from '@tanstack/router'
+import { createFileRoute } from '@tanstack/react-router'
 import CreateCard from '../../pages/cards/CreateCard'
 
 export const Route = createFileRoute('/cards/create')({
@@ -594,7 +941,7 @@ export const Route = createFileRoute('/cards/create')({
 #### **Arquivo**: `src/router.tsx`
 
 ```typescript
-import { createRouter } from '@tanstack/router'
+import { createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 import { queryClient } from './lib/query-client'
 
@@ -608,7 +955,7 @@ export const router = createRouter({
   defaultPreloadStaleTime: 0,
 })
 
-declare module '@tanstack/router' {
+declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
@@ -620,7 +967,7 @@ declare module '@tanstack/router' {
 ```typescript
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { RouterProvider } from '@tanstack/router'
+import { RouterProvider } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './lib/query-client'
 import { router } from './router'
@@ -963,5 +1310,68 @@ Esta migração vai resolver os problemas atuais de:
 - ✅ Loading states (granularidade por query)
 - ✅ Organização de código (separação de concerns)
 
-**Próximo Passo**: Revisar e aprovar o plano, depois iniciar Fase 1.
+---
+
+## 🚀 Próximos Passos Imediatos
+
+### Prioridade Alta (Completar Migração de Componentes)
+
+1. **Migrar componentes de cartões** (Fase 2.1)
+   - [ ] `CheckBalance.tsx` → usar `useCard()`
+   - [ ] `AddValue.tsx` → usar `useCard()` e `useUpdateCardBalance()`
+   - [ ] `DebitCard.tsx` → usar `useCard()` e `useUpdateCardBalance()`
+   - [ ] `AssociateCard.tsx` → usar `useAssociateCard()`
+   - [ ] `MyCardPage.tsx` → usar `useCardByUserId()`
+   - [ ] `CreateCard.tsx` → atualizar navegação para Tanstack Router
+
+2. **Migrar navegação** (Fase 2.2)
+   - [ ] Buscar todos os componentes que usam `react-router-dom`
+   - [ ] Substituir imports e chamadas de navegação
+   - [ ] Testar todas as rotas
+
+3. **Implementar loaders** (Fase 3.1)
+   - [ ] Adicionar loader em `mycard.tsx`
+   - [ ] Adicionar loader em `cards/index.tsx`
+   - [ ] Adicionar loaders em outras rotas conforme necessário
+
+### Prioridade Média (Otimizações)
+
+4. **Melhorar loading states**
+   - [ ] Adicionar skeletons onde necessário
+   - [ ] Melhorar feedback visual durante mutations
+
+5. **Testes**
+   - [ ] Executar checklist de funcionalidades (Fase 5.1)
+   - [ ] Testes manuais conforme script (Fase 5.3)
+   - [ ] Verificar performance e eliminação de piscadas
+
+### Prioridade Baixa (Limpeza)
+
+6. **Limpeza final**
+   - [ ] Remover `SupabaseDataProvider` se não for mais necessário
+   - [ ] Remover `react-router-dom` do `package.json` se não usado
+   - [ ] Documentar padrões de uso para a equipe
+
+---
+
+## 📝 Notas de Implementação
+
+### Ordem Recomendada de Migração
+
+1. **Componentes de cartões** (mais simples, dependências claras)
+2. **Navegação** (substituição direta)
+3. **Loaders** (melhora UX imediatamente)
+4. **Otimizações** (polimento final)
+
+### Padrões Importantes
+
+- **Sempre usar hooks do Tanstack Query** ao invés de Context API para dados
+- **Sempre usar `useNavigate` do `@tanstack/react-router`** para navegação
+- **Adicionar loading states** em todas as queries e mutations
+- **Usar optimistic updates** em mutations que afetam UI
+- **Implementar loaders** em rotas que precisam de dados pré-carregados
+
+---
+
+**Status Atual**: Migração ~70% completa. Estrutura base está pronta, falta migrar componentes restantes e implementar loaders.
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSupabaseData } from '../../contexts/SupabaseDataContext'
 import { Button } from '../../components/shared'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 
 const AssociateCard: React.FC = () => {
   const dataCtx: any = useSupabaseData()
