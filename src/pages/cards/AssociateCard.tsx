@@ -17,7 +17,7 @@ const AssociateCard: React.FC = () => {
     setIsLoading(true)
     try {
       await dataCtx.associateCard({ cardNumber, cardCode })
-      navigate('/mycard')
+      navigate({ to: '/mycard' as any })
     } catch (err: any) {
       setError(err?.message || 'Erro ao associar cartão')
     } finally {

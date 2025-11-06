@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import { Header, Button } from '../shared'
 import { TabNavigation } from '../ui'
 import { useAuth } from '../../contexts/AuthContext'
@@ -10,12 +10,12 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate()
-  const location = useLocation()
+  const routerState = useRouterState()
   const { user, logout } = useAuth()
 
   // Determinar aba ativa baseada na rota
   const getActiveTab = () => {
-    const path = location.pathname
+    const path = routerState.location.pathname
     if (path.startsWith('/mycard')) return 'mycard'
     if (path.startsWith('/cards')) return 'cards'
     if (path.startsWith('/lojinha')) return 'lojinha'
@@ -25,7 +25,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   }
 
   const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard') => {
-    navigate(`/${tab}`)
+    navigate({ to: `/${tab}` as any, search: {} as any })
   }
 
   const handleLogout = async () => {
@@ -58,8 +58,14 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               👋 Olá, <span className="font-semibold text-black">{user?.name || user?.email}</span>
               <span className="ml-2 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
                 {user?.role === 'admin' ? '👑 Admin' : 
-                 user?.role === 'manager' ? '👨‍💼 Manager' : 
-                 user?.role === 'user' ? '👤 User' : '👻 Guest'}
+                 user?.role === 'genios_card' ? '🎯 Genios Card' :
+                 user?.role === 'coord_lojinha' ? '🏪 Coord Lojinha' :
+                 user?.role === 'coord_lanchonete' ? '🍔 Coord Lanchonete' :
+                 user?.role === 'comunicacao' ? '📢 Comunicação' :
+                 user?.role === 'vendedor_lojinha' ? '🛒 Vendedor Lojinha' :
+                 user?.role === 'vendedor_lanchonete' ? '🍔 Vendedor Lanchonete' :
+                 user?.role === 'entregador_lojinha' ? '🚚 Entregador' :
+                 user?.role === 'encontrista' ? '👤 Encontrista' : '👻 Guest'}
               </span>
             </div>
             <div className="flex space-x-2">
@@ -70,17 +76,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 className="border-wizard-500 text-wizard-500 hover:bg-wizard-500 hover:text-black"
               >
                 🚪 Sair
-              </Button>
-              <Button 
-                onClick={() => {
-                  localStorage.clear()
-                  window.location.href = '/'
-                }}
-                variant="outline"
-                size="sm"
-                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-black"
-              >
-                🔄 Logout Simples
               </Button>
             </div>
           </div>

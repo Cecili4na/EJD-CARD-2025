@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import CardsPage from '../../pages/cards/CardsPage'
-import { cardKeys } from '../../hooks/useCards'
-import { cardsApi } from '../../api/cards.api'
+import CardsPage from '../../../pages/cards/CardsPage'
+import { cardKeys } from '../../../hooks/useCards'
+import { cardsApi } from '../../../api/cards.api'
 
-export const Route = createFileRoute('/cards/')({
+export const Route = createFileRoute('/_layout/cards/')({
   component: CardsPage,
   loader: async ({ context }) => {
     // Pre-fetch all cards

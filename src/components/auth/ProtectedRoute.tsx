@@ -1,5 +1,5 @@
-import React from 'react'
-import { Navigate } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { usePermissions } from '../../hooks/usePermissions'
 import { RolePermissions } from '../../lib/roles'
 
@@ -18,7 +18,31 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   fallbackPath = '/cards',
   showAccessDenied = false
 }) => {
+  const navigate = useNavigate()
   const { userRole, hasPermission, isAdmin, isManager, isUser } = usePermissions()
+
+  // Verificar se tem a permissão específica
+  useEffect(() => {
+    if (requiredPermission && !hasPermission(requiredPermission)) {
+      if (!showAccessDenied) {
+        navigate({ to: fallbackPath as any, replace: true })
+      }
+    }
+  }, [requiredPermission, hasPermission, showAccessDenied, navigate, fallbackPath])
+
+  // Verificar se tem o role específico
+  useEffect(() => {
+    if (requiredRole) {
+      const hasRequiredRole = 
+        (requiredRole === 'admin' && isAdmin) ||
+        (requiredRole === 'manager' && (isManager || isAdmin)) ||
+        (requiredRole === 'user' && (isUser || isManager || isAdmin))
+
+      if (!hasRequiredRole && !showAccessDenied) {
+        navigate({ to: fallbackPath as any, replace: true })
+      }
+    }
+  }, [requiredRole, isAdmin, isManager, isUser, showAccessDenied, navigate, fallbackPath])
 
   // Verificar se tem a permissão específica
   if (requiredPermission && !hasPermission(requiredPermission)) {
@@ -43,7 +67,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         </div>
       )
     }
-    return <Navigate to={fallbackPath} replace />
+    return null
   }
 
   // Verificar se tem o role específico
@@ -75,7 +99,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           </div>
         )
       }
-      return <Navigate to={fallbackPath} replace />
+      return null
     }
   }
 

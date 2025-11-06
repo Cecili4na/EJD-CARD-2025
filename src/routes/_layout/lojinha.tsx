@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { LojinhaPage } from '../pages/lojinha'
-import { productKeys } from '../hooks/useProducts'
-import { productsApi } from '../api/products.api'
+import { LojinhaPage } from '../../pages/lojinha'
+import { productKeys } from '../../hooks/useProducts'
+import { productsApi } from '../../api/products.api'
 
-export const Route = createFileRoute('/lojinha')({
+export const Route = createFileRoute('/_layout/lojinha')({
   component: LojinhaPage,
   loader: async ({ context }) => {
     // Pre-fetch lojinha products

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { usePermissions } from '../../hooks/usePermissions'
 
 interface TabNavigationProps {
@@ -85,7 +85,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLojinha && (
             <button
-              onClick={() => navigate('/historico/lojinha')}
+              onClick={() => navigate({ to: '/historico/lojinha' })}
               className="px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-black hover:bg-emerald-100"
             >
               📊 Histórico Lojinha
@@ -105,7 +105,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLanchonete && (
             <button
-              onClick={() => navigate('/historico/lanchonete')}
+              onClick={() => navigate({ to: '/historico/lanchonete' })}
               className="px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-black hover:bg-emerald-100"
             >
               📊 Histórico Lanchonete
@@ -113,7 +113,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewOpenOrders && (
             <button
-              onClick={() => navigate('/pedidos-lojinha')}
+              onClick={() => navigate({ to: '/pedidos-lojinha' })}
               className="px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-black hover:bg-emerald-100"
             >
               📦 Pedidos Lojinha

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import CreateCard from '../../pages/cards/CreateCard'
+import CreateCard from '../../../pages/cards/CreateCard'
 
-export const Route = createFileRoute('/cards/create')({
+export const Route = createFileRoute('/_layout/cards/create')({
   component: () => <CreateCard onBack={() => window.history.back()} />,
 })

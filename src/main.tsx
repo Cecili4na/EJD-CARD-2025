@@ -22,28 +22,13 @@ function RouterUpdater() {
     router.update({
       context: {
         queryClient,
-        user: user || null,
+        user: isLoading ? null : (user || null),
       },
     })
-  }, [user])
+  }, [user, isLoading])
 
-  // Mostrar loading enquanto autenticação está carregando
-  if (isLoading) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center" style={{
-        background: 'linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%)',
-        backgroundAttachment: 'fixed',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat'
-      }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    )
-  }
-
+  // Sempre renderizar RouterProvider - o contexto é atualizado via router.update()
+  // O router vai lidar com a navegação baseado no contexto
   return <RouterProvider router={router} />
 }
 
