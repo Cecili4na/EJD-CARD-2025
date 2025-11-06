@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Login } from './components/ui'
 import AppLayout from './components/layouts/AppLayout'
 import { CardsRouter } from './pages/cards'
@@ -14,6 +16,7 @@ import { SupabaseDataProvider } from './contexts/SupabaseDataContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { isSupabaseConfigured } from './lib/supabase'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { queryClient } from './lib/query-client'
 
 function AppContent() {
   const { user, isLoading } = useAuth()
@@ -142,13 +145,17 @@ function App() {
   const DataProviderComponent = isSupabaseConfigured() ? SupabaseDataProvider : DataProvider
 
   return (
-    <AuthProvider>
-      <DataProviderComponent>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
-      </DataProviderComponent>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <DataProviderComponent>
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
+        </DataProviderComponent>
+      </AuthProvider>
+      {/* DevTools apenas em desenvolvimento */}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
   )
 }
 

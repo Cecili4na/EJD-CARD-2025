@@ -1,15 +1,14 @@
 import React, { useState } from 'react'
 import { Button, Header } from '../../components/shared'
-import { useToastContext } from '../../contexts/ToastContext'
-import { useSupabaseData } from '../../contexts/SupabaseDataContext'
-import { useNavigate } from 'react-router-dom'
+import { useCreateCard } from '../../hooks/useCards'
+import { useNavigate } from '@tanstack/react-router'
 
 interface CreateCardProps {
   onBack: () => void
 }
 
 const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
-  const { createCard } = useSupabaseData()
+  const createCardMutation = useCreateCard()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [cardNumber, setCardNumber] = useState('')
@@ -17,9 +16,6 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
   const [phoneNumber, setPhoneNumber] = useState('')
   const [initialBalance, setInitialBalance] = useState('')
   const [formattedBalance, setFormattedBalance] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const { showSuccess } = useToastContext()
 
   const formatCurrency = (value: string) => {
     // Remove tudo que não é número
@@ -57,11 +53,9 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setIsLoading(true)
     
     try {
-      await createCard({
+      await createCardMutation.mutateAsync({
         name,
         cardNumber,
         cardCode,
@@ -69,17 +63,10 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
         initialBalance: parseFloat(initialBalance) || 0
       })
       
-      showSuccess(
-        'Cartão Criado!',
-        `Cartão de número ${cardNumber} para ${name} foi criado com sucesso com saldo inicial de R$ ${formattedBalance}.`
-      )
-      
       navigate('/cards')
-    } catch (err: any) {
-      setError(err?.message || 'Erro ao criar cartão')
-      console.error('Erro ao criar cartão:', err)
-    } finally {
-      setIsLoading(false)
+    } catch (error) {
+      // Erro já tratado no hook
+      console.error('Erro ao criar cartão:', error)
     }
   }
 
@@ -191,9 +178,11 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
               </div>
 
               {/* Mensagem de erro */}
-              {error && (
+              {createCardMutation.isError && (
                 <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-center">
-                  <p className="text-red-800">{error}</p>
+                  <p className="text-red-800">
+                    {(createCardMutation.error as any)?.message || 'Erro ao criar cartão'}
+                  </p>
                 </div>
               )}
 
@@ -202,9 +191,9 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
                 type="submit"
                 size="lg"
                   className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black shadow-lg hover:shadow-emerald-200 font-semibold"
-                disabled={isLoading}
+                disabled={createCardMutation.isPending}
               >
-                {isLoading ? (
+                {createCardMutation.isPending ? (
                   <>
                     <span className="animate-spin mr-2">✨</span>
                     Criando cartão mágico...
