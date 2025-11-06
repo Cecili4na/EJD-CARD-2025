@@ -35,6 +35,7 @@ export interface Sale {
   id: string
   userId: string
   sellerId: string
+  saleId: string
   category: 'lojinha' | 'lanchonete'
   items: SaleItem[]
   total: number
@@ -93,7 +94,7 @@ interface SupabaseDataContextType {
   getProducts: (category: 'lojinha' | 'lanchonete') => Product[]
   
   // Funções de vendas
-  makeSale: (userId: string, sellerId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete') => Promise<string>
+  makeSale: (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete') => Promise<string>
   getSales: (category?: 'lojinha' | 'lanchonete') => Sale[]
   
   // Funções de pedidos
@@ -237,6 +238,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
         userId: sale.card_id,
         sellerId: sale.seller_id,
         category: sale.category,
+        saleId: sale.sale_id,
         items: sale.sale_items.map((item: any) => ({
           id: item.id,
           productId: item.product_id,
@@ -296,7 +298,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
       // Buscar cartão do usuário
       const { data: card, error: cardError } = await supabase
         .from('cards')
-        .select('id')
+        .select('*')
         .eq('user_id', userId)
         .single()
 
@@ -319,7 +321,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
       const { error: balanceError } = await supabase
         .from('cards')
         .update({
-          balance: amount, // TODO: Implementar incremento correto
+          balance: card.balance - amount, // TODO: Implementar incremento correto
           updated_at: new Date().toISOString()
         })
         .eq('id', card.id)
@@ -405,12 +407,29 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
   }
 
   // Funções de vendas
-  const makeSale = async (userId: string, sellerId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete'): Promise<string> => {
+  const makeSale = async (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete'): Promise<string> => {
     try {
+
+    // Obtem quantidade de vendas para gerar o próximo sale_id
+    const { count, error: countError } = await supabase
+      .from('sales')
+      .select('*', { count: 'exact', head: true })
+
+    if (countError) throw countError
+
+    // Gera próximo sale_id formatado
+    const nextSaleNumber = (count || 0) + 1
+    const formattedSaleId = nextSaleNumber.toString().padStart(4, '0')
+
+      // Obter usuário
+      const { data: session } = await supabase.auth.getSession()
+      const sellerId = session.session?.user?.id
+      if (!sellerId) throw new Error('Sessão inválida')
+        
       // Buscar cartão do usuário
       const { data: card, error: cardError } = await supabase
         .from('cards')
-        .select('id, balance')
+        .select('id, balance, user_name')
         .eq('user_id', userId)
         .single()
 
@@ -427,6 +446,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
       const { data: sale, error: saleError } = await supabase
         .from('sales')
         .insert({
+          sale_id: formattedSaleId,
           card_id: card.id,
           seller_id: sellerId,
           category,
@@ -454,7 +474,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
       if (itemsError) throw itemsError
 
       // Debitar saldo
-      await addBalance(userId, -total, `Compra na ${category}`, sellerId)
+      await addBalance(userId, total, `Compra na ${category}`, sellerId)
 
       // Criar pedido se for lojinha
       if (category === 'lojinha') {
@@ -463,7 +483,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
           .insert({
             sale_id: sale.id,
             card_id: card.id,
-            customer_name: `Cliente ${userId}`,
+            customer_name: `Cliente ${card.user_name || 'Sem Nome'}`,
             total,
             status: 'completed'
           })
@@ -487,9 +507,45 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
   }
 
   // Funções de pedidos
-  const getOpenOrders = (): Order[] => {
-    return data.orders.filter(order => order.status === 'completed')
+ const getOpenOrders = async (): Promise<Order[]> => {
+  try {
+    console.log('Fetching open orders...')
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        sale:sales (
+          id,
+          sale_id,
+          sale_items (
+            product_name,
+            quantity
+          )
+        )
+      `)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching open orders:', error)
+      throw error
+    }
+
+    // Transform the data to match the expected format
+    const formattedOrders = data?.map(order => ({
+      ...order,
+      items: order.sale?.sale_items || []
+    })) || []
+
+    console.log('Formatted orders:', formattedOrders)
+    return formattedOrders
+
+  } catch (err) {
+    console.error('Error in getOpenOrders:', err)
+    throw err
   }
+}
 
   const markAsDelivered = async (orderId: string) => {
     try {

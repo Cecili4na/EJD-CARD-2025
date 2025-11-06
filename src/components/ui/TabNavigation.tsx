@@ -3,8 +3,8 @@ import { useRouter } from '@tanstack/react-router'
 import { usePermissions } from '../../hooks/usePermissions'
 
 interface TabNavigationProps {
-  activeTab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard' | 'sapatinho-veloz'
-  onTabChange: (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard' | 'sapatinho-veloz') => void
+  activeTab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'historicoLanchonete' | 'lojinhaPedidos' | 'admin' | 'mycard' | 'sapatinho-veloz'
+  onTabChange: (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'historicoLanchonete' | 'lojinhaPedidos' | 'admin' | 'mycard' | 'sapatinho-veloz') => void
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
@@ -64,7 +64,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLojinha && (
             <button
-              onClick={() => safeNavigate('/historico/lojinha')}
+              onClick={() => safeNavigate('/lojinha/sales/history')}
               className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
             >
               📊 Histórico Lojinha
@@ -84,7 +84,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLanchonete && (
             <button
-              onClick={() => safeNavigate('/historico/lanchonete')}
+              onClick={() => safeNavigate('/lanchonete/orders/history')}
               className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
             >
               📊 Histórico Lanchonete
@@ -103,7 +103,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           </button>
           {canViewOpenOrders && (
             <button
-              onClick={() => safeNavigate('/pedidos-lojinha')}
+              onClick={() => safeNavigate('/lojinha/orders')}
               className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
             >
               📦 Pedidos Lojinha

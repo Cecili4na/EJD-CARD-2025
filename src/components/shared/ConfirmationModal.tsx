@@ -1,3 +1,4 @@
+
 import React from 'react'
 
 interface Card {
@@ -13,8 +14,6 @@ interface Product {
   price: number
   stock: number
   description?: string
-  image?: string | null
-  quantity?: number
 }
 
 interface ConfirmationModalProps {
@@ -29,7 +28,7 @@ interface ConfirmationModalProps {
   formattedAmount?: string
   description?: string
   message?: string
-  variant?: 'card-transaction' | 'delete-product'
+  variant?: 'card-transaction' | 'delete-product' | 'delivery-confirmation'
   // Props para exclusão de produto
   product?: Product | null
   // Estado de carregamento
@@ -55,7 +54,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   if (!isOpen) return null
 
   // Inferir variante quando não informada
-  const computedVariant: 'card-transaction' | 'delete-product' | undefined = variant
+  const computedVariant: 'card-transaction' | 'delete-product' | 'delivery-confirmation' | undefined = variant
     ? variant
     : product
       ? 'delete-product'
@@ -67,6 +66,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   if (computedVariant === 'delete-product' && !product) return null
 
   const formatCardNumber = (number: string) => {
+    if (!number) return ''
     return number.replace(/(\d{4})(?=\d)/g, '$1 ')
   }
 
@@ -94,7 +94,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     if (computedVariant === 'delete-product') {
       return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
     }
-    if (transactionType === 'credit') {
+    else if (computedVariant === 'delivery-confirmation') {
+      return 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white'
+    }
+    if (transactionType === 'credit' || computedVariant === 'card-transaction') {
       return 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white'
     }
     return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
@@ -143,10 +146,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               <h4 className="font-semibold text-black mb-3 font-farmhand">📋 Dados do Cartão</h4>
               <div className="space-y-2">
                 <p className="text-black font-farmhand">
-                  <strong>Nome:</strong> {card.name}
+                  <strong>Nome:</strong> {card.user_name}
                 </p>
                 <p className="text-black font-farmhand">
-                  <strong>Número:</strong> {formatCardNumber(card.cardNumber)}
+                  <strong>Número:</strong> {formatCardNumber(card.card_number)}
                 </p>
                 <p className="text-black font-farmhand">
                   <strong>Saldo Atual:</strong> R$ {card.balance.toFixed(2).replace('.', ',')}
@@ -187,7 +190,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           >
             <div className="flex items-center space-x-4">
               <img
-                src={product.image ?? undefined}
+                src={product.image}
                 alt={product.name}
                 className="w-16 h-16 object-cover rounded-lg"
               />

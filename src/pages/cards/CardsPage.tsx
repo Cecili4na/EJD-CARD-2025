@@ -6,6 +6,12 @@ const CardsPage = () => {
 
   return (
     <div className="space-y-6">
+      <Header 
+            title="🔍 Comunicação"
+            subtitle="Crie e gerencie seus cartões mágicos"
+            showLogo={false}
+            showBackButton={false}
+          />
       {/* Cards de Funcionalidades de Cartões */}
       <Header 
             title="💳 Cartões Mágicos"

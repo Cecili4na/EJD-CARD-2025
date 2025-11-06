@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS sales (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
     seller_id TEXT NOT NULL,
+    sale_id TEXT UNIQUE NOT NULL,
     category TEXT NOT NULL CHECK (category IN ('lojinha', 'lanchonete')),
     total NUMERIC(10,2) NOT NULL,
     status TEXT NOT NULL CHECK (status IN ('completed', 'delivered')),

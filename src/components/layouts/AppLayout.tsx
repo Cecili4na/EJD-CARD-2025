@@ -33,6 +33,9 @@ const AppLayout = () => {
     const path = routerState.location.pathname
     if (path.startsWith('/mycard')) return 'mycard'
     if (path.startsWith('/cards')) return 'cards'
+    if (path.includes('/sales/history')) return 'historicoLojinha'
+    if (path.includes('/orders/history')) return 'historicoLanchonete'
+    if (path.includes('/lojinha/orders')) return 'lojinhaPedidos'
     if (path.startsWith('/lojinha')) return 'lojinha'
     if (path.startsWith('/lanchonete')) return 'lanchonete'
     if (path.startsWith('/admin')) return 'admin'
@@ -40,6 +43,7 @@ const AppLayout = () => {
     return 'mycard'
   }
 
+<<<<<<< HEAD
   const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard' | 'sapatinho-veloz') => {
     navigate({ to: `/${tab}` as any, search: {} as any })
   }
@@ -70,6 +74,10 @@ const AppLayout = () => {
       return `← Voltar para Gerenciar Produtos`
     }
     return `← Voltar para ${contextName}`
+=======
+  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'lojinhaPedidos' | 'historicoLanchonete' | 'admin' | 'mycard') => {
+    navigate(`/${tab}`)
+>>>>>>> 9451abe (Cria página de pedidos não entregues de lojinha, ajustes no geral do sistema)
   }
 
   const handleLogout = async () => {

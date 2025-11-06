@@ -2,7 +2,7 @@ export type SalesContext = 'lojinha' | 'lanchonete'
 
 export interface SaleItem {
   productId: string
-  name: string
+  productName: string
   price: number
   quantity: number
   image: string

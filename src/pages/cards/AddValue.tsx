@@ -190,7 +190,7 @@ const AddValue: React.FC<AddValueProps> = ({ onBack: _onBack }) => {
                   </>
                 ) : (
                   <>
-                    💰 ADICIONAR VALOR
+                    💰 Adicionar Valor
                   </>
                 )}
               </Button>
@@ -210,10 +210,11 @@ const AddValue: React.FC<AddValueProps> = ({ onBack: _onBack }) => {
         icon="💰"
         card={selectedCard}
         transactionType="credit"
+        variant="card-transaction"
         amount={amount}
         formattedAmount={formattedAmount}
-        isLoading={isLoading}
-      />
+        isLoading={isLoading} message={'Confirma a adição?'}      
+        />
     </div>
   )
 }

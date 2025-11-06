@@ -1,4 +1,4 @@
-// Serviço para gerenciar produtos no localStorage
+// Serviço para gerenciar produtos no Supabase
 
 import { supabase } from '../lib/supabase'
 import type { ProductCategory } from '../types'
@@ -122,7 +122,6 @@ export const productService = {
       const { data: urlData } = supabase.storage
         .from('products')
         .getPublicUrl(filePath);
-
       return urlData.publicUrl;
     } catch (error) {
       console.error('Upload process failed:', error);

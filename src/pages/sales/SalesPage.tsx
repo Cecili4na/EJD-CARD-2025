@@ -5,10 +5,12 @@ import { productService, Product } from '../../services/productService'
 import { salesService, SaleItem } from '../../services/salesService'
 import { useToastContext } from '../../contexts/ToastContext'
 import { cardService, Card as PaymentCard } from '../../services/cardService'
+import { useSupabaseData } from '../../contexts/SupabaseDataContext'
 
 type ContextType = 'lojinha' | 'lanchonete'
 
 const SalesPage: React.FC = () => {
+  const { getCardByNumber, makeSale } = useSupabaseData()
   const location = useLocation()
   const navigate = useNavigate()
   const { showSuccess, showError, showWarning } = useToastContext()
@@ -19,15 +21,16 @@ const SalesPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<Record<string, number>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [cardNumber, setCardNumber] = useState('')
-  const [selectedCard, setSelectedCard] = useState<PaymentCard | null>(null)
+  const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [searchFilter, setSearchFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const itemsPerPage = 6
 
   useEffect(() => {
-    productService.initializeMockProducts(context)
-    setProducts(productService.getProducts(context))
+    loadProducts()
     setCartItems({})
     cardService.initializeMockCards()
     setCardNumber('')
@@ -35,6 +38,12 @@ const SalesPage: React.FC = () => {
     setSearchFilter('')
     setCurrentPage(1)
   }, [context])
+
+  const loadProducts = async () => {
+    const loadedProducts = await productService.getProducts(context)
+    setProducts(loadedProducts || [])
+    setCurrentPage(1)
+  }
 
   // Filtrar produtos por nome
   const filteredProducts = useMemo(() => {
@@ -94,46 +103,70 @@ const SalesPage: React.FC = () => {
 
   const handleClearCart = () => setCartItems({})
 
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 16)
-    setCardNumber(value)
-    const found = cardService.getByNumber(value)
-    setSelectedCard(found)
+  const handleCardNumberChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCardNumber(value);
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      if (!value.trim()) {
+        setSelectedCard(null);
+        return;
+      }
+
+      const card = await getCardByNumber(value);
+      if (card) {
+        setSelectedCard(card);
+        setError(null);
+      } else {
+        setSelectedCard(null);
+        setError('Cartão não encontrado');
+      }
+    } catch (err: any) {
+      console.error('Erro ao buscar cartão:', err);
+      setError(err?.message || 'Erro ao buscar cartão');
+      setSelectedCard(null);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleConfirmSale = async () => {
-    // Pré-condições já checadas na abertura do modal
-    if (!selectedCard) return
-    const currentTotal = total
+    setError(null)
+    setIsLoading(true)
+    const items: SaleItem[] = Object.entries(cartItems)
+      .filter(([productId]) => productId !== null)
+      .map(([productId, quantity]) => {
+        const p = products.find(pr => pr.id === productId)!
+        return {
+          productId: p.id || '',
+          productName: p.name,
+          price: p.price,
+          quantity,
+          image: p.image_url
+        }
+      })
 
-    const items: SaleItem[] = Object.entries(cartItems).map(([productId, quantity]) => {
-      const p = products.find(pr => pr.id === productId)!
-      return {
-        productId: p.id,
-        name: p.name,
-        price: p.price,
-        quantity,
-        image: p.image
-      }
-    })
-
-    setIsSaving(true)
     try {
-      // Simula pequena latência
-      await new Promise(r => setTimeout(r, 500))
-      // Debitar saldo do cartão
-      cardService.updateBalance(selectedCard.id, parseFloat((selectedCard.balance - currentTotal).toFixed(2)))
-      const sale = salesService.saveSale(context, items, { id: selectedCard.id, cardNumber: selectedCard.cardNumber, cardName: selectedCard.name })
-      showSuccess('Venda realizada', `Venda #${sale.id} salva com total de R$ ${sale.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`)
-      handleClearCart()
-      setCardNumber('')
-      setSelectedCard(null)
-      navigate(context === 'lojinha' ? '/lojinha/sales/history' : '/lanchonete/orders/history', { replace: false })
-    } catch (e) {
-      console.error(e)
-      showError('Erro', 'Não foi possível salvar a venda. Tente novamente.')
+      await makeSale(
+        selectedCard.user_id,
+        items,
+        context
+      )
+      
+      showSuccess(
+        'Venda realizada!',
+        `Venda de R$ ${total.toFixed(2)} para cartão ${selectedCard.card_number} de ${selectedCard.user_name} foi realizada com sucesso.`
+      )
+      
+      navigate(`/${context}`)
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao realizar venda')
+      console.error('Erro ao realizar venda:', err)
     } finally {
-      setIsSaving(false)
+      setIsLoading(false)
     }
   }
 
@@ -158,11 +191,11 @@ const SalesPage: React.FC = () => {
   const formatPrice = (price: number): string => price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   const config = context === 'lojinha' ? {
-    title: '🛍️ VENDAS - LOJINHA',
+    title: '🛍️ Vendas - Lojinha',
     subtitle: 'Adicione itens ao carrinho e finalize a venda',
     backPath: '/lojinha'
   } : {
-    title: '🍔 VENDAS - LANCHONETE',
+    title: '🍔 Vendas - Lanchonete',
     subtitle: 'Adicione itens ao carrinho e finalize o pedido',
     backPath: '/lanchonete'
   }
@@ -204,7 +237,7 @@ const SalesPage: React.FC = () => {
                 <Card key={p.id} className="bg-white/80 border-yellow-200 hover:shadow-lg transition-shadow duration-200">
                   <div className="p-3">
                     <div className="h-36 w-full bg-gray-100 rounded-md overflow-hidden flex items-center justify-center mb-3">
-                      <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                     </div>
                     <h4 className="font-semibold text-emerald-700 truncate font-cardinal">{p.name}</h4>
                     <p className="text-sm text-sky-900 font-farmhand">R$ {formatPrice(p.price)}</p>
@@ -288,15 +321,33 @@ const SalesPage: React.FC = () => {
                   <div>
                     {selectedCard ? (
                       <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-xl p-3">
-                        <p className="text-black"><strong>Nome:</strong> {selectedCard.name}</p>
-                        <p className="text-black"><strong>Número:</strong> {selectedCard.cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')}</p>
-                        <p className="text-black"><strong>Saldo:</strong> R$ {selectedCard.balance.toFixed(2).replace('.', ',')}</p>
-                        <p className={`text-black mt-1 ${total > selectedCard.balance ? 'text-red-600' : ''}`}>
-                          <strong>Após compra:</strong> R$ {(selectedCard.balance - total).toFixed(2).replace('.', ',')}
+                        <p className="text-black"><strong>Nome:</strong> {selectedCard.user_name || 'N/A'}</p>
+                        <p className="text-black">
+                          <strong>Número:</strong> {
+                            selectedCard.card_number 
+                              ? selectedCard.card_number.toString().replace(/(\d{4})(?=\d)/g, '$1 ')
+                              : 'N/A'
+                          }
+                        </p>
+                        <p className="text-black">
+                          <strong>Saldo:</strong> R$ {
+                            typeof selectedCard.balance === 'number' 
+                              ? selectedCard.balance.toFixed(2).replace('.', ',')
+                              : '0,00'
+                          }
+                        </p>
+                        <p className={`text-black mt-1 ${total > (selectedCard.balance || 0) ? 'text-red-600' : ''}`}>
+                          <strong>Após compra:</strong> R$ {
+                            typeof selectedCard.balance === 'number'
+                              ? (selectedCard.balance - total).toFixed(2).replace('.', ',')
+                              : '0,00'
+                          }
                         </p>
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-600 font-farmhand">Informe um número de cartão válido.</p>
+                      <p className="text-sm text-gray-600 font-farmhand">
+                        {error || 'Informe um número de cartão válido.'}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -309,7 +360,7 @@ const SalesPage: React.FC = () => {
                     const p = products.find(pr => pr.id === productId)!
                     return (
                       <div key={productId} className="flex items-center gap-2">
-                        <img src={p.image} alt={p.name} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                        <img src={p.image_url} alt={p.name} className="w-10 h-10 rounded object-cover flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-emerald-700 font-cardinal">{p.name}</p>
                           <p className="text-xs text-sky-900 font-farmhand">R$ {formatPrice(p.price)}</p>
@@ -350,10 +401,10 @@ const SalesPage: React.FC = () => {
         title={context === 'lojinha' ? 'Confirmar Venda' : 'Confirmar Pedido'}
         icon={context === 'lojinha' ? '🛍️' : '🍔'}
         card={selectedCard}
-        transactionType="debit"
+        transactionType="sale" 
         amount={total.toFixed(2)}
         formattedAmount={total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        description={`Itens: ${Object.entries(cartItems).map(([id, q]) => {
+        description={`${Object.entries(cartItems).map(([id, q]) => {
           const p = products.find(pp => pp.id === id)
           return p ? `${p.name} (${q}x)` : ''
         }).filter(Boolean).join(', ')}`}

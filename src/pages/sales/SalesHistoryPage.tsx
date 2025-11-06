@@ -1,24 +1,35 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Header, Card, Button } from '../../components/shared'
-import { salesService, SaleRecord } from '../../services/salesService'
+import { Sale, useSupabaseData } from '../../contexts/SupabaseDataContext'
+
 
 type ContextType = 'lojinha' | 'lanchonete'
 
 const SalesHistoryPage: React.FC = () => {
+  const { getSales } = useSupabaseData()
   const location = useLocation()
   const navigate = useNavigate()
   const context: ContextType = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
 
-  const [sales, setSales] = useState<SaleRecord[]>([])
+  const [sales, setSales] = useState<Sale[]>([])
   const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    setSales(salesService.getSales(context))
-    setExpandedSales(new Set())
+    loadSales()
   }, [context])
 
-  const title = context === 'lojinha' ? '🧾 HISTÓRICO DE VENDAS - LOJINHA' : '🧾 HISTÓRICO DE VENDAS - LANCHONETE'
+  const loadSales = async () => {
+    try {
+      const fetchedSales = await getSales(context)
+      console.log('Vendas carregadas:', fetchedSales)
+      setSales(fetchedSales)
+    } catch (error) {
+      console.error('Erro ao carregar vendas:', error)
+    }
+  }
+
+  const title = context === 'lojinha' ? '🧾 Histórico de Vendas - Lojinha' : '🧾 Histórico de Vendas - Lanchonete'
 
   const formatDate = (iso: string) => new Date(iso).toLocaleString('pt-BR')
   const formatPrice = (price: number) => price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -63,7 +74,7 @@ const SalesHistoryPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-2">
-                        <h3 className="font-bold text-emerald-700 font-cardinal">Venda #{sale.id}</h3>
+                        <h3 className="font-bold text-emerald-700 font-cardinal">Venda #{sale.saleId}</h3>
                         {sale.cardNumber && (
                           <p className="text-sm text-gray-600 font-farmhand">
                             💳 Cartão: {sale.cardNumber}
@@ -97,9 +108,8 @@ const SalesHistoryPage: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {sale.items.map(item => (
                           <div key={item.productId} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                            <img src={item.image} alt={item.name} className="w-10 h-10 rounded object-cover" />
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-emerald-700 truncate font-cardinal">{item.name}</p>
+                              <p className="text-sm font-semibold text-emerald-700 truncate font-cardinal">{item.productName}</p>
                               <p className="text-xs text-gray-600 font-farmhand">
                                 {item.quantity} × R$ {formatPrice(item.price)} = R$ {formatPrice(item.price * item.quantity)}
                               </p>
