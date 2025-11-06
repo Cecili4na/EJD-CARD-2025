@@ -219,35 +219,51 @@ const MyCardPage: React.FC = () => {
           })
           .eq('pix_code', pixPayment.pixCode)
 
-        // Usar a função do contexto para atualizar o saldo do cartão no banco
-        // Isso já atualiza o saldo, cria a transação e recarrega os dados
-        await supabaseData.updateCardBalance(
-          card.id,
-          parseFloat(amount),
-          'credit',
-          'Abastecimento via PIX'
-        )
-
-        // Buscar cartão atualizado diretamente do banco para garantir dados atualizados
-        const { data: updatedCardData, error: cardError } = await supabase
+        // Atualizar saldo diretamente no banco primeiro
+        const { data: currentCard, error: fetchError } = await supabase
           .from('cards')
-          .select('*')
+          .select('balance')
           .eq('id', card.id)
           .single()
 
-        if (!cardError && updatedCardData) {
-          // Atualizar estado do cartão imediatamente com dados do banco
-          setCard({
-            id: updatedCardData.id,
-            name: updatedCardData.user_name || 'Sem nome',
-            cardNumber: updatedCardData.card_number || '',
-            balance: parseFloat(updatedCardData.balance) || 0,
-            phoneNumber: updatedCardData.phone_number || ''
+        if (fetchError) throw fetchError
+
+        const newBalance = (currentCard.balance || 0) + parseFloat(amount)
+
+        // Atualizar saldo no banco
+        const { error: updateError } = await supabase
+          .from('cards')
+          .update({
+            balance: newBalance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', card.id)
+
+        if (updateError) throw updateError
+
+        // Criar transação
+        await supabase
+          .from('transactions')
+          .insert({
+            card_id: card.id,
+            amount: parseFloat(amount),
+            type: 'credit',
+            description: 'Abastecimento via PIX',
+            created_by: user?.id || 'system'
+          })
+
+        // Atualizar estado do cartão imediatamente com o novo saldo
+        setCard(prev => prev ? {
+          ...prev,
+          balance: newBalance
+        } : null)
+
+        // Recarregar dados do contexto em background para manter sincronizado
+        if (supabaseData?.loadData) {
+          supabaseData.loadData().catch(() => {
+            // Ignorar erros silenciosamente - o estado já foi atualizado
           })
         }
-
-        // Recarregar dados do usuário para atualizar a UI completa
-        await loadUserData()
       } else {
         // Usar dados locais
         localData.addBalance(user?.id || '', parseFloat(amount), 'Abastecimento via PIX')

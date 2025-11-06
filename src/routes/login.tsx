@@ -1,7 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Login } from '../components/ui'
 
 export const Route = createFileRoute('/login')({
+  beforeLoad: ({ context }) => {
+    // Se já estiver autenticado, redirecionar para /mycard
+    if (context.user) {
+      throw redirect({ to: '/mycard' })
+    }
+  },
   component: () => (
     <div className="min-h-screen w-full relative" style={{
       background: 'linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%)',

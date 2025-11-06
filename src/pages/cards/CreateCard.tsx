@@ -63,7 +63,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
         initialBalance: parseFloat(initialBalance) || 0
       })
       
-      navigate('/cards')
+      navigate({ to: '/cards' as any })
     } catch (error) {
       // Erro já tratado no hook
       console.error('Erro ao criar cartão:', error)
