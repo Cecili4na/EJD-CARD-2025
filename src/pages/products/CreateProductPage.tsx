@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation, useParams } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from '@tanstack/react-router'
+
 import { Button, Header } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
 import { supabase } from '../../lib/supabase'
@@ -8,18 +9,19 @@ import { productService } from '../../services'
 const CreateProductPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { id } = useParams<{ id: string }>()
+  const { id } = useParams({ strict: false }) as { id?: string }
   const { showSuccess, showError, showWarning } = useToastContext()
   
   // Determinar o contexto baseado na rota (lojinha ou lanchonete)
   const context = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
   const isEditing = !!id // mantenha esta linha
+  const [existingUrl, setExistingUrl] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
     name: '',
     price: '',
     stock: '',
-    image: null as File | null
+    image: null as File | string | null
   })
   
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -52,8 +54,8 @@ const CreateProductPage = () => {
               stock: String(data.stock ?? 0),
               image: data.image_url ?? null
             })
+            setExistingUrl(data.image_url ?? null)
             setImagePreview(data.image_url ?? null)
-            console.log(imagePreview)
           } else {
             showError('Erro', 'Produto não encontrado!')
             navigate(`/${context}/products/list`)
@@ -74,14 +76,14 @@ const CreateProductPage = () => {
   // Configurações específicas por contexto
   const config = {
     lojinha: {
-      title: isEditing ? '✏️ EDITAR PRODUTO' : '📦 CADASTRAR PRODUTO',
+      title: isEditing ? '✏️ Editar Produto' : '📦 Cadastrar Produto',
       subtitle: isEditing ? 'Atualize as informações do produto' : 'Adicione um novo produto à lojinha',
       nameLabel: 'Nome do Produto',
       namePlaceholder: 'Ex: Camiseta Mágica',
       successMessage: isEditing ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!'
     },
     lanchonete: {
-      title: isEditing ? '✏️ EDITAR ITEM' : '🍔 CADASTRAR ITEM',
+      title: isEditing ? '✏️ Editar Item' : '🍔 Cadastrar Item',
       subtitle: isEditing ? 'Atualize as informações do item' : 'Adicione um novo item ao cardápio',
       nameLabel: 'Nome do Item',
       namePlaceholder: 'Ex: Hambúrguer de Esmeralda',
@@ -285,10 +287,10 @@ const CreateProductPage = () => {
             price: parseFloat(formData.price.replace(',', '.')),
             stock: parseInt(formData.stock, 10),
             category: context,
-            description: formData.name}, formData.image as unknown as File);
+            description: formData.name}, formData.image as unknown as File, existingUrl);
 
       showSuccess('Sucesso', currentConfig.successMessage)
-      navigate(`/${context}/products`)
+      navigate({to: `/${context}/products`})
     } catch (error) {
       console.error('Erro ao salvar produto:', error)
       showError('Erro', 'Erro ao salvar produto. Tente novamente.')
@@ -298,7 +300,7 @@ const CreateProductPage = () => {
   }
 
   const handleCancel = () => {
-    navigate(`/${context}/products`)
+    navigate({to:`/${context}/select`})
   }
 
   return (
@@ -434,7 +436,7 @@ const CreateProductPage = () => {
               onClick={handleCancel}
               variant="outline"
               size="lg"
-              className="!text-white flex-1 bg-gradient-to-r from-ruby-600 to-ruby-700 hover:from-ruby-700 hover:to-ruby-800 font-cardinal"
+              className="!text-black flex-1 bg-gradient-to-r from-ruby-600 to-ruby-700 hover:from-ruby-700 hover:to-ruby-800 font-cardinal"
               disabled={isLoading}
             >
               ❌ Cancelar

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from '@tanstack/react-router'
 import { Header, ConfirmationModal } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
 import { productService, Product as ProductType } from '../../services/productService'
@@ -31,14 +31,14 @@ const ListProductsPage = () => {
   // Configurações específicas por contexto
   const config = {
     lojinha: {
-      title: '📋 LISTAR PRODUTOS',
+      title: '📋 Listar Produtos',
       subtitle: 'Gerencie os produtos da lojinha',
       emptyMessage: 'Nenhum produto cadastrado na lojinha',
       deleteTitle: 'Excluir Produto',
       deleteMessage: 'Deseja realmente excluir este produto?'
     },
     lanchonete: {
-      title: '📋 LISTAR CARDÁPIO',
+      title: '📋 Listar Cardápio',
       subtitle: 'Gerencie os itens do cardápio',
       emptyMessage: 'Nenhum item cadastrado no cardápio',
       deleteTitle: 'Excluir Item',
@@ -59,7 +59,6 @@ const ListProductsPage = () => {
   const loadProducts = async () => {
     // Inicializar produtos mock se não houver produtos
     const loadedProducts = await productService.getProducts(context)
-    console.log('Produtos carregados:', loadedProducts)
     setProducts(loadedProducts || [])
     // Resetar para a primeira página ao recarregar produtos
     setCurrentPage(1)
@@ -96,7 +95,7 @@ const ListProductsPage = () => {
 
   const handleEdit = (product: Product) => {
     if (product.id) {
-      navigate(`/${context}/products/edit/${product.id}`)
+      navigate({to: `/${context}/products/${product.id}/edit`})
     } else {
       showError('Erro', 'ID do produto não encontrado')
     }

@@ -29,7 +29,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             onClick={() => onTabChange('mycard')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
               activeTab === 'mycard'
-                ? 'bg-purple-500 text-black shadow-md'
+                ? 'bg-emerald-200 text-black shadow-md'
                 : 'text-black hover:bg-purple-100'
             }`}
           >

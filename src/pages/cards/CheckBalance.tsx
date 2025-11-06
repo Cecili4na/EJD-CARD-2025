@@ -45,16 +45,13 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack }) => {
 
   return (
     <div className="space-y-4">
+      <Header 
+            title="Conferir Saldo"
+            subtitle="Verifique o saldo de um cartão mágico"
+            showLogo={false}
+        />
     <div className="w-full relative z-10">
         <div className="mx-auto w-full">
-          {/* Header com botão de voltar */}
-          <Header 
-            title="🔍 CONSULTAR SALDO"
-            subtitle="Verifique o saldo disponível no seu cartão"
-            showLogo={false}
-            showBackButton={true}
-            onBack={onBack}
-          />
 
           {/* Formulário de Busca */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8 mb-6">

@@ -4,23 +4,18 @@ import { Header, Button } from '../shared'
 import { TabNavigation } from '../ui'
 import { useAuth } from '../../contexts/AuthContext'
 
-interface AppLayoutProps {
-  children?: ReactNode
-}
-
-const AppLayout = ({ children }: AppLayoutProps) => {
+const AppLayout = () => {
   const navigate = useNavigate()
   const routerState = useRouterState()
   const { user, logout } = useAuth()
 
+  const isInListPage = location.pathname.endsWith('/products')
   // Verificar se está em páginas de produtos
-  const isInProductsPage = location.pathname.includes('/products')
+  const isInProductsPage = location.pathname.endsWith('/products')
   
   // Verificar se está em página de formulário (create/edit) ou listagem
   const isInFormPage = location.pathname.includes('/products/create') || 
-                       location.pathname.includes('/products/edit')
-  
-  const isInListPage = location.pathname.includes('/products/list')
+                       location.pathname.includes('/edit')
   
   // Verificar se está em subpágina de produtos (não na página principal /products)
   const isInProductsSubpage = isInFormPage || isInListPage
@@ -51,9 +46,12 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     const context = getBackContext()
     // Se estiver em subpágina de produtos (create/edit/list), volta para /products
     // Caso contrário, volta para a página principal do contexto
-    if (isInProductsSubpage) {
-      navigate(`/${context}/products`)
-    } else {
+    if (isInFormPage || isInListPage) {
+      navigate({to: `/${context}/select`})
+    } else if (isInListPage) {
+      navigate({to: `/${context}/select`})
+    }
+    else {
       navigate(`/${context}`)
     }
   }
@@ -144,7 +142,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           
           {/* Conteúdo das rotas */}
           <div className={isInProductsPage ? "mt-0" : "mt-8"}>
-            {children || <Outlet />}
+            {<Outlet />}
           </div>
         </div>
       </div>

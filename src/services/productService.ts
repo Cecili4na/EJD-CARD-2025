@@ -87,13 +87,6 @@ export const productService = {
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      console.log('Uploading file:', {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        path: filePath
-      });
-
       // Upload file to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('products')
@@ -104,14 +97,11 @@ export const productService = {
         throw uploadError;
       }
 
-      console.log('Upload successful:', uploadData);
-
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('products')
         .getPublicUrl(filePath);
 
-      console.log('Public URL generated:', urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error) {
       console.error('Upload process failed:', error);
@@ -119,20 +109,17 @@ export const productService = {
     }
   },
 
-  async saveProduct(category: 'lojinha' | 'lanchonete', product: Product, file?: File | null): Promise<Product | null> {
-    try {
-      console.log('Starting product save process:', { category, product, hasFile: !!file });
-      
+  async saveProduct(category: 'lojinha' | 'lanchonete', product: Product, newImageFile: File | null, existingImageUrl: string | null | undefined): Promise<Product | null> {
+    try {      
       // Handle image upload if file exists
-      let imageUrl = null;
-      if (file) {
-        imageUrl = await this.uploadProductImage(file);
+      let imageUrl = existingImageUrl;
+      if (newImageFile instanceof File) {
+        imageUrl = await this.uploadProductImage(newImageFile);
         if (!imageUrl) {
           console.error('Image upload failed');
           return null;
         }
       }
-      console.log('Image URL:', imageUrl);
       const productData = {
         name: product.name,
         price: product.price,
@@ -141,8 +128,6 @@ export const productService = {
         image_url: imageUrl || product.image,
         category
       };
-
-      console.log('Final product data to save:', productData);
 
       if (product.id) {
         // Update existing product

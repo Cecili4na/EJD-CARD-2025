@@ -133,16 +133,13 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack }) => {
 
   return (
     <div className="space-y-4">
+      <Header 
+            title="Débito em Cartão"
+            subtitle="Debite um valor de um cartão mágico"
+            showLogo={false}
+        />
     <div className="w-full relative z-10">
         <div className="mx-auto w-full">
-          {/* Header com botão de voltar */}
-          <Header 
-            title="💸 DEBITAR CARTÃO"
-            subtitle="Realize um débito no seu cartão mágico"
-            showLogo={false}
-            showBackButton={true}
-            onBack={onBack}
-          />
 
           {/* Formulário */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">

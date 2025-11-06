@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Card, Button } from '../../components/shared'
+import { Card, Button, Header } from '../../components/shared'
 
 const CardsPage = () => {
   const navigate = useNavigate()
@@ -7,6 +7,11 @@ const CardsPage = () => {
   return (
     <div className="space-y-6">
       {/* Cards de Funcionalidades de Cartões */}
+      <Header 
+            title="💳 Cartões Mágicos"
+            subtitle="Gerencie seus cartões de débito mágicos"
+            showLogo={false}
+        />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Criar Cartão */}
         <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/cards/create' as any })}>
@@ -20,7 +25,7 @@ const CardsPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-ruby-500 hover:bg-emerald-600 !text-sky-900 shadow-lg hover:shadow-emerald-200"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-emerald-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/create' as any })
@@ -43,7 +48,7 @@ const CardsPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-yellow-500 hover:bg-yellow-600 !text-sky-900 shadow-lg hover:shadow-yellow-200"
+              className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-yellow-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/balance' as any })
@@ -66,7 +71,7 @@ const CardsPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-blue-500 hover:bg-blue-600 !text-sky-900 shadow-lg hover:shadow-blue-200"
+              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-blue-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/add' as any })
@@ -89,7 +94,7 @@ const CardsPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-red-500 hover:bg-red-600 !text-sky-900 shadow-lg hover:shadow-red-200"
+              className="bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-red-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/debit' as any })

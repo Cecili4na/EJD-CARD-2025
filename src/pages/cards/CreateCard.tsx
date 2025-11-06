@@ -73,16 +73,13 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
 
   return (
     <div className="space-y-6">
+      <Header 
+            title="Cadastrar Cartão"
+            subtitle="Crie um novo cartão mágico"
+            showLogo={false}
+        />
       <div className="w-full relative z-10">
         <div className="mx-auto w-full">
-          {/* Header com botão de voltar */}
-          <Header 
-            title="💳 CRIAR NOVO CARTÃO"
-            subtitle="Emita um novo cartão de débito mágico"
-            showLogo={false}
-            showBackButton={true}
-            onBack={onBack}
-          />
 
           {/* Formulário */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8">

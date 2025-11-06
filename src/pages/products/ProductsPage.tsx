@@ -1,7 +1,11 @@
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Card, Button } from '../../components/shared'
+import { useNavigate, useLocation } from '@tanstack/react-router'
+import { Card, Button, Header } from '../../components/shared'
 
-const ProductsPage = () => {
+interface ProductsPageProps {
+  onBack: () => void
+}
+
+const ProductsPage: React.FC<ProductsPageProps> = ({ onBack }) => {
   const navigate = useNavigate()
   const location = useLocation()
   
@@ -11,22 +15,22 @@ const ProductsPage = () => {
   // Configurações específicas por contexto
   const config = {
     lojinha: {
-      title: 'Produtos da Lojinha',
-      icon: '🛍️',
+      title: '📦 Produtos da Lojinha',
       color: 'emerald',
       createLabel: 'Cadastrar Produto',
       listLabel: 'Listar Produtos',
       createDescription: 'Adicione novos produtos da lojinha',
-      listDescription: 'Visualize todos os produtos da lojinha'
+      listDescription: 'Visualize todos os produtos da lojinha',
+      selectDescription: 'Cadastre, edite e visualize produtos da lojinha'
     },
     lanchonete: {
-      title: 'Cardápio da Lanchonete',
-      icon: '🍔',
+      title: '📦 Cardápio da Lanchonete',
       color: 'emerald',
       createLabel: 'Cadastrar Item',
       listLabel: 'Listar Cardápio',
       createDescription: 'Adicione novos itens ao cardápio',
-      listDescription: 'Visualize todos os itens do cardápio'
+      listDescription: 'Visualize todos os itens do cardápio',
+      selectDescription: 'Cadastre, edite e visualize itens da lanchonete'
     }
   }
   
@@ -53,6 +57,11 @@ const ProductsPage = () => {
 
   return (
     <div className="space-y-6">
+      <Header 
+            title={currentConfig.title}
+            subtitle={currentConfig.selectDescription}
+            showLogo={false}
+        />
       {/* Cards de Funcionalidades de Produtos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Cadastrar Produto/Item */}
@@ -67,7 +76,11 @@ const ProductsPage = () => {
             </p>
             <Button 
               size="lg"
-              className={`${colors.bg} ${colors.hover} shadow-lg ${colors.shadow}`}
+              className={`${colors.bg} ${colors.hover} text-white shadow-lg ${colors.shadow}`}
+              onClick={(e) => {
+                e.stopPropagation(); 
+                navigate({ to: `/${context}/products/create` });
+              }}
             >
               📦 {currentConfig.createLabel}
             </Button>
@@ -86,7 +99,11 @@ const ProductsPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-blue-500 hover:bg-blue-600 shadow-lg hover:shadow-blue-200"
+              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-blue-200"
+              onClick={(e) => {
+                e.stopPropagation(); 
+                navigate({ to: `/${context}/products` });
+              }}
             >
               📋 {currentConfig.listLabel}
             </Button>

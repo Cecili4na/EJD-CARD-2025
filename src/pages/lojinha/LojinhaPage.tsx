@@ -1,11 +1,16 @@
-import { useNavigate } from 'react-router-dom'
-import { Card, Button } from '../../components/shared'
+import { useNavigate } from '@tanstack/react-router'
+import { Card, Button, Header } from '../../components/shared'
 
 const LojinhaPage = () => {
   const navigate = useNavigate()
 
   return (
     <div className="space-y-6">
+      <Header 
+            title="🛍️ Lojinha Mágica"
+            subtitle="Gerencie os produtos e vendas da lojinha"
+            showLogo={false}
+        />
       {/* Cards de Funcionalidades da Lojinha */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Gerenciar Produtos */}
@@ -20,7 +25,11 @@ const LojinhaPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-emerald-500 hover:bg-emerald-600 shadow-lg hover:shadow-emerald-200"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-emerald-200"
+              onClick={(e) => {
+                e.stopPropagation(); 
+                navigate({ to: '/lojinha/select' });
+              }}
             >
               🛍️ Gerenciar Produtos
             </Button>
@@ -39,7 +48,7 @@ const LojinhaPage = () => {
             </p>
             <Button 
               size="lg"
-              className="bg-sky-500 hover:bg-sky-600 shadow-lg hover:shadow-emerald-200"
+              className="bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-emerald-200"
             >
               💰 Vendas
             </Button>
