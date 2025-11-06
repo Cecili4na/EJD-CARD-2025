@@ -63,3 +63,29 @@ export interface Card {
   createdAt: string
   updatedAt: string
 }
+
+export interface SapatinhoVelozOrderItem {
+  id: string
+  orderId: string
+  productId: string
+  productName: string
+  quantity: number
+  price: number
+  createdAt: string
+}
+
+export interface SapatinhoVelozOrder {
+  id: string
+  saleId: string
+  senderUserId: string
+  senderName?: string
+  senderTeam: string
+  recipientName: string
+  recipientAddress: string
+  message?: string
+  items: SapatinhoVelozOrderItem[]
+  total: number
+  status: 'pending' | 'completed' | 'delivered'
+  createdAt: string
+  deliveredAt?: string
+}

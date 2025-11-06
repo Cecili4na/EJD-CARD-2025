@@ -21,6 +21,8 @@ import { Route as VendasLojinhaRouteImport } from './routes/_layout/vendas/lojin
 import { Route as VendasLanchoneteRouteImport } from './routes/_layout/vendas/lanchonete'
 import { Route as HistoricoLojinhaRouteImport } from './routes/_layout/historico/lojinha'
 import { Route as HistoricoLanchoneteRouteImport } from './routes/_layout/historico/lanchonete'
+import { Route as SapatinhoVelozRouteImport } from './routes/_layout/sapatinho-veloz'
+import { Route as PedidosSapatinhoVelozRouteImport } from './routes/_layout/pedidos-sapatinho-veloz'
 
 const rootRoute = rootRouteImport
 const LayoutRoute = LayoutRouteImport.update({
@@ -112,6 +114,16 @@ const HistoricoLanchoneteRoute = HistoricoLanchoneteRouteImport.update({
   path: '/historico/lanchonete',
   getParentRoute: () => LayoutRoute,
 } as any)
+const SapatinhoVelozRoute = SapatinhoVelozRouteImport.update({
+  id: '/_layout/sapatinho-veloz',
+  path: '/sapatinho-veloz',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const PedidosSapatinhoVelozRoute = PedidosSapatinhoVelozRouteImport.update({
+  id: '/_layout/pedidos-sapatinho-veloz',
+  path: '/pedidos-sapatinho-veloz',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
@@ -130,6 +142,8 @@ export const routeTree = rootRoute.addChildren([
     VendasLanchoneteRoute,
     HistoricoLojinhaRoute,
     HistoricoLanchoneteRoute,
+    SapatinhoVelozRoute,
+    PedidosSapatinhoVelozRoute,
   ]),
   LoginRoute,
   IndexRoute,

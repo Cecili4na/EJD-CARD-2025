@@ -6,6 +6,7 @@ import { queryClient } from './lib/query-client'
 export interface RouterContext {
   queryClient: typeof queryClient
   user: any | null
+  isLoading: boolean
 }
 
 export const router = createRouter({
@@ -13,6 +14,7 @@ export const router = createRouter({
   context: {
     queryClient,
     user: null,
+    isLoading: true,
   } as RouterContext,
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,

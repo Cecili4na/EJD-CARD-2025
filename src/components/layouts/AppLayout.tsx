@@ -21,10 +21,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     if (path.startsWith('/lojinha')) return 'lojinha'
     if (path.startsWith('/lanchonete')) return 'lanchonete'
     if (path.startsWith('/admin')) return 'admin'
+    if (path.startsWith('/sapatinho-veloz')) return 'sapatinho-veloz'
     return 'mycard'
   }
 
-  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard') => {
+  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard' | 'sapatinho-veloz') => {
     navigate({ to: `/${tab}` as any, search: {} as any })
   }
 
@@ -53,10 +54,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       <div className="w-full px-4 py-8 relative z-10">
         <div className="max-w-4xl mx-auto w-full">
           {/* Header com informações do usuário e logout */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-gray-600">
-              👋 Olá, <span className="font-semibold text-black">{user?.name || user?.email}</span>
-              <span className="ml-2 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-base text-gray-800">
+              👋 Olá, <span className="font-bold text-black text-lg">{user?.name || user?.email}</span>
+              <span className="ml-3 px-3 py-1.5 bg-emerald-200 text-emerald-900 rounded-full text-sm font-bold border border-emerald-400">
                 {user?.role === 'admin' ? '👑 Admin' : 
                  user?.role === 'genios_card' ? '🎯 Genios Card' :
                  user?.role === 'coord_lojinha' ? '🏪 Coord Lojinha' :

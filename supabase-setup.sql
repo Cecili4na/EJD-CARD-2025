@@ -210,3 +210,61 @@ CREATE POLICY "Users can insert pix payments" ON pix_payments
 
 CREATE POLICY "Users can update pix payments" ON pix_payments
     FOR UPDATE USING (true);
+
+-- Tabela: sapatinho_veloz_orders
+CREATE TABLE IF NOT EXISTS sapatinho_veloz_orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sale_id UUID NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
+    sender_user_id TEXT NOT NULL,
+    sender_name TEXT,
+    sender_team TEXT NOT NULL,
+    recipient_name TEXT NOT NULL,
+    recipient_address TEXT NOT NULL,
+    message TEXT,
+    total NUMERIC(10,2) NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'delivered')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    delivered_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Índices para sapatinho_veloz_orders
+CREATE INDEX IF NOT EXISTS idx_sapatinho_veloz_orders_sale_id ON sapatinho_veloz_orders(sale_id);
+CREATE INDEX IF NOT EXISTS idx_sapatinho_veloz_orders_sender_user_id ON sapatinho_veloz_orders(sender_user_id);
+CREATE INDEX IF NOT EXISTS idx_sapatinho_veloz_orders_status ON sapatinho_veloz_orders(status);
+CREATE INDEX IF NOT EXISTS idx_sapatinho_veloz_orders_created_at ON sapatinho_veloz_orders(created_at);
+
+-- Tabela: sapatinho_veloz_order_items
+CREATE TABLE IF NOT EXISTS sapatinho_veloz_order_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES sapatinho_veloz_orders(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id),
+    product_name TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    price NUMERIC(10,2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices para sapatinho_veloz_order_items
+CREATE INDEX IF NOT EXISTS idx_sapatinho_veloz_order_items_order_id ON sapatinho_veloz_order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_sapatinho_veloz_order_items_product_id ON sapatinho_veloz_order_items(product_id);
+
+-- Habilitar RLS em sapatinho_veloz_orders
+ALTER TABLE sapatinho_veloz_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sapatinho_veloz_order_items ENABLE ROW LEVEL SECURITY;
+
+-- Políticas para sapatinho_veloz_orders
+CREATE POLICY "Users can view sapatinho veloz orders" ON sapatinho_veloz_orders
+    FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert sapatinho veloz orders" ON sapatinho_veloz_orders
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Users can manage sapatinho veloz orders" ON sapatinho_veloz_orders
+    FOR ALL USING (true);
+
+-- Políticas para sapatinho_veloz_order_items
+CREATE POLICY "Users can view sapatinho veloz order items" ON sapatinho_veloz_order_items
+    FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert sapatinho veloz order items" ON sapatinho_veloz_order_items
+    FOR INSERT WITH CHECK (true);

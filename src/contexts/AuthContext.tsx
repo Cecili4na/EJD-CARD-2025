@@ -137,22 +137,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null)
         return
       }
+
       // Definir usuário básico imediatamente
       const { data: authUser } = await supabase.auth.getUser()
-      if (!authUser.user) {
+      if (!authUser.user || authUser.user.id !== userId) {
         setUser(null)
         return
       }
-      setUser({
+      
+      const basicUser = {
         id: authUser.user.id,
         email: authUser.user.email || '',
         name: authUser.user.user_metadata?.name || null,
-        role: 'encontrista',
+        role: 'encontrista' as const,
+      }
+      
+      // Só atualizar se o usuário mudou
+      setUser(prev => {
+        if (prev?.id === userId) {
+          return prev // Não precisa atualizar, já temos o mesmo usuário
+        }
+        return basicUser
       })
-      // Em segundo plano: garantir linha e carregar role real
-      await ensureAppUserRow(userId)
-      const u = await loadUserWithRole(userId)
-      setUser(prev => prev ? { ...prev, role: u?.role || 'encontrista' } : u)
+      
+      // Em segundo plano: garantir linha e carregar role real (não bloquear)
+      Promise.all([
+        ensureAppUserRow(userId).catch(console.error),
+        loadUserWithRole(userId).catch(console.error)
+      ]).then(([, u]) => {
+        if (u && u.id === userId) {
+          setUser(prev => {
+            // Só atualizar se ainda for o mesmo usuário e o role mudou
+            if (prev?.id === userId && prev.role !== u.role) {
+              return { ...prev, role: u.role }
+            }
+            return prev
+          })
+        }
+      })
     } catch (e) {
       console.error('handleAuthChange fatal:', e)
       setUser(null)
