@@ -44,27 +44,14 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack }) => {
   }
 
   return (
-    <div className="min-h-screen w-full relative" style={{
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%)',
-      backgroundAttachment: 'fixed',
-      backgroundSize: 'cover',
-      backgroundRepeat: 'no-repeat'
-    }}>
-      {/* Bordas decorativas douradas */}
-      <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-yellow-400 rounded-br-lg z-20"></div>
-      <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-yellow-400 rounded-bl-lg z-20"></div>
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-8 border-b-4 border-yellow-400 rounded-t-lg z-20"></div>
-      
-      <div className="w-full px-4 py-8 relative z-10">
-        <div className="max-w-2xl mx-auto w-full">
-          {/* Header com botão de voltar */}
-          <Header 
-            title="🔍 CONSULTAR SALDO"
-            subtitle="Verifique o saldo disponível no seu cartão"
+    <div className="space-y-4">
+      <Header 
+            title="Conferir Saldo"
+            subtitle="Verifique o saldo de um cartão mágico"
             showLogo={false}
-            showBackButton={true}
-            onBack={onBack}
-          />
+        />
+    <div className="w-full relative z-10">
+        <div className="mx-auto w-full">
 
           {/* Formulário de Busca */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-yellow-200 p-8 mb-6">

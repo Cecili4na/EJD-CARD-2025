@@ -398,7 +398,7 @@ const MyCardPage: React.FC = () => {
           <Button
             onClick={handlePixPayment}
             size="lg"
-            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black shadow-lg hover:shadow-emerald-200 font-semibold"
+            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-200 font-semibold"
             disabled={isLoading || !amount || parseFloat(amount) <= 0}
           >
             {isLoading ? (

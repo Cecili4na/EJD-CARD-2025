@@ -1,5 +1,41 @@
 /* Importação das fontes da identidade visual */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:wght@400;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap');
+/* PRIORIDADE MÁXIMA: Botões de paginação */
+button[data-btn-type="pagination"] {
+  background-color: #6b7280 !important;
+  color: #000000 !important;
+}
+
+button[data-btn-type="pagination"] * {
+  color: #000000 !important;
+  background-color: transparent !important;
+}
+
+button[data-btn-type="pagination"] span {
+  color: #000000 !important;
+  background-color: transparent !important;
+}
+
+button[data-btn-type="page-number"][data-active="true"] {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+button[data-btn-type="page-number"][data-active="true"] *,
+button[data-btn-type="page-number"][data-active="true"] span {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+
+button[data-btn-type="page-number"][data-active="false"] {
+  background-color: #ffffff !important;
+}
+
+button[data-btn-type="page-number"][data-active="false"],
+button[data-btn-type="page-number"][data-active="false"] *,
+button[data-btn-type="page-number"][data-active="false"] span {
+  color: #374151 !important;
+}
 
 /* Configuração global de fundo - Força o gradiente */
 html, body {

@@ -4,14 +4,28 @@ import { Header, Button } from '../shared'
 import { TabNavigation } from '../ui'
 import { useAuth } from '../../contexts/AuthContext'
 
-interface AppLayoutProps {
-  children?: ReactNode
-}
-
-const AppLayout = ({ children }: AppLayoutProps) => {
+const AppLayout = () => {
   const navigate = useNavigate()
   const routerState = useRouterState()
   const { user, logout } = useAuth()
+
+  const isInListPage = location.pathname.endsWith('/products')
+  // Verificar se está em páginas de produtos
+  const isInProductsPage = location.pathname.endsWith('/products')
+  
+  // Verificar se está em página de formulário (create/edit) ou listagem
+  const isInFormPage = location.pathname.includes('/products/create') || 
+                       location.pathname.includes('/edit')
+  
+  // Verificar se está em subpágina de produtos (não na página principal /products)
+  const isInProductsSubpage = isInFormPage || isInListPage
+  
+  // Determinar o contexto (lojinha ou lanchonete) para o botão de voltar
+  const getBackContext = (): 'lojinha' | 'lanchonete' => {
+    if (location.pathname.startsWith('/lojinha')) return 'lojinha'
+    if (location.pathname.startsWith('/lanchonete')) return 'lanchonete'
+    return 'lojinha'
+  }
 
   // Determinar aba ativa baseada na rota
   const getActiveTab = () => {
@@ -27,6 +41,31 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
   const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard' | 'sapatinho-veloz') => {
     navigate({ to: `/${tab}` as any, search: {} as any })
+  }
+
+  const handleBackToContext = () => {
+    const context = getBackContext()
+    // Se estiver em subpágina de produtos (create/edit/list), volta para /products
+    // Caso contrário, volta para a página principal do contexto
+    if (isInFormPage || isInListPage) {
+      navigate({to: `/${context}/select`})
+    } else if (isInListPage) {
+      navigate({to: `/${context}/select`})
+    }
+    else {
+      navigate(`/${context}`)
+    }
+  }
+
+  // Determinar texto do botão de voltar
+  const getBackButtonText = (): string => {
+    const context = getBackContext()
+    const contextName = context === 'lojinha' ? 'Lojinha' : 'Lanchonete'
+    
+    if (isInProductsSubpage) {
+      return `← Voltar para Gerenciar Produtos`
+    }
+    return `← Voltar para ${contextName}`
   }
 
   const handleLogout = async () => {
@@ -88,9 +127,23 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           {/* Navegação por Abas */}
           <TabNavigation activeTab={getActiveTab()} onTabChange={handleTabChange} />
           
+          {/* Botão de Voltar (apenas em páginas de produtos) */}
+          {isInProductsPage && (
+            <div className="flex justify-start mb-8 mt-4">
+              <Button
+                onClick={handleBackToContext}
+                variant="outline"
+                size="sm"
+                className="border-emerald-500 !text-black hover:bg-emerald-200 hover:!text-black font-semibold font-cardinal shadow-md"
+              >
+                {getBackButtonText()}
+              </Button>
+            </div>
+          )}
+          
           {/* Conteúdo das rotas */}
-          <div className="mt-8">
-            {children || <Outlet />}
+          <div className={isInProductsPage ? "mt-0" : "mt-8"}>
+            {<Outlet />}
           </div>
         </div>
       </div>
