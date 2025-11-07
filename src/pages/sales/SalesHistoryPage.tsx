@@ -74,14 +74,19 @@ const SalesHistoryPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-2">
-                        <h3 className="font-bold text-emerald-700 font-cardinal">Venda #{sale.saleId}</h3>
-                        {sale.cardNumber && (
+                        <h3 className="font-bold text-emerald-700 font-cardinal">Venda #{sale.sale_id}</h3>
+                        {sale.card.card_number && sale.card.user_name && (
                           <p className="text-sm text-gray-600 font-farmhand">
-                            💳 Cartão: {sale.cardNumber}
+                            💳 Cartão: {sale.card.card_number} de {sale.card.user_name}
                           </p>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 font-farmhand">{formatDate(sale.createdAt)}</p>
+                      <div className="flex items-center space-x-4 mb-2">
+                          <p className="text-sm text-gray-600 font-farmhand">
+                           Vendedor: {sale.seller.name}
+                          </p>
+                      </div>
+                      <p className="text-sm text-gray-600 font-farmhand">{formatDate(sale.created_at)}</p>
                     </div>
                     <div className="text-right ml-4">
                       <p className="text-sm text-gray-600 font-farmhand">Total</p>
@@ -109,7 +114,7 @@ const SalesHistoryPage: React.FC = () => {
                         {sale.items.map(item => (
                           <div key={item.productId} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-emerald-700 truncate font-cardinal">{item.productName}</p>
+                              <p className="text-sm font-semibold text-emerald-700 truncate font-cardinal">{item.product_name}</p>
                               <p className="text-xs text-gray-600 font-farmhand">
                                 {item.quantity} × R$ {formatPrice(item.price)} = R$ {formatPrice(item.price * item.quantity)}
                               </p>

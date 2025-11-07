@@ -54,7 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_products_active ON products(active);
 CREATE TABLE IF NOT EXISTS sales (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
-    seller_id TEXT NOT NULL,
+    seller_id UUID NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
     sale_id TEXT UNIQUE NOT NULL,
     category TEXT NOT NULL CHECK (category IN ('lojinha', 'lanchonete')),
     total NUMERIC(10,2) NOT NULL,

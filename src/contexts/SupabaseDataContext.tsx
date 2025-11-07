@@ -483,7 +483,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
           .insert({
             sale_id: sale.id,
             card_id: card.id,
-            customer_name: `Cliente ${card.user_name || 'Sem Nome'}`,
+            customer_name: `${card.user_name || 'Sem Nome'}`,
             total,
             status: 'completed'
           })
@@ -499,9 +499,31 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     }
   }
 
-  const getSales = (category?: 'lojinha' | 'lanchonete'): Sale[] => {
+  const getSales = async (category?: 'lojinha' | 'lanchonete'): Promise<Sale[]> => {
     if (category) {
-      return data.sales.filter(sale => sale.category === category)
+      const { data, error } = await supabase
+      .from('sales')
+      .select(`
+        *,
+        card: cards(
+          id,
+          card_number,
+          user_name
+        ),
+        items: sale_items (
+            product_name,
+            quantity,
+            price
+        ),
+        seller:app_users (
+          id,
+          name,
+          email
+        )
+      `)
+      .eq('category', category)
+      .order('created_at', { ascending: false })
+      return data || []
     }
     return data.sales
   }
