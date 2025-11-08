@@ -24,10 +24,9 @@ const TEAMS = [
 const SapatinhoVelozPage: React.FC = () => {
   const { user } = useAuth()
   const { getBalance } = useSupabaseData()
-  const { data: products = [], isLoading: isLoadingProducts } = useProducts('lojinha')
+  const { data: products = [], isLoading: isLoadingProducts } = useProducts('sapatinho')
   const { showSuccess, showError } = useToastContext()
 
-  const [senderName, setSenderName] = useState('')
   const [senderTeam, setSenderTeam] = useState('')
   const [recipientName, setRecipientName] = useState('')
   const [recipientAddress, setRecipientAddress] = useState('')
@@ -102,7 +101,7 @@ const SapatinhoVelozPage: React.FC = () => {
     }
 
     // Validação: não pode enviar para si mesmo
-    if (senderTeam === recipientAddress && senderName.toLowerCase().trim() === recipientName.toLowerCase().trim()) {
+    if (senderTeam === recipientAddress) {
       showError('Erro', 'Você não pode enviar um pedido para si mesmo')
       return
     }
@@ -129,7 +128,6 @@ const SapatinhoVelozPage: React.FC = () => {
     try {
       await sapatinhoVelozApi.create({
         senderUserId: user.id,
-        senderName: senderName || undefined,
         senderTeam,
         recipientName: recipientName.trim(),
         recipientAddress,
@@ -140,7 +138,6 @@ const SapatinhoVelozPage: React.FC = () => {
       showSuccess('Sucesso!', 'Pedido Sapatinho Veloz criado com sucesso! Sua encomenda chegará ao destinatário até o final do Encontrão.')
 
       // Limpar formulário
-      setSenderName('')
       setSenderTeam('')
       setRecipientName('')
       setRecipientAddress('')
@@ -183,21 +180,6 @@ const SapatinhoVelozPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Nome do Remetente */}
-        <div>
-          <label htmlFor="senderName" className="block text-base font-semibold text-gray-900 mb-3">
-            Seu nome (opcional)
-          </label>
-          <input
-            type="text"
-            id="senderName"
-            value={senderName}
-            onChange={(e) => setSenderName(e.target.value)}
-            className="w-full px-5 py-3 text-base border-2 border-gray-400 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white text-gray-900"
-            placeholder="Seu nome"
-          />
-        </div>
-
         {/* Equipe do Remetente */}
         <div>
           <label htmlFor="senderTeam" className="block text-base font-semibold text-gray-900 mb-3">

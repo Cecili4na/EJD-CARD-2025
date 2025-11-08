@@ -1,6 +1,7 @@
 // Serviço para gerenciar produtos no localStorage
 
 import { supabase } from '../lib/supabase'
+import type { ProductCategory } from '../types'
 
 export type Product = {
   id: string | null // alterado de number para string
@@ -12,15 +13,28 @@ export type Product = {
   [key: string]: any
 }
 
+const TABLE_BY_CATEGORY: Record<ProductCategory, { table: string; hasCategoryColumn: boolean }> = {
+  lojinha: { table: 'products', hasCategoryColumn: true },
+  lanchonete: { table: 'products', hasCategoryColumn: true },
+  sapatinho: { table: 'sapatinho_products', hasCategoryColumn: false }
+}
+
 export const productService = {
   // Retorna array de produtos (nunca undefined)
-  getProducts: async (category: 'lojinha' | 'lanchonete'): Promise<Product[]> => {
+  getProducts: async (category: ProductCategory): Promise<Product[]> => {
     try {
-      const { data, error } = await supabase
-        .from('products')
+      const { table, hasCategoryColumn } = TABLE_BY_CATEGORY[category]
+      const query = supabase
+        .from(table)
         .select('*')
-        .eq('category', category)
+        .eq('active', true)
         .order('name', { ascending: true })
+
+      if (hasCategoryColumn) {
+        query.eq('category', category)
+      }
+
+      const { data, error } = await query
 
       if (error) {
         console.error('productService.getProducts error:', error)
@@ -36,11 +50,12 @@ export const productService = {
   },
 
   // Deleta produto e retorna boolean indicando sucesso
-  deleteProduct: async (_category: string, id: string): Promise<boolean> => {
+  deleteProduct: async (category: ProductCategory, id: string): Promise<boolean> => {
     try {
+      const { table } = TABLE_BY_CATEGORY[category]
       const { error } = await supabase
-        .from('products')
-        .delete()
+        .from(table)
+        .update({ active: false, updated_at: new Date().toISOString() })
         .eq('id', id)
 
       if (error) {
@@ -55,13 +70,20 @@ export const productService = {
   },
 
   // Opcional: buscar um produto por id (útil para edição)
-  getProductById: async (id: string): Promise<Product | null> => {
+  getProductById: async (id: string, category: ProductCategory = 'lojinha'): Promise<Product | null> => {
     try {
-      const { data, error } = await supabase
-        .from<Product>('products')
+      const { table, hasCategoryColumn } = TABLE_BY_CATEGORY[category]
+      const query = supabase
+        .from(table)
         .select('*')
         .eq('id', id)
         .single()
+
+      if (hasCategoryColumn) {
+        query.eq('category', category)
+      }
+
+      const { data, error } = await query
 
       if (error) {
         console.error('productService.getProductById error:', error)
@@ -109,8 +131,9 @@ export const productService = {
     }
   },
 
-  async saveProduct(category: 'lojinha' | 'lanchonete', product: Product, newImageFile: File | null, existingImageUrl: string | null | undefined): Promise<Product | null> {
+  async saveProduct(category: ProductCategory, product: Product, newImageFile: File | null, existingImageUrl: string | null | undefined): Promise<Product | null> {
     try {      
+      const { table, hasCategoryColumn } = TABLE_BY_CATEGORY[category]
       // Handle image upload if file exists
       let imageUrl = existingImageUrl;
       if (newImageFile instanceof File) {
@@ -120,19 +143,28 @@ export const productService = {
           return null;
         }
       }
-      const productData = {
+      const baseData = {
         name: product.name,
         price: product.price,
         stock: product.stock,
         description: product.description || null,
         image_url: imageUrl || product.image,
-        category
+        ...(hasCategoryColumn ? { category } : {})
       };
+      const productData = product.id
+        ? {
+            ...baseData,
+            ...(typeof product.active === 'boolean' ? { active: product.active } : {})
+          }
+        : {
+            ...baseData,
+            active: true
+          }
 
       if (product.id) {
         // Update existing product
         const { data, error } = await supabase
-          .from('products')
+          .from(table)
           .update(productData)
           .eq('id', product.id)
           .select()
@@ -143,7 +175,7 @@ export const productService = {
       } else {
         // Create new product
         const { data, error } = await supabase
-          .from('products')
+          .from(table)
           .insert([productData])
           .select()
           .single();

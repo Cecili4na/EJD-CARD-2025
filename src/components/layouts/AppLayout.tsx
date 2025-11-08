@@ -21,9 +21,10 @@ const AppLayout = () => {
   const isInProductsSubpage = isInFormPage || isInListPage
   
   // Determinar o contexto (lojinha ou lanchonete) para o botão de voltar
-  const getBackContext = (): 'lojinha' | 'lanchonete' => {
+  const getBackContext = (): 'lojinha' | 'lanchonete' | 'sapatinho-veloz' => {
     if (location.pathname.startsWith('/lojinha')) return 'lojinha'
     if (location.pathname.startsWith('/lanchonete')) return 'lanchonete'
+    if (location.pathname.startsWith('/sapatinho-veloz')) return 'sapatinho-veloz'
     return 'lojinha'
   }
 
@@ -60,7 +61,11 @@ const AppLayout = () => {
   // Determinar texto do botão de voltar
   const getBackButtonText = (): string => {
     const context = getBackContext()
-    const contextName = context === 'lojinha' ? 'Lojinha' : 'Lanchonete'
+    const contextName = context === 'lojinha'
+      ? 'Lojinha'
+      : context === 'lanchonete'
+        ? 'Lanchonete'
+        : 'Sapatinho Veloz'
     
     if (isInProductsSubpage) {
       return `← Voltar para Gerenciar Produtos`

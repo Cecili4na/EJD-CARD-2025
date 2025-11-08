@@ -20,8 +20,12 @@ const ListProductsPage = () => {
   const location = useLocation()
   const { showSuccess, showError, showInfo } = useToastContext()
   
-  // Determinar o contexto baseado na rota (lojinha ou lanchonete)
-  const context = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
+  const context = location.pathname.startsWith('/sapatinho-veloz')
+    ? 'sapatinho'
+    : location.pathname.startsWith('/lanchonete')
+      ? 'lanchonete'
+      : 'lojinha'
+  const basePath = context === 'sapatinho' ? '/sapatinho-veloz' : `/${context}`
   
   const [products, setProducts] = useState<Product[]>([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -43,10 +47,19 @@ const ListProductsPage = () => {
       emptyMessage: 'Nenhum item cadastrado no cardápio',
       deleteTitle: 'Excluir Item',
       deleteMessage: 'Deseja realmente excluir este item do cardápio?'
+    },
+    sapatinho: {
+      title: '👠 Itens do Sapatinho Veloz',
+      subtitle: 'Gerencie os itens mágicos disponíveis',
+      emptyMessage: 'Nenhum item cadastrado para o Sapatinho',
+      deleteTitle: 'Excluir Item Mágico',
+      deleteMessage: 'Deseja realmente excluir este item do Sapatinho?'
     }
   }
   
   const currentConfig = config[context]
+  const itemSingular = context === 'lojinha' ? 'produto' : context === 'sapatinho' ? 'item mágico' : 'item'
+  const itemSingularTitle = context === 'lojinha' ? 'Produto' : context === 'sapatinho' ? 'Item Mágico' : 'Item'
 
   // Carregar produtos
   useEffect(() => {
@@ -95,7 +108,7 @@ const ListProductsPage = () => {
 
   const handleEdit = (product: Product) => {
     if (product.id) {
-      navigate({to: `/${context}/products/${product.id}/edit`})
+      navigate({to: `${basePath}/products/${product.id}/edit`})
     } else {
       showError('Erro', 'ID do produto não encontrado')
     }
@@ -128,10 +141,36 @@ const ListProductsPage = () => {
   }
 
   // Adicione esta função para obter imagem padrão
-  const getDefaultImage = (context: 'lojinha' | 'lanchonete'): string => {
+  const getDefaultImage = (context: 'lojinha' | 'lanchonete' | 'sapatinho'): string => {
     const svg = context === 'lanchonete' 
       ? `<svg>...</svg>` // seu SVG da lanchonete atual
-      : `<svg>...</svg>` // seu SVG da lojinha atual
+      : context === 'sapatinho'
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+            <defs>
+              <linearGradient id="gradSapatinho1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbcfe8;stop-opacity:0.3" />
+                <stop offset="100%" style="stop-color:#f472b6;stop-opacity:0.4" />
+              </linearGradient>
+              <linearGradient id="gradSapatinho2" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#db2777;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <rect width="400" height="400" fill="url(#gradSapatinho1)"/>
+            <circle cx="200" cy="200" r="130" fill="white" opacity="0.35"/>
+            <g transform="translate(200,210) rotate(-10)">
+              <path d="M -90 30 C -60 -10, -20 -30, 40 -20 C 80 -10, 110 20, 90 50 C 60 90, 0 120, -40 110 C -80 100, -110 70, -90 30 Z" fill="url(#gradSapatinho2)"/>
+              <path d="M 10 -40 C 20 -30, 40 -20, 50 -10 C 60 0, 40 10, 20 5 C 0 0, -20 -20, 10 -40 Z" fill="#fdf2f8"/>
+              <circle cx="35" cy="-5" r="12" fill="#fce7f3"/>
+            </g>
+            <text x="200" y="320" font-size="18" text-anchor="middle" fill="#db2777" font-family="Arial, sans-serif" font-weight="600">
+              Item especial do Sapatinho
+            </text>
+            <text x="200" y="345" font-size="14" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif">
+              Imagem não disponível
+            </text>
+          </svg>`
+        : `<svg>...</svg>` // seu SVG da lojinha atual
     return `data:image/svg+xml,${encodeURIComponent(svg)}`
   }
 
@@ -152,13 +191,13 @@ const ListProductsPage = () => {
             {currentConfig.emptyMessage}
           </h3>
           <p className="text-gray-500 mb-6 font-farmhand">
-            Comece cadastrando seu primeiro {context === 'lojinha' ? 'produto' : 'item'}!
+            Comece cadastrando seu primeiro {itemSingular}!
           </p>
           <button
-            onClick={() => navigate(`/${context}/products/create`)}
+            onClick={() => navigate(`${basePath}/products/create`)}
             className="px-8 py-4 text-lg font-semibold rounded-lg shadow-lg transition-all duration-200 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black hover:shadow-xl"
           >
-            ➕ Cadastrar {context === 'lojinha' ? 'Produto' : 'Item'}
+            ➕ Cadastrar {itemSingularTitle}
           </button>
         </div>
       ) : (

@@ -20,7 +20,7 @@ interface Purchase {
   store: string
   product: string
   amount: number
-  type: 'lojinha' | 'lanchonete'
+  type: 'lojinha' | 'lanchonete' | 'sapatinho'
 }
 
 const MyCardPage: React.FC = () => {
@@ -121,7 +121,11 @@ const MyCardPage: React.FC = () => {
           .map((sale: any) => ({
             id: sale.id,
             date: sale.createdAt.split('T')[0],
-            store: sale.category === 'lojinha' ? 'Lojinha Mágica' : 'Lanchonete do Feiticeiro',
+            store: sale.category === 'lojinha'
+              ? 'Lojinha Mágica'
+              : sale.category === 'lanchonete'
+                ? 'Lanchonete do Feiticeiro'
+                : 'Sapatinho Veloz',
             product: sale.items.map((item: any) => item.productName).join(', '),
             amount: sale.total,
             type: sale.category
@@ -432,7 +436,7 @@ const MyCardPage: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="text-2xl">
-                        {purchase.type === 'lojinha' ? '🏪' : '🍔'}
+                        {purchase.type === 'lojinha' ? '🏪' : purchase.type === 'lanchonete' ? '🍔' : '👠'}
                       </span>
                       <h4 className="font-semibold text-black">{purchase.product}</h4>
                     </div>

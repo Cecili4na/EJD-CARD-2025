@@ -52,7 +52,12 @@ function App() {
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element not found')
 
-ReactDOM.createRoot(rootElement).render(
+type ReactRootInstance = ReturnType<typeof ReactDOM.createRoot>
+const cachedRoot = (rootElement as Record<string, unknown>).__appRoot as ReactRootInstance | undefined
+const root = cachedRoot ?? ReactDOM.createRoot(rootElement)
+;(rootElement as Record<string, unknown>).__appRoot = root
+
+root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>

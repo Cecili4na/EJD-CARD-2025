@@ -1,18 +1,35 @@
 import { supabase } from '../lib/supabase'
-import { Product } from '../types'
+import { Product, ProductCategory } from '../types'
+
+const TABLE_BY_CATEGORY: Record<ProductCategory, { table: string; hasCategoryColumn: boolean }> = {
+  lojinha: { table: 'products', hasCategoryColumn: true },
+  lanchonete: { table: 'products', hasCategoryColumn: true },
+  sapatinho: { table: 'sapatinho_products', hasCategoryColumn: false },
+}
 
 export const productsApi = {
-  getAll: async (category?: 'lojinha' | 'lanchonete'): Promise<Product[]> => {
-    let query = supabase
-      .from('products')
-      .select('*')
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-    
-    if (category) {
-      query = query.eq('category', category)
+  getAll: async (category?: ProductCategory): Promise<Product[]> => {
+    if (!category) {
+      const [lojinha, lanchonete, sapatinho] = await Promise.all([
+        productsApi.getAll('lojinha'),
+        productsApi.getAll('lanchonete'),
+        productsApi.getAll('sapatinho'),
+      ])
+      return [...lojinha, ...lanchonete, ...sapatinho]
     }
-    
+
+    const config = TABLE_BY_CATEGORY[category]
+    let query = supabase
+      .from(config.table)
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (config.hasCategoryColumn) {
+      query = query.eq('category', category).eq('active', true)
+    } else {
+      query = query.eq('active', true)
+    }
+
     const { data, error } = await query
     if (error) throw error
     
@@ -20,7 +37,7 @@ export const productsApi = {
       id: product.id,
       name: product.name,
       price: parseFloat(product.price) || 0,
-      category: product.category,
+      category: config.hasCategoryColumn ? product.category : 'sapatinho',
       description: product.description,
       stock: product.stock,
       active: product.active,
@@ -29,15 +46,20 @@ export const productsApi = {
   },
 
   create: async (product: Omit<Product, 'id' | 'createdAt'>): Promise<Product> => {
+    const config = TABLE_BY_CATEGORY[product.category]
+    const insertPayload = {
+      name: product.name,
+      price: product.price,
+      description: product.description,
+      stock: product.stock,
+      active: product.active,
+      ...(config.hasCategoryColumn ? { category: product.category } : {}),
+    }
+
     const { data, error } = await supabase
-      .from('products')
+      .from(config.table)
       .insert({
-        name: product.name,
-        price: product.price,
-        category: product.category,
-        description: product.description,
-        stock: product.stock,
-        active: product.active
+        ...insertPayload,
       })
       .select()
       .single()
@@ -48,7 +70,7 @@ export const productsApi = {
       id: data.id,
       name: data.name,
       price: parseFloat(data.price) || 0,
-      category: data.category,
+      category: config.hasCategoryColumn ? data.category : 'sapatinho',
       description: data.description,
       stock: data.stock,
       active: data.active,
@@ -57,21 +79,38 @@ export const productsApi = {
   },
 
   update: async (id: string, updates: Partial<Product>): Promise<void> => {
+    if (!updates.category) {
+      throw new Error('Category is required to update a product')
+    }
+
+    const config = TABLE_BY_CATEGORY[updates.category]
+    const updatePayload = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    }
+
+    if (!config.hasCategoryColumn) {
+      delete updatePayload.category
+    }
+
     const { error } = await supabase
-      .from('products')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
+      .from(config.table)
+      .update(updatePayload)
       .eq('id', id)
     
     if (error) throw error
   },
 
-  delete: async (id: string): Promise<void> => {
+  delete: async (id: string, category: ProductCategory): Promise<void> => {
+    const config = TABLE_BY_CATEGORY[category]
+    const updateData = {
+      active: false,
+      updated_at: new Date().toISOString()
+    }
+
     const { error } = await supabase
-      .from('products')
-      .update({ active: false, updated_at: new Date().toISOString() })
+      .from(config.table)
+      .update(updateData)
       .eq('id', id)
     
     if (error) throw error

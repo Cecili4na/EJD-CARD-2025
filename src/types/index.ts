@@ -11,11 +11,13 @@ export interface Transaction {
   createdAt: string
 }
 
+export type ProductCategory = 'lojinha' | 'lanchonete' | 'sapatinho'
+
 export interface Product {
   id: string
   name: string
   price: number
-  category: 'lojinha' | 'lanchonete'
+  category: ProductCategory
   description?: string
   stock?: number
   active: boolean
@@ -34,7 +36,7 @@ export interface Sale {
   id: string
   userId: string
   sellerId: string
-  category: 'lojinha' | 'lanchonete'
+  category: ProductCategory
   items: SaleItem[]
   total: number
   status: 'completed' | 'delivered'

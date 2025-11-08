@@ -11,11 +11,13 @@ export interface Transaction {
   createdAt: string
 }
 
+type ProductCategory = 'lojinha' | 'lanchonete' | 'sapatinho'
+
 export interface Product {
   id: string
   name: string
   price: number
-  category: 'lojinha' | 'lanchonete'
+  category: ProductCategory
   description?: string
   stock?: number
   active: boolean
@@ -34,7 +36,7 @@ export interface Sale {
   id: string
   userId: string // quem comprou
   sellerId: string // quem vendeu
-  category: 'lojinha' | 'lanchonete'
+  category: ProductCategory
   items: SaleItem[]
   total: number
   status: 'completed' | 'delivered'
@@ -58,6 +60,7 @@ export interface AppData {
   products: {
     lojinha: Product[]
     lanchonete: Product[]
+    sapatinho: Product[]
   }
   sales: Sale[]
   orders: Order[]
@@ -74,11 +77,11 @@ interface DataContextType {
   addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => void
   updateProduct: (id: string, updates: Partial<Product>) => void
   deleteProduct: (id: string) => void
-  getProducts: (category: 'lojinha' | 'lanchonete') => Product[]
+  getProducts: (category: ProductCategory) => Product[]
   
   // Funções de vendas
-  makeSale: (userId: string, sellerId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete') => string
-  getSales: (category?: 'lojinha' | 'lanchonete') => Sale[]
+  makeSale: (userId: string, sellerId: string, items: Omit<SaleItem, 'id'>[], category: ProductCategory) => string
+  getSales: (category?: ProductCategory) => Sale[]
   
   // Funções de pedidos
   getOpenOrders: () => Order[]
@@ -108,7 +111,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     balances: new Map(),
     products: {
       lojinha: [],
-      lanchonete: []
+      lanchonete: [],
+      sapatinho: []
     },
     sales: [],
     orders: []
@@ -198,31 +202,39 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   }
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
-    setData(prev => ({
-      ...prev,
-      products: {
-        lojinha: prev.products.lojinha.map(p => p.id === id ? { ...p, ...updates } : p),
-        lanchonete: prev.products.lanchonete.map(p => p.id === id ? { ...p, ...updates } : p)
+    setData(prev => {
+      const updatedProducts = Object.entries(prev.products).reduce((acc, [categoryKey, productList]) => {
+        acc[categoryKey as ProductCategory] = productList.map(p => p.id === id ? { ...p, ...updates } : p)
+        return acc
+      }, {} as Record<ProductCategory, Product[]>)
+
+      return {
+        ...prev,
+        products: updatedProducts
       }
-    }))
+    })
   }
 
   const deleteProduct = (id: string) => {
-    setData(prev => ({
-      ...prev,
-      products: {
-        lojinha: prev.products.lojinha.filter(p => p.id !== id),
-        lanchonete: prev.products.lanchonete.filter(p => p.id !== id)
+    setData(prev => {
+      const updatedProducts = Object.entries(prev.products).reduce((acc, [categoryKey, productList]) => {
+        acc[categoryKey as ProductCategory] = productList.filter(p => p.id !== id)
+        return acc
+      }, {} as Record<ProductCategory, Product[]>)
+
+      return {
+        ...prev,
+        products: updatedProducts
       }
-    }))
+    })
   }
 
-  const getProducts = (category: 'lojinha' | 'lanchonete'): Product[] => {
+  const getProducts = (category: ProductCategory): Product[] => {
     return data.products[category].filter(p => p.active)
   }
 
   // Funções de vendas
-  const makeSale = (userId: string, sellerId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete'): string => {
+  const makeSale = (userId: string, sellerId: string, items: Omit<SaleItem, 'id'>[], category: ProductCategory): string => {
     const saleId = `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     
@@ -280,7 +292,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     return saleId
   }
 
-  const getSales = (category?: 'lojinha' | 'lanchonete'): Sale[] => {
+  const getSales = (category?: ProductCategory): Sale[] => {
     if (category) {
       return data.sales.filter(sale => sale.category === category)
     }
@@ -309,7 +321,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       balances: new Map(),
       products: {
         lojinha: [],
-        lanchonete: []
+        lanchonete: [],
+        sapatinho: []
       },
       sales: [],
       orders: []
@@ -329,7 +342,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       // Produtos Lanchonete
       { id: 'prod4', name: 'Hambúrguer', price: 12.00, category: 'lanchonete', description: 'Hambúrguer artesanal', active: true, createdAt: new Date().toISOString() },
       { id: 'prod5', name: 'Refrigerante', price: 4.00, category: 'lanchonete', description: 'Lata 350ml', active: true, createdAt: new Date().toISOString() },
-      { id: 'prod6', name: 'Batata Frita', price: 8.00, category: 'lanchonete', description: 'Porção média', active: true, createdAt: new Date().toISOString() }
+      { id: 'prod6', name: 'Batata Frita', price: 8.00, category: 'lanchonete', description: 'Porção média', active: true, createdAt: new Date().toISOString() },
+
+      // Produtos Sapatinho
+      { id: 'prod7', name: 'Bilhete Mágico', price: 7.50, category: 'sapatinho', description: 'Mensagem especial encantada', active: true, createdAt: new Date().toISOString() },
+      { id: 'prod8', name: 'Docinho Encantado', price: 5.00, category: 'sapatinho', description: 'Delícia exclusiva do Sapatinho', active: true, createdAt: new Date().toISOString() }
     ]
     
     // Adicionar saldo inicial para alguns usuários
@@ -351,7 +368,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       balances: seedBalances,
       products: {
         lojinha: seedProducts.filter(p => p.category === 'lojinha'),
-        lanchonete: seedProducts.filter(p => p.category === 'lanchonete')
+        lanchonete: seedProducts.filter(p => p.category === 'lanchonete'),
+        sapatinho: seedProducts.filter(p => p.category === 'sapatinho')
       },
       sales: [],
       orders: []

@@ -78,7 +78,6 @@ export const sapatinhoVelozApi = {
 
   create: async (params: {
     senderUserId: string
-    senderName?: string
     senderTeam: string
     recipientName: string
     recipientAddress: string
@@ -88,7 +87,7 @@ export const sapatinhoVelozApi = {
     // Verificar saldo antes de criar a venda
     const { data: card, error: cardError } = await supabase
       .from('cards')
-      .select('id, balance')
+      .select('id, balance, user_name')
       .eq('user_id', params.senderUserId)
       .single()
 
@@ -105,7 +104,7 @@ export const sapatinhoVelozApi = {
       userId: params.senderUserId,
       sellerId: params.senderUserId,
       items: params.items,
-      category: 'lojinha'
+      category: 'sapatinho'
     })
 
     // Criar pedido Sapatinho Veloz
@@ -114,7 +113,7 @@ export const sapatinhoVelozApi = {
       .insert({
         sale_id: saleId,
         sender_user_id: params.senderUserId,
-        sender_name: params.senderName,
+        sender_name: card.user_name,
         sender_team: params.senderTeam,
         recipient_name: params.recipientName,
         recipient_address: params.recipientAddress,

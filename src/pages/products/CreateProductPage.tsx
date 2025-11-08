@@ -3,7 +3,6 @@ import { useNavigate, useLocation, useParams } from '@tanstack/react-router'
 
 import { Button, Header } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
-import { supabase } from '../../lib/supabase'
 import { productService } from '../../services'
 
 const CreateProductPage = () => {
@@ -12,8 +11,12 @@ const CreateProductPage = () => {
   const { id } = useParams({ strict: false }) as { id?: string }
   const { showSuccess, showError, showWarning } = useToastContext()
   
-  // Determinar o contexto baseado na rota (lojinha ou lanchonete)
-  const context = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
+  const context = location.pathname.startsWith('/sapatinho-veloz')
+    ? 'sapatinho'
+    : location.pathname.startsWith('/lanchonete')
+      ? 'lanchonete'
+      : 'lojinha'
+  const basePath = context === 'sapatinho' ? '/sapatinho-veloz' : `/${context}`
   const isEditing = !!id // mantenha esta linha
   const [existingUrl, setExistingUrl] = useState<string | null>(null)
   
@@ -34,36 +37,27 @@ const CreateProductPage = () => {
         try {
           setIsLoading(true)
           
-          const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('id', id) // agora usando id direto como string
-            .single()
+          const data = await productService.getProductById(id, context)
 
-          if (error) {
-            console.error('Supabase fetch product error:', error)
-            showError('Erro', 'Erro ao carregar produto.')
-            navigate(`/${context}/products/list`)
+          if (!data) {
+            showError('Erro', 'Produto não encontrado!')
+            navigate(`${basePath}/products/list`)
             return
           }
 
-          if (data) {
-            setFormData({
-              name: data.name ?? '',
-              price: (Number(data.price) || 0).toFixed(2).replace('.', ','),
-              stock: String(data.stock ?? 0),
-              image: data.image_url ?? null
-            })
-            setExistingUrl(data.image_url ?? null)
-            setImagePreview(data.image_url ?? null)
-          } else {
-            showError('Erro', 'Produto não encontrado!')
-            navigate(`/${context}/products/list`)
-          }
+          setFormData({
+            name: data.name ?? '',
+            price: (Number(data.price) || 0).toFixed(2).replace('.', ','),
+            stock: String(data.stock ?? 0),
+            image: (data as any).image_url ?? data.image ?? null
+          })
+          const imageUrl = (data as any).image_url ?? data.image ?? null
+          setExistingUrl(imageUrl)
+          setImagePreview(imageUrl)
         } catch (err) {
           console.error(err)
           showError('Erro', 'Erro ao carregar produto.')
-          navigate(`/${context}/products/list`)
+          navigate(`${basePath}/products/list`)
         } finally {
           setIsLoading(false)
         }
@@ -88,6 +82,13 @@ const CreateProductPage = () => {
       nameLabel: 'Nome do Item',
       namePlaceholder: 'Ex: Hambúrguer de Esmeralda',
       successMessage: isEditing ? 'Item atualizado com sucesso!' : 'Item cadastrado com sucesso!'
+    },
+    sapatinho: {
+      title: isEditing ? '✏️ Editar Item do Sapatinho' : '👠 Cadastrar Item do Sapatinho',
+      subtitle: isEditing ? 'Atualize as informações do item mágico' : 'Adicione um novo item especial para o Sapatinho Veloz',
+      nameLabel: 'Nome do Item Mágico',
+      namePlaceholder: 'Ex: Bilhete Encantado',
+      successMessage: isEditing ? 'Item do Sapatinho atualizado!' : 'Item do Sapatinho cadastrado!'
     }
   }
   
@@ -290,7 +291,7 @@ const CreateProductPage = () => {
             description: formData.name}, formData.image as unknown as File, existingUrl);
 
       showSuccess('Sucesso', currentConfig.successMessage)
-      navigate({to: `/${context}/products`})
+      navigate({to: `${basePath}/products`})
     } catch (error) {
       console.error('Erro ao salvar produto:', error)
       showError('Erro', 'Erro ao salvar produto. Tente novamente.')
@@ -300,7 +301,7 @@ const CreateProductPage = () => {
   }
 
   const handleCancel = () => {
-    navigate({to:`/${context}/select`})
+    navigate({to:`${basePath}/select`})
   }
 
   return (
