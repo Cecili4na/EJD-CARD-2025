@@ -1,6 +1,8 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import AppLayout from '../../components/layouts/AppLayout'
 import { supabase } from '../../lib/supabase'
+
+const LayoutComponent = AppLayout
 
 export const Route = createFileRoute('/_layout/')({
   beforeLoad: async () => {
@@ -12,8 +14,4 @@ export const Route = createFileRoute('/_layout/')({
   },
   component: LayoutComponent,
 })
-
-function LayoutComponent() {
-  return <AppLayout />
-}
 
