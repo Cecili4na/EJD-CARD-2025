@@ -19,7 +19,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   showAccessDenied = false
 }) => {
   const navigate = useNavigate()
-  const { userRole, hasPermission, isAdmin, isManager, isUser } = usePermissions()
+  const { hasPermission, isAdmin, isManager, isUser } = usePermissions()
 
   // Verificar se tem a permissão específica
   useEffect(() => {

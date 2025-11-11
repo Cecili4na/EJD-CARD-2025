@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
 import { Button } from '../shared'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -11,15 +11,15 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const navigate = useNavigate()
+  const router = useRouter()
   const { login, register, user } = useAuth()
 
   // Redirecionar se já estiver logado
   useEffect(() => {
     if (user) {
-      navigate({ to: '/mycard' })
+      router.navigate({ to: '/mycard' })
     }
-  }, [user, navigate])
+  }, [user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,14 +32,14 @@ const Login: React.FC = () => {
         // Aguardar um pouco para garantir que o contexto do router seja atualizado
         await new Promise(resolve => setTimeout(resolve, 100))
         // Navegar após login bem-sucedido
-        navigate({ to: '/mycard' })
+        router.navigate({ to: '/mycard' })
       } else {
         await register(email, password, name)
         // Após registro, fazer login automaticamente
         await login(email, password)
         // Aguardar um pouco para garantir que o contexto do router seja atualizado
         await new Promise(resolve => setTimeout(resolve, 100))
-        navigate({ to: '/mycard' })
+        router.navigate({ to: '/mycard' })
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login/registro')

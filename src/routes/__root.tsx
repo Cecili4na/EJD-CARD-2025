@@ -1,5 +1,4 @@
 import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { useAuth } from '../contexts/AuthContext'
 
 // Componente que decide o Layout a ser usado
@@ -24,11 +23,6 @@ function RootLayout() {
 
 export const Route = createRootRoute({
   component: () => (
-    <>
-      {/* O RootLayout agora decide se o AppLayout ou o Outlet (para login) aparece */}
-      <RootLayout /> 
-      {/* Devtools deve vir por último */}
-      {import.meta.env.DEV && <TanStackRouterDevtools />}
-    </>
+    <RootLayout />
   ),
 })

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
 import { usePermissions } from '../../hooks/usePermissions'
 
 interface TabNavigationProps {
@@ -8,7 +8,7 @@ interface TabNavigationProps {
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
-  const navigate = useNavigate()
+  const router = useRouter()
   const { 
     userRole,
     canViewCards,
@@ -61,7 +61,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLojinha && (
             <button
-              onClick={() => navigate({ to: '/historico/lojinha' })}
+              onClick={() => router.navigate({ to: '/historico/lojinha' })}
               className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
             >
               📊 Histórico Lojinha
@@ -81,7 +81,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLanchonete && (
             <button
-              onClick={() => navigate({ to: '/historico/lanchonete' })}
+              onClick={() => router.navigate({ to: '/historico/lanchonete' })}
               className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
             >
               📊 Histórico Lanchonete
@@ -89,7 +89,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {/* Sapatinho Veloz - visível para todos */}
           <button
-            onClick={() => navigate({ to: '/sapatinho-veloz' })}
+            onClick={() => router.navigate({ to: '/sapatinho-veloz' })}
             className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'sapatinho-veloz'
                 ? 'bg-emerald-500 text-white shadow-lg'
@@ -100,7 +100,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           </button>
           {canViewOpenOrders && (
             <button
-              onClick={() => navigate({ to: '/pedidos-lojinha' })}
+              onClick={() => router.navigate({ to: '/pedidos-lojinha' })}
               className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
             >
               📦 Pedidos Lojinha
@@ -108,7 +108,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewOpenOrders && (
             <button
-              onClick={() => navigate({ to: '/pedidos-sapatinho-veloz' })}
+              onClick={() => router.navigate({ to: '/pedidos-sapatinho-veloz' })}
               className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
             >
               📦 Pedidos Sapatinho Veloz

@@ -31,7 +31,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Verificar sessão via Supabase
@@ -153,7 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       // Só atualizar se o usuário mudou
-      setUser(prev => {
+      setUser((prev: User | null) => {
         if (prev?.id === userId) {
           return prev // Não precisa atualizar, já temos o mesmo usuário
         }
@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         loadUserWithRole(userId).catch(console.error)
       ]).then(([, u]) => {
         if (u && u.id === userId) {
-          setUser(prev => {
+          setUser((prev: User | null) => {
             // Só atualizar se ainda for o mesmo usuário e o role mudou
             if (prev?.id === userId && prev.role !== u.role) {
               return { ...prev, role: u.role }
@@ -183,7 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     const cleanEmail = (email || '').trim().toLowerCase()
-    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
+    const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
     if (error) throw error
     const { data: sessionData } = await supabase.auth.getSession()
     const userId = sessionData.session?.user?.id
@@ -195,7 +195,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, name: string) => {
     const cleanEmail = (email || '').trim().toLowerCase()
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: { data: { name } }

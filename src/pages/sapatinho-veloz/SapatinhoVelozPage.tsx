@@ -247,7 +247,20 @@ const SapatinhoVelozPage: React.FC = () => {
             <div className="space-y-4 max-h-96 overflow-y-auto border-2 border-gray-300 rounded-lg p-5 bg-white">
               {products.map(product => (
                 <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-emerald-300 transition-colors">
-                  <div className="flex items-center space-x-4 flex-1">
+                  <div className="flex items-start space-x-4 flex-1">
+                    <div className="w-20 h-20 rounded-lg overflow-hidden border border-emerald-200 bg-white">
+                      <img
+                        src={product.image_url || 'https://placehold.co/200x200?text=Sapatinho'}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.onerror = null
+                          target.src = 'https://placehold.co/200x200?text=Sapatinho'
+                        }}
+                      />
+                    </div>
                     <input
                       type="checkbox"
                       id={`product-${product.id}`}
