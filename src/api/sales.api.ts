@@ -1,29 +1,41 @@
 import { supabase } from '../lib/supabase'
-import { Sale, SaleItem } from '../types'
+import { Sale, SaleItem, ProductCategory } from '../types'
+
+const SALES_TABLE_MAP: Record<ProductCategory, { sales: string; items: string; createOrder: boolean }> = {
+  lojinha: { sales: 'sales', items: 'sale_items', createOrder: true },
+  lanchonete: { sales: 'sales', items: 'sale_items', createOrder: false },
+  sapatinho: { sales: 'sapatinho_sales', items: 'sapatinho_sale_items', createOrder: false },
+}
 
 export const salesApi = {
-  getAll: async (category?: 'lojinha' | 'lanchonete'): Promise<Sale[]> => {
-    let query = supabase
-      .from('sales')
+  getAll: async (category?: ProductCategory): Promise<Sale[]> => {
+    if (!category) {
+      const [lojinha, lanchonete, sapatinho] = await Promise.all([
+        salesApi.getAll('lojinha'),
+        salesApi.getAll('lanchonete'),
+        salesApi.getAll('sapatinho'),
+      ])
+      return [...lojinha, ...lanchonete, ...sapatinho].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    }
+
+    const config = SALES_TABLE_MAP[category]
+    const selectRelation = config.items === 'sale_items' ? 'sale_items (*)' : 'sapatinho_sale_items (*)'
+
+    const { data, error } = await supabase
+      .from(config.sales)
       .select(`
         *,
-        sale_items (*)
+        ${selectRelation}
       `)
       .order('created_at', { ascending: false })
-    
-    if (category) {
-      query = query.eq('category', category)
-    }
-    
-    const { data, error } = await query
     if (error) throw error
-    
+
     return (data || []).map((sale: any) => ({
       id: sale.id,
       userId: sale.card_id,
       sellerId: sale.seller_id,
-      category: sale.category,
-      items: (sale.sale_items || []).map((item: any) => ({
+      category,
+      items: ((sale.sale_items || sale.sapatinho_sale_items) || []).map((item: any) => ({
         id: item.id,
         productId: item.product_id,
         productName: item.product_name,
@@ -40,7 +52,7 @@ export const salesApi = {
     userId: string
     sellerId: string
     items: Omit<SaleItem, 'id'>[]
-    category: 'lojinha' | 'lanchonete'
+    category: ProductCategory
   }): Promise<string> => {
     // Buscar cartão do usuário
     const { data: card, error: cardError } = await supabase
@@ -59,15 +71,18 @@ export const salesApi = {
     }
 
     // Criar venda
+    const config = SALES_TABLE_MAP[params.category]
+    const salesInsert = {
+      card_id: card.id,
+      seller_id: params.sellerId,
+      total,
+      status: 'completed',
+      ...(config.sales === 'sales' ? { category: params.category } : {})
+    }
+
     const { data: sale, error: saleError } = await supabase
-      .from('sales')
-      .insert({
-        card_id: card.id,
-        seller_id: params.sellerId,
-        category: params.category,
-        total,
-        status: 'completed'
-      })
+      .from(config.sales)
+      .insert(salesInsert)
       .select()
       .single()
 
@@ -83,7 +98,7 @@ export const salesApi = {
     }))
 
     const { error: itemsError } = await supabase
-      .from('sale_items')
+      .from(config.items)
       .insert(saleItems)
 
     if (itemsError) throw itemsError
@@ -98,7 +113,7 @@ export const salesApi = {
     })
 
     // Criar pedido se for lojinha
-    if (params.category === 'lojinha') {
+    if (config.createOrder) {
       await supabase
         .from('orders')
         .insert({

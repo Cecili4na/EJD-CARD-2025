@@ -71,7 +71,9 @@ const Toast: React.FC<ToastProps> = ({
         </div>
         <button
           onClick={() => onClose(id)}
-          className="flex-shrink-0 ml-2 text-black hover:text-gray-600 transition-colors"
+          className="flex-shrink-0 ml-2 text-black hover:text-gray-600 transition-colors text-xs leading-none p-0"
+          aria-label="Fechar notificação"
+          title="Fechar"
         >
           ✕
         </button>

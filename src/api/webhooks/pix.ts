@@ -17,28 +17,6 @@ interface PixWebhookData {
   timestamp: string
 }
 
-// Função para validar assinatura do webhook (preparada)
-function validateWebhookSignature(_payload: string, _signature: string): boolean {
-  // TODO: Implementar validação de assinatura HMAC
-  // Exemplo:
-  /*
-  const crypto = require('crypto')
-  const secret = process.env.PIX_WEBHOOK_SECRET
-  const expectedSignature = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex')
-  
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  )
-  */
-  
-  // Por enquanto sempre retorna true (desenvolvimento)
-  return true
-}
-
 // Função para processar webhook PIX
 export async function handlePixWebhook(payload: PixWebhookData): Promise<void> {
   try {

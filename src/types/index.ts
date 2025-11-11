@@ -11,11 +11,13 @@ export interface Transaction {
   createdAt: string
 }
 
+export type ProductCategory = 'lojinha' | 'lanchonete' | 'sapatinho'
+
 export interface Product {
   id: string
   name: string
   price: number
-  category: 'lojinha' | 'lanchonete'
+  category: ProductCategory
   description?: string
   stock?: number
   active: boolean
@@ -34,7 +36,7 @@ export interface Sale {
   id: string
   userId: string
   sellerId: string
-  category: 'lojinha' | 'lanchonete'
+  category: ProductCategory
   items: SaleItem[]
   total: number
   status: 'completed' | 'delivered'
@@ -62,4 +64,30 @@ export interface Card {
   balance: number
   createdAt: string
   updatedAt: string
+}
+
+export interface SapatinhoVelozOrderItem {
+  id: string
+  orderId: string
+  productId: string
+  productName: string
+  quantity: number
+  price: number
+  createdAt: string
+}
+
+export interface SapatinhoVelozOrder {
+  id: string
+  saleId: string
+  senderUserId: string
+  senderName?: string
+  senderTeam: string
+  recipientName: string
+  recipientAddress: string
+  message?: string
+  items: SapatinhoVelozOrderItem[]
+  total: number
+  status: 'pending' | 'completed' | 'delivered'
+  createdAt: string
+  deliveredAt?: string
 }

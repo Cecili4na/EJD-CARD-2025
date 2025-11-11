@@ -31,7 +31,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Verificar sessão via Supabase
@@ -137,22 +137,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null)
         return
       }
+
       // Definir usuário básico imediatamente
       const { data: authUser } = await supabase.auth.getUser()
-      if (!authUser.user) {
+      if (!authUser.user || authUser.user.id !== userId) {
         setUser(null)
         return
       }
-      setUser({
+      
+      const basicUser = {
         id: authUser.user.id,
         email: authUser.user.email || '',
         name: authUser.user.user_metadata?.name || null,
-        role: 'encontrista',
+        role: 'encontrista' as const,
+      }
+      
+      // Só atualizar se o usuário mudou
+      setUser((prev: User | null) => {
+        if (prev?.id === userId) {
+          return prev // Não precisa atualizar, já temos o mesmo usuário
+        }
+        return basicUser
       })
-      // Em segundo plano: garantir linha e carregar role real
-      await ensureAppUserRow(userId)
-      const u = await loadUserWithRole(userId)
-      setUser(prev => prev ? { ...prev, role: u?.role || 'encontrista' } : u)
+      
+      // Em segundo plano: garantir linha e carregar role real (não bloquear)
+      Promise.all([
+        ensureAppUserRow(userId).catch(console.error),
+        loadUserWithRole(userId).catch(console.error)
+      ]).then(([, u]) => {
+        if (u && u.id === userId) {
+          setUser((prev: User | null) => {
+            // Só atualizar se ainda for o mesmo usuário e o role mudou
+            if (prev?.id === userId && prev.role !== u.role) {
+              return { ...prev, role: u.role }
+            }
+            return prev
+          })
+        }
+      })
     } catch (e) {
       console.error('handleAuthChange fatal:', e)
       setUser(null)
@@ -161,7 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     const cleanEmail = (email || '').trim().toLowerCase()
-    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
+    const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
     if (error) throw error
     const { data: sessionData } = await supabase.auth.getSession()
     const userId = sessionData.session?.user?.id
@@ -173,7 +195,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, name: string) => {
     const cleanEmail = (email || '').trim().toLowerCase()
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: { data: { name } }

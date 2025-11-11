@@ -4,7 +4,7 @@ interface ButtonProps {
   children: React.ReactNode
   onClick?: () => void
   variant?: 'primary' | 'secondary' | 'outline'
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
   className?: string
   type?: 'button' | 'submit' | 'reset'
   disabled?: boolean
@@ -28,6 +28,7 @@ const Button: React.FC<ButtonProps> = ({
   }
   
   const sizeClasses = {
+    xs: 'px-3 py-1.5 text-xs',
     sm: 'px-4 py-2 text-sm',
     md: 'px-6 py-3 text-base',
     lg: 'px-8 py-4 text-lg'

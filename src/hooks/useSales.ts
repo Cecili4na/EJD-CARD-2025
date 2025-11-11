@@ -1,15 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { salesApi } from '../api/sales.api'
 import { useToastContext } from '../contexts/ToastContext'
+import type { ProductCategory } from '../types'
 
 export const saleKeys = {
   all: ['sales'] as const,
   lists: () => [...saleKeys.all, 'list'] as const,
-  list: (category?: 'lojinha' | 'lanchonete') => 
+  list: (category?: ProductCategory) => 
     [...saleKeys.lists(), { category }] as const,
 }
 
-export function useSales(category?: 'lojinha' | 'lanchonete') {
+export function useSales(category?: ProductCategory) {
   return useQuery({
     queryKey: saleKeys.list(category),
     queryFn: () => salesApi.getAll(category),

@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Card, Button } from '../../components/shared'
+import { Card, Button, Header } from '../../components/shared'
 
 const CardsPage = () => {
   const navigate = useNavigate()
@@ -7,20 +7,25 @@ const CardsPage = () => {
   return (
     <div className="space-y-6">
       {/* Cards de Funcionalidades de Cartões */}
+      <Header 
+            title="💳 Cartões Mágicos"
+            subtitle="Gerencie seus cartões de débito mágicos"
+            showLogo={false}
+        />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Criar Cartão */}
         <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/cards/create' as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">💳</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              CRIAR CARTÃO
+              Criar Cartão
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Emita um novo cartão de débito mágico
             </p>
             <Button 
               size="lg"
-              className="bg-ruby-500 hover:bg-emerald-600 !text-sky-900 shadow-lg hover:shadow-emerald-200"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-emerald-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/create' as any })
@@ -36,14 +41,14 @@ const CardsPage = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              CONSULTAR SALDO
+              Consultar Saldo
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Verifique o saldo do seu cartão
             </p>
             <Button 
               size="lg"
-              className="bg-yellow-500 hover:bg-yellow-600 !text-sky-900 shadow-lg hover:shadow-yellow-200"
+              className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-yellow-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/balance' as any })
@@ -59,14 +64,14 @@ const CardsPage = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">💰</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              INSERIR VALOR
+              Inserir Valor
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Adicione valor ao seu cartão
             </p>
             <Button 
               size="lg"
-              className="bg-blue-500 hover:bg-blue-600 !text-sky-900 shadow-lg hover:shadow-blue-200"
+              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-blue-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/add' as any })
@@ -82,14 +87,14 @@ const CardsPage = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">💸</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
-              DEBITAR CARTÃO
+              Debitar Cartão
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
               Realize um débito no seu cartão
             </p>
             <Button 
               size="lg"
-              className="bg-red-500 hover:bg-red-600 !text-sky-900 shadow-lg hover:shadow-red-200"
+              className="bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-red-200"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate({ to: '/cards/debit' as any })

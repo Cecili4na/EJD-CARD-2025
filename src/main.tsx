@@ -2,10 +2,9 @@ import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { router } from './router'
 import { queryClient } from './lib/query-client'
-import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AuthProvider } from './contexts/AuthContext'
 import { DataProvider } from './contexts/DataContext'
 import { SupabaseDataProvider } from './contexts/SupabaseDataContext'
 import { ToastProvider } from './contexts/ToastContext'
@@ -13,22 +12,19 @@ import { isSupabaseConfigured } from './lib/supabase'
 import './index.css'
 import './global.css'
 
-// Componente que atualiza o contexto do router quando o user muda
+// Componente simples - não atualizar contexto constantemente
 function RouterUpdater() {
-  const { user, isLoading } = useAuth()
-
+  // Atualizar contexto apenas uma vez na inicialização
   useEffect(() => {
-    // Atualizar o contexto do router quando o user muda
     router.update({
       context: {
         queryClient,
-        user: isLoading ? null : (user || null),
+        user: null,
+        isLoading: false,
       },
     })
-  }, [user, isLoading])
+  }, [])
 
-  // Sempre renderizar RouterProvider - o contexto é atualizado via router.update()
-  // O router vai lidar com a navegação baseado no contexto
   return <RouterProvider router={router} />
 }
 
@@ -45,8 +41,6 @@ function App() {
           </ToastProvider>
         </DataProviderComponent>
       </AuthProvider>
-      {/* DevTools apenas em desenvolvimento */}
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   )
 }
@@ -55,7 +49,12 @@ function App() {
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element not found')
 
-ReactDOM.createRoot(rootElement).render(
+type ReactRootInstance = ReturnType<typeof ReactDOM.createRoot>
+const cachedRoot = (rootElement as Record<string, unknown>).__appRoot as ReactRootInstance | undefined
+const root = cachedRoot ?? ReactDOM.createRoot(rootElement)
+;(rootElement as Record<string, unknown>).__appRoot = root
+
+root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>

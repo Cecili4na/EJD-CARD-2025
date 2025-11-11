@@ -8,7 +8,15 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MycardRouteImport } from './routes/_layout/mycard'
 import { Route as LojinhaRouteImport } from './routes/_layout/lojinha'
+import { Route as LojinhaSelectRouteImport } from './routes/_layout/lojinha/select'
+import { Route as LojinhaCreateProductRouteImport } from './routes/_layout/lojinha/products/create'
+import { Route as LojinhaListProductsRouteImport } from './routes/_layout/lojinha/products/index'
+import { Route as LojnhaEditProductRouteImport } from './routes/_layout/lojinha/products/$id/edit'
 import { Route as LanchoneteRouteImport } from './routes/_layout/lanchonete'
+import { Route as LanchoneteSelectRouteImport } from './routes/_layout/lanchonete/select'
+import { Route as LanchoneteCreateProductRouteImport } from './routes/_layout/lanchonete/products/create'
+import { Route as LanchoneteListProductsRouteImport } from './routes/_layout/lanchonete/products/index'
+import { Route as LanchoneteEditProductRouteImport } from './routes/_layout/lanchonete/products/$id/edit'
 import { Route as AdminRouteImport } from './routes/_layout/admin'
 import { Route as PedidosLojinhaRouteImport } from './routes/_layout/pedidos-lojinha'
 import { Route as CardsIndexRouteImport } from './routes/_layout/cards/index'
@@ -21,6 +29,13 @@ import { Route as VendasLojinhaRouteImport } from './routes/_layout/vendas/lojin
 import { Route as VendasLanchoneteRouteImport } from './routes/_layout/vendas/lanchonete'
 import { Route as HistoricoLojinhaRouteImport } from './routes/_layout/historico/lojinha'
 import { Route as HistoricoLanchoneteRouteImport } from './routes/_layout/historico/lanchonete'
+import { Route as SapatinhoVelozRouteImport } from './routes/_layout/sapatinho-veloz/index'
+import { Route as SapatinhoSelectRouteImport } from './routes/_layout/sapatinho-veloz/select'
+import { Route as SapatinhoCreateProductRouteImport } from './routes/_layout/sapatinho-veloz/products/create'
+import { Route as SapatinhoListProductsRouteImport } from './routes/_layout/sapatinho-veloz/products/index'
+import { Route as SapatinhoEditProductRouteImport } from './routes/_layout/sapatinho-veloz/products/$id/edit'
+import { Route as SapatinhoSalesRouteImport } from './routes/_layout/sapatinho-veloz/sales'
+import { Route as PedidosSapatinhoVelozRouteImport } from './routes/_layout/pedidos-sapatinho-veloz'
 
 const rootRoute = rootRouteImport
 const LayoutRoute = LayoutRouteImport.update({
@@ -47,11 +62,51 @@ const LojinhaRoute = LojinhaRouteImport.update({
   path: '/lojinha',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LojinhaSelectRoute = LojinhaSelectRouteImport.update({
+  id: '/_layout/lojinha/select',
+  path: '/lojinha/select',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LojinhaCreateProductRoute = LojinhaCreateProductRouteImport.update({
+  id: '/_layout/lojinha/products/create',
+  path: '/lojinha/products/create',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LojinhaEditProductRoute = LojnhaEditProductRouteImport.update({
+  id: '/_layout/lojinha/products/$id/edit',
+  path: '/lojinha/products/$id/edit',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LojinhaListProductsRoute = LojinhaListProductsRouteImport.update({
+  id: '/_layout/lojinha/products/',
+  path: '/lojinha/products',
+  getParentRoute: () => LayoutRoute,
+} as any)   
 const LanchoneteRoute = LanchoneteRouteImport.update({
   id: '/_layout/lanchonete',
   path: '/lanchonete',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LanchoneteSelectRoute = LanchoneteSelectRouteImport.update({
+  id: '/_layout/lanchonete/select',
+  path: '/lanchonete/select',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LanchoneteCreateProductRoute = LanchoneteCreateProductRouteImport.update({
+  id: '/_layout/lanchonete/products/create',
+  path: '/lanchonete/products/create',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LanchoneteEditProductRoute = LanchoneteEditProductRouteImport.update({
+  id: '/_layout/lanchonete/products/$id/edit',
+  path: '/lanchonete/products/$id/edit',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LanchoneteListProductsRoute = LanchoneteListProductsRouteImport.update({
+  id: '/_layout/lanchonete/products/',
+  path: '/lanchonete/products',
+  getParentRoute: () => LayoutRoute,
+} as any) 
 const AdminRoute = AdminRouteImport.update({
   id: '/_layout/admin',
   path: '/admin',
@@ -112,12 +167,55 @@ const HistoricoLanchoneteRoute = HistoricoLanchoneteRouteImport.update({
   path: '/historico/lanchonete',
   getParentRoute: () => LayoutRoute,
 } as any)
+const SapatinhoVelozRoute = SapatinhoVelozRouteImport.update({
+  id: '/_layout/sapatinho-veloz',
+  path: '/sapatinho-veloz',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const SapatinhoSelectRoute = SapatinhoSelectRouteImport.update({
+  id: '/_layout/sapatinho-veloz/select',
+  path: '/sapatinho-veloz/select',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const SapatinhoCreateProductRoute = SapatinhoCreateProductRouteImport.update({
+  id: '/_layout/sapatinho-veloz/products/create',
+  path: '/sapatinho-veloz/products/create',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const SapatinhoEditProductRoute = SapatinhoEditProductRouteImport.update({
+  id: '/_layout/sapatinho-veloz/products/$id/edit',
+  path: '/sapatinho-veloz/products/$id/edit',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const SapatinhoListProductsRoute = SapatinhoListProductsRouteImport.update({
+  id: '/_layout/sapatinho-veloz/products/',
+  path: '/sapatinho-veloz/products',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const SapatinhoSalesRoute = SapatinhoSalesRouteImport.update({
+  id: '/_layout/sapatinho-veloz/sales',
+  path: '/sapatinho-veloz/sales',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const PedidosSapatinhoVelozRoute = PedidosSapatinhoVelozRouteImport.update({
+  id: '/_layout/pedidos-sapatinho-veloz',
+  path: '/pedidos-sapatinho-veloz',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
     MycardRoute,
     LojinhaRoute,
+    LojinhaSelectRoute,
+    LojinhaCreateProductRoute,
+    LojinhaEditProductRoute,
+    LojinhaListProductsRoute,
     LanchoneteRoute,
+    LanchoneteSelectRoute,
+    LanchoneteCreateProductRoute,
+    LanchoneteEditProductRoute,
+    LanchoneteListProductsRoute,
     AdminRoute,
     PedidosLojinhaRoute,
     CardsIndexRoute,
@@ -130,8 +228,14 @@ export const routeTree = rootRoute.addChildren([
     VendasLanchoneteRoute,
     HistoricoLojinhaRoute,
     HistoricoLanchoneteRoute,
+    SapatinhoSelectRoute,
+    SapatinhoCreateProductRoute,
+    SapatinhoEditProductRoute,
+    SapatinhoListProductsRoute,
+    SapatinhoSalesRoute,
+    SapatinhoVelozRoute,
+    PedidosSapatinhoVelozRoute,
   ]),
   LoginRoute,
   IndexRoute,
 ])
-
