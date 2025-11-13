@@ -12,8 +12,6 @@ export const usePermissions = () => {
     userRole,
     permissions,
     isAdmin: userRole === 'admin',
-    isManager: userRole === 'manager',
-    isUser: userRole === 'user',
     isGuest: userRole === 'guest',
     
     // Verificações de permissão

@@ -9,6 +9,7 @@ export type UserRole =
   | 'entregador_lojinha'
   | 'vendedor_lanchonete'
   | 'encontrista'
+  | 'guest'
 
 export interface RolePermissions {
   // Cartões
@@ -243,11 +244,31 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canViewAdmin: false,
     canViewReports: false,
   },
+  guest: {
+    canViewCards: false,
+    canCreateCards: false,
+    canEditCards: false,
+    canDeleteCards: false,
+    canAddBalance: false,
+    canViewOwnBalance: false,
+    canViewAllBalances: false,
+    canManageProductsLojinha: false,
+    canManageProductsLanchonete: false,
+    canSellLojinha: false,
+    canSellLanchonete: false,
+    canViewSalesHistoryLojinha: false,
+    canViewSalesHistoryLanchonete: false,
+    canViewOpenOrders: false,
+    canMarkAsDelivered: false,
+    canManageUsers: false,
+    canViewAdmin: false,
+    canViewReports: false,
+  },
 }
 
 // Função para obter permissões de um role
 export const getUserPermissions = (role: UserRole): RolePermissions => {
-  return ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.encontrista
+  return ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.guest
 }
 
 // Função para verificar se um usuário tem uma permissão específica

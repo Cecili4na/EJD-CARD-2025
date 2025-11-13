@@ -14,7 +14,7 @@ const LanchonetePage = () => {
       {/* Cards de Funcionalidades da Lanchonete */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Gerenciar Cardápio */}
-        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate('/lanchonete/products')}>
+        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/lanchonete/products' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">🍔</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
@@ -26,9 +26,9 @@ const LanchonetePage = () => {
             <Button 
               size="lg"
               className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-emerald-200"
-              onClick={(e) => {
-                e.stopPropagation(); 
-                navigate({ to: '/lanchonete/select' });
+              onClick={(event) => {
+                event.stopPropagation()
+                navigate({ to: '/lanchonete/select' as any, search: {} as any })
               }
             }
             >
@@ -38,7 +38,7 @@ const LanchonetePage = () => {
         </Card>
         
         {/* Pedidos */}
-        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate('/lanchonete/orders')}>
+        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/lanchonete/orders' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">📋</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">

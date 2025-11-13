@@ -13,6 +13,8 @@ interface Product {
   price: number
   stock: number
   description?: string
+  image?: string | null
+  quantity?: number
 }
 
 interface ConfirmationModalProps {
@@ -185,7 +187,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           >
             <div className="flex items-center space-x-4">
               <img
-                src={product.image}
+                src={product.image ?? undefined}
                 alt={product.name}
                 className="w-16 h-16 object-cover rounded-lg"
               />

@@ -19,13 +19,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   showAccessDenied = false
 }) => {
   const navigate = useNavigate()
-  const { hasPermission, isAdmin, isManager, isUser } = usePermissions()
+  const { hasPermission, userRole } = usePermissions()
+
+  const isAdminRole = userRole === 'admin' || userRole === 'genios_card'
+  const isManagerRole = ['coord_lojinha', 'coord_lanchonete'].includes(userRole) || isAdminRole
+  const isStandardUser = userRole !== 'guest'
+
+  const safeNavigate = (path: string) => {
+    navigate({ to: path as any, replace: true, search: {} as any })
+  }
 
   // Verificar se tem a permissão específica
   useEffect(() => {
     if (requiredPermission && !hasPermission(requiredPermission)) {
       if (!showAccessDenied) {
-        navigate({ to: fallbackPath as any, replace: true })
+        safeNavigate(fallbackPath)
       }
     }
   }, [requiredPermission, hasPermission, showAccessDenied, navigate, fallbackPath])
@@ -33,16 +41,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Verificar se tem o role específico
   useEffect(() => {
     if (requiredRole) {
-      const hasRequiredRole = 
-        (requiredRole === 'admin' && isAdmin) ||
-        (requiredRole === 'manager' && (isManager || isAdmin)) ||
-        (requiredRole === 'user' && (isUser || isManager || isAdmin))
+      const hasRequiredRole =
+        (requiredRole === 'admin' && isAdminRole) ||
+        (requiredRole === 'manager' && (isManagerRole || isAdminRole)) ||
+        (requiredRole === 'user' && isStandardUser)
 
       if (!hasRequiredRole && !showAccessDenied) {
-        navigate({ to: fallbackPath as any, replace: true })
+        safeNavigate(fallbackPath)
       }
     }
-  }, [requiredRole, isAdmin, isManager, isUser, showAccessDenied, navigate, fallbackPath])
+  }, [requiredRole, isAdminRole, isManagerRole, isStandardUser, showAccessDenied, navigate, fallbackPath])
 
   // Verificar se tem a permissão específica
   if (requiredPermission && !hasPermission(requiredPermission)) {
@@ -73,9 +81,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Verificar se tem o role específico
   if (requiredRole) {
     const hasRequiredRole = 
-      (requiredRole === 'admin' && isAdmin) ||
-      (requiredRole === 'manager' && (isManager || isAdmin)) ||
-      (requiredRole === 'user' && (isUser || isManager || isAdmin))
+      (requiredRole === 'admin' && isAdminRole) ||
+      (requiredRole === 'manager' && (isManagerRole || isAdminRole)) ||
+      (requiredRole === 'user' && isStandardUser)
 
     if (!hasRequiredRole) {
       if (showAccessDenied) {

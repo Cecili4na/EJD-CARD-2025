@@ -14,7 +14,7 @@ const LojinhaPage = () => {
       {/* Cards de Funcionalidades da Lojinha */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Gerenciar Produtos */}
-        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate('/lojinha/products')}>
+        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/lojinha/products' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">🛍️</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
@@ -26,9 +26,9 @@ const LojinhaPage = () => {
             <Button 
               size="lg"
               className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-emerald-200"
-              onClick={(e) => {
-                e.stopPropagation(); 
-                navigate({ to: '/lojinha/select' });
+              onClick={(event) => {
+                event.stopPropagation()
+                navigate({ to: '/lojinha/select' as any, search: {} as any })
               }}
             >
               🛍️ Gerenciar Produtos
@@ -37,7 +37,7 @@ const LojinhaPage = () => {
         </Card>
         
         {/* Vendas */}
-        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate('/lojinha/sales')}>
+        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/lojinha/sales' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">💰</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
@@ -56,7 +56,7 @@ const LojinhaPage = () => {
         </Card>
 
         {/* Gerenciar Produtos - Sapatinho Veloz */}
-        <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate('/sapatinho-veloz/products')}>
+        <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/sapatinho-veloz/products' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">👠</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
@@ -68,9 +68,9 @@ const LojinhaPage = () => {
             <Button 
               size="lg"
               className="bg-pink-500 hover:bg-pink-600 text-white shadow-lg hover:shadow-pink-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate({ to: '/sapatinho-veloz/select' });
+              onClick={(event) => {
+                event.stopPropagation()
+                navigate({ to: '/sapatinho-veloz/select' as any, search: {} as any })
               }}
             >
               👠 Produtos Sapatinho
@@ -79,7 +79,7 @@ const LojinhaPage = () => {
         </Card>
 
         {/* Vendas - Sapatinho Veloz */}
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate('/sapatinho-veloz/sales')}>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/sapatinho-veloz/sales' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">💜</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
@@ -91,9 +91,9 @@ const LojinhaPage = () => {
             <Button 
               size="lg"
               className="bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-purple-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate({ to: '/sapatinho-veloz/sales' });
+              onClick={(event) => {
+                event.stopPropagation()
+                navigate({ to: '/sapatinho-veloz/sales' as any, search: {} as any })
               }}
             >
               💜 Vendas Sapatinho

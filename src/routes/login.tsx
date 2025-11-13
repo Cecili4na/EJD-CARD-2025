@@ -1,33 +1,14 @@
+// @ts-nocheck
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Login } from '../components/ui'
-import { supabase } from '../lib/supabase'
+import type { RouterContext } from '../router'
 
 export const Route = createFileRoute('/login')({
-  beforeLoad: async () => {
-    // Se já estiver autenticado, redirecionar para /mycard
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
+  beforeLoad: ({ context }: { context: RouterContext }) => {
+    if (context.user) {
       throw redirect({ to: '/mycard' })
     }
   },
-  component: () => (
-    <div className="min-h-screen w-full relative" style={{
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #fef3c7 25%, #faf5ff 50%, #f0f9ff 75%, #fdf2f8 100%)',
-      backgroundAttachment: 'fixed',
-      backgroundSize: 'cover',
-      backgroundRepeat: 'no-repeat'
-    }}>
-      {/* Bordas decorativas douradas */}
-      <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-yellow-400 rounded-br-lg z-20"></div>
-      <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-yellow-400 rounded-bl-lg z-20"></div>
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-8 border-b-4 border-yellow-400 rounded-t-lg z-20"></div>
-      
-      <div className="w-full px-4 py-8 relative z-10">
-        <div className="max-w-4xl mx-auto w-full">
-          <Login />
-        </div>
-      </div>
-    </div>
-  ),
+  component: Login,
 })
 

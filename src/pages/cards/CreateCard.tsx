@@ -4,10 +4,10 @@ import { useCreateCard } from '../../hooks/useCards'
 import { useNavigate } from '@tanstack/react-router'
 
 interface CreateCardProps {
-  onBack: () => void
+  onBack?: () => void
 }
 
-const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
+const CreateCard: React.FC<CreateCardProps> = ({ onBack: _onBack }) => {
   const createCardMutation = useCreateCard()
   const navigate = useNavigate()
   const [name, setName] = useState('')
@@ -63,7 +63,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack }) => {
         initialBalance: parseFloat(initialBalance) || 0
       })
       
-      navigate({ to: '/cards' as any })
+      navigate({ to: '/cards' as any, search: {} as any })
     } catch (error) {
       // Erro já tratado no hook
       console.error('Erro ao criar cartão:', error)

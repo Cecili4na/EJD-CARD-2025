@@ -26,6 +26,7 @@ const getRoleBadge = (role: UserRole) => {
     entregador_lojinha: { color: 'bg-yellow-100 text-yellow-700', text: 'Entregador Lojinha', emoji: '🚴' },
     vendedor_lanchonete: { color: 'bg-orange-100 text-orange-700', text: 'Vendedor Lanchonete', emoji: '🍕' },
     encontrista: { color: 'bg-gray-100 text-gray-700', text: 'Encontrista', emoji: '👤' },
+    guest: { color: 'bg-gray-200 text-gray-600', text: 'Convidado', emoji: '👥' },
   }
   return badges[role] || badges.encontrista
 }
@@ -99,7 +100,7 @@ const UserManagement: React.FC = () => {
       }
 
       // Validar que a role é válida
-      const validRoles: UserRole[] = ['admin', 'genios_card', 'coord_lojinha', 'coord_lanchonete', 'comunicacao', 'vendedor_lojinha', 'entregador_lojinha', 'vendedor_lanchonete', 'encontrista']
+      const validRoles: UserRole[] = ['admin', 'genios_card', 'coord_lojinha', 'coord_lanchonete', 'comunicacao', 'vendedor_lojinha', 'entregador_lojinha', 'vendedor_lanchonete', 'encontrista', 'guest']
       if (!validRoles.includes(role)) {
         showError('Role inválido', 'O role selecionado não é válido.')
         return

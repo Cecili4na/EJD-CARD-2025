@@ -22,6 +22,8 @@ export interface Product {
   stock?: number
   active: boolean
   createdAt: string
+  image?: string | null
+  image_url?: string | null
 }
 
 export interface SaleItem {

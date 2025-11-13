@@ -14,10 +14,14 @@ const Login: React.FC = () => {
   const router = useRouter()
   const { login, register, user } = useAuth()
 
+  const safeNavigate = (path: string) => {
+    router.navigate({ to: path as any, search: {} as any })
+  }
+
   // Redirecionar se já estiver logado
   useEffect(() => {
     if (user) {
-      router.navigate({ to: '/mycard' })
+      safeNavigate('/mycard')
     }
   }, [user, router])
 
@@ -32,14 +36,14 @@ const Login: React.FC = () => {
         // Aguardar um pouco para garantir que o contexto do router seja atualizado
         await new Promise(resolve => setTimeout(resolve, 100))
         // Navegar após login bem-sucedido
-        router.navigate({ to: '/mycard' })
+        safeNavigate('/mycard')
       } else {
         await register(email, password, name)
         // Após registro, fazer login automaticamente
         await login(email, password)
         // Aguardar um pouco para garantir que o contexto do router seja atualizado
         await new Promise(resolve => setTimeout(resolve, 100))
-        router.navigate({ to: '/mycard' })
+        safeNavigate('/mycard')
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer login/registro')

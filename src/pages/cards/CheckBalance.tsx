@@ -3,21 +3,19 @@ import { Button, Header } from '../../components/shared'
 import { useSupabaseData } from '../../contexts/SupabaseDataContext'
 
 interface CheckBalanceProps {
-  onBack: () => void
+  onBack?: () => void
 }
 
-const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack }) => {
+const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack: _onBack }) => {
   const { getCardByNumber } = useSupabaseData()
   const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [searchNumber, setSearchNumber] = useState('')
-  const [hasSearched, setHasSearched] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSearch = async () => {
     setError(null)
     setIsLoading(true)
-    setHasSearched(true)
     
     try {
       const card = await getCardByNumber(searchNumber.replace(/\s+/g, ''))
@@ -35,7 +33,6 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack }) => {
 
   const handleInputChange = (value: string) => {
     setSearchNumber(value)
-    setHasSearched(false)
     setSelectedCard(null)
   }
 

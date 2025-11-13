@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useParams } from '@tanstack/react-router'
 import { Button, Header } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
 import { productService } from '../../services'
+import type { ProductCategory } from '../../types'
 
 const CreateProductPage = () => {
   const navigate = useNavigate()
@@ -11,7 +12,7 @@ const CreateProductPage = () => {
   const { id } = useParams({ strict: false }) as { id?: string }
   const { showSuccess, showError, showWarning } = useToastContext()
   
-  const context = location.pathname.startsWith('/sapatinho-veloz')
+  const context: ProductCategory = location.pathname.startsWith('/sapatinho-veloz')
     ? 'sapatinho'
     : location.pathname.startsWith('/lanchonete')
       ? 'lanchonete'
@@ -20,12 +21,25 @@ const CreateProductPage = () => {
   const isEditing = !!id // mantenha esta linha
   const [existingUrl, setExistingUrl] = useState<string | null>(null)
   
+  const safeNavigate = (path: string) => navigate({ to: path as any, search: {} as any })
+  
   const [formData, setFormData] = useState({
     name: '',
     price: '',
     stock: '',
     image: null as File | string | null
   })
+  
+  const getSelectedImageName = () => {
+    if (formData.image instanceof File) {
+      return formData.image.name
+    }
+    if (typeof formData.image === 'string') {
+      const parts = formData.image.split('/')
+      return parts[parts.length - 1] || formData.image
+    }
+    return ''
+  }
   
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -41,7 +55,7 @@ const CreateProductPage = () => {
 
           if (!data) {
             showError('Erro', 'Produto não encontrado!')
-            navigate(`${basePath}/products/list`)
+            safeNavigate(`${basePath}/products/list`)
             return
           }
 
@@ -57,7 +71,7 @@ const CreateProductPage = () => {
         } catch (err) {
           console.error(err)
           showError('Erro', 'Erro ao carregar produto.')
-          navigate(`${basePath}/products/list`)
+          safeNavigate(`${basePath}/products/list`)
         } finally {
           setIsLoading(false)
         }
@@ -149,119 +163,6 @@ const CreateProductPage = () => {
     if (fileInput) fileInput.value = ''
   }
 
-  // Imagem padrão para produtos sem imagem
-  const getDefaultImage = () => {
-    let svg = ''
-    
-    if (context === 'lanchonete') {
-      // Imagem padrão para itens de lanchonete (tema comida)
-      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-        <defs>
-          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#f97316;stop-opacity:0.2" />
-            <stop offset="100%" style="stop-color:#ea580c;stop-opacity:0.3" />
-          </linearGradient>
-          <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
-          </linearGradient>
-          <linearGradient id="grad3" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        
-        <!-- Fundo com gradiente suave -->
-        <rect width="400" height="400" fill="url(#grad1)"/>
-        
-        <!-- Círculo decorativo de fundo -->
-        <circle cx="200" cy="200" r="120" fill="white" opacity="0.3"/>
-        
-        <!-- Ícone de prato com comida -->
-        <g transform="translate(200, 200)">
-          <!-- Prato -->
-          <ellipse cx="0" cy="30" rx="90" ry="15" fill="#e5e7eb"/>
-          <ellipse cx="0" cy="25" rx="90" ry="15" fill="#f3f4f6"/>
-          
-          <!-- Hambúrguer estilizado -->
-          <g transform="translate(0, -20)">
-            <!-- Pão de cima -->
-            <ellipse cx="0" cy="0" rx="50" ry="20" fill="url(#grad3)"/>
-            <ellipse cx="0" cy="-5" rx="50" ry="15" fill="#fbbf24"/>
-            
-            <!-- Alface -->
-            <ellipse cx="0" cy="10" rx="55" ry="8" fill="#10b981"/>
-            
-            <!-- Carne -->
-            <ellipse cx="0" cy="20" rx="58" ry="10" fill="url(#grad2)"/>
-            
-            <!-- Queijo -->
-            <ellipse cx="0" cy="30" rx="60" ry="8" fill="#fbbf24"/>
-            
-            <!-- Pão de baixo -->
-            <ellipse cx="0" cy="40" rx="55" ry="12" fill="#f59e0b"/>
-          </g>
-        </g>
-        
-        <!-- Texto -->
-        <text x="200" y="310" font-size="18" text-anchor="middle" fill="#ea580c" font-family="Arial, sans-serif" font-weight="600">
-          Item sem imagem
-        </text>
-        <text x="200" y="335" font-size="14" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif">
-          Imagem não disponível
-        </text>
-      </svg>`
-    } else {
-      // Imagem padrão para produtos da lojinha (tema caixa/pacote)
-      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-        <defs>
-          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.2" />
-            <stop offset="100%" style="stop-color:#059669;stop-opacity:0.3" />
-          </linearGradient>
-          <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        
-        <!-- Fundo com gradiente suave -->
-        <rect width="400" height="400" fill="url(#grad1)"/>
-        
-        <!-- Círculo decorativo de fundo -->
-        <circle cx="200" cy="200" r="120" fill="white" opacity="0.3"/>
-        
-        <!-- Ícone de caixa/pacote estilizado -->
-        <g transform="translate(200, 180)">
-          <!-- Base da caixa -->
-          <rect x="-60" y="0" width="120" height="80" rx="8" fill="url(#grad2)"/>
-          
-          <!-- Tampa da caixa -->
-          <path d="M -60 0 L -60 -30 L 0 -50 L 60 -30 L 60 0 Z" fill="#10b981" opacity="0.9"/>
-          
-          <!-- Linha central -->
-          <rect x="-2" y="-50" width="4" height="130" fill="white" opacity="0.3"/>
-          
-          <!-- Detalhe decorativo -->
-          <circle cx="0" cy="-50" r="8" fill="#fbbf24"/>
-          <circle cx="0" cy="-50" r="4" fill="white"/>
-        </g>
-        
-        <!-- Texto -->
-        <text x="200" y="310" font-size="18" text-anchor="middle" fill="#059669" font-family="Arial, sans-serif" font-weight="600">
-          Produto sem imagem
-        </text>
-        <text x="200" y="335" font-size="14" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif">
-          Imagem não disponível
-        </text>
-      </svg>`
-    }
-    
-    // Codificar o SVG para URL encoding
-    const encoded = encodeURIComponent(svg)
-    return `data:image/svg+xml,${encoded}`
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -284,14 +185,22 @@ const CreateProductPage = () => {
     setIsLoading(true)
 
     try {
-      productService.saveProduct(context, {id: id ? id : null, name: formData.name,
-            price: parseFloat(formData.price.replace(',', '.')),
-            stock: parseInt(formData.stock, 10),
-            category: context,
-            description: formData.name}, formData.image as unknown as File, existingUrl);
+      await productService.saveProduct(
+        context,
+        {
+          id: id ? id : null,
+          name: formData.name,
+          price: parseFloat(formData.price.replace(',', '.')),
+          stock: parseInt(formData.stock, 10),
+          category: context,
+          description: formData.name,
+        },
+        formData.image instanceof File ? formData.image : null,
+        existingUrl
+      )
 
       showSuccess('Sucesso', currentConfig.successMessage)
-      navigate({to: `${basePath}/products`})
+      safeNavigate(`${basePath}/products`)
     } catch (error) {
       console.error('Erro ao salvar produto:', error)
       showError('Erro', 'Erro ao salvar produto. Tente novamente.')
@@ -301,7 +210,7 @@ const CreateProductPage = () => {
   }
 
   const handleCancel = () => {
-    navigate({to:`${basePath}/select`})
+    safeNavigate(`${basePath}/select`)
   }
 
   return (
@@ -389,7 +298,7 @@ const CreateProductPage = () => {
                   </button>
                   <div className="absolute bottom-0 left-0 right-0 bg-white/90 px-2 py-1">
                     <p className="text-xs text-gray-600 font-farmhand truncate">
-                      {formData.image?.name}
+                      {getSelectedImageName()}
                     </p>
                   </div>
                 </div>

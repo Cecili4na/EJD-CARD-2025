@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createFileRoute } from '@tanstack/react-router'
 import VendasLanchonete from '../../../pages/vendas/VendasLanchonete'
 

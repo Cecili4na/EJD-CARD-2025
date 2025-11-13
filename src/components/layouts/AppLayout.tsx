@@ -1,4 +1,3 @@
-import { ReactNode } from 'react'
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import { Header, Button } from '../shared'
 import { TabNavigation } from '../ui'
@@ -9,22 +8,23 @@ const AppLayout = () => {
   const routerState = useRouterState()
   const { user, logout } = useAuth()
 
-  const isInListPage = location.pathname.endsWith('/products')
+  const pathname = routerState.location.pathname
+  const isInListPage = pathname.endsWith('/products')
   // Verificar se está em páginas de produtos
-  const isInProductsPage = location.pathname.endsWith('/products')
+  const isInProductsPage = pathname.endsWith('/products')
   
   // Verificar se está em página de formulário (create/edit) ou listagem
-  const isInFormPage = location.pathname.includes('/products/create') || 
-                       location.pathname.includes('/edit')
+  const isInFormPage = pathname.includes('/products/create') || 
+                       pathname.includes('/edit')
   
   // Verificar se está em subpágina de produtos (não na página principal /products)
   const isInProductsSubpage = isInFormPage || isInListPage
   
   // Determinar o contexto (lojinha ou lanchonete) para o botão de voltar
   const getBackContext = (): 'lojinha' | 'lanchonete' | 'sapatinho-veloz' => {
-    if (location.pathname.startsWith('/lojinha')) return 'lojinha'
-    if (location.pathname.startsWith('/lanchonete')) return 'lanchonete'
-    if (location.pathname.startsWith('/sapatinho-veloz')) return 'sapatinho-veloz'
+    if (pathname.startsWith('/lojinha')) return 'lojinha'
+    if (pathname.startsWith('/lanchonete')) return 'lanchonete'
+    if (pathname.startsWith('/sapatinho-veloz')) return 'sapatinho-veloz'
     return 'lojinha'
   }
 
@@ -49,12 +49,11 @@ const AppLayout = () => {
     // Se estiver em subpágina de produtos (create/edit/list), volta para /products
     // Caso contrário, volta para a página principal do contexto
     if (isInFormPage || isInListPage) {
-      navigate({to: `/${context}/select`})
+      navigate({ to: `/${context}/select` as any, search: {} as any })
     } else if (isInListPage) {
-      navigate({to: `/${context}/select`})
-    }
-    else {
-      navigate(`/${context}`)
+      navigate({ to: `/${context}/select` as any, search: {} as any })
+    } else {
+      navigate({ to: `/${context}` as any, search: {} as any })
     }
   }
 
