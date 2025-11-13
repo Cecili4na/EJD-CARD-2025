@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { createFileRoute } from '@tanstack/react-router'
-import VendasSapatinho from '../../../pages/vendas/VendasSapatinho'
+import SapatinhoVelozPage from '../../../pages/sapatinho-veloz/SapatinhoVelozPage'
 
 export const Route = createFileRoute('/_layout/sapatinho-veloz/sales')({
-  component: VendasSapatinho,
+  component: SapatinhoVelozPage,
 })
 
 

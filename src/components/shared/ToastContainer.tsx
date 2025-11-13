@@ -1,8 +1,9 @@
 import React from 'react'
-import Toast, { ToastProps } from './Toast'
+import Toast from './Toast'
+import type { ToastData } from '../../hooks/useToast'
 
 interface ToastContainerProps {
-  toasts: ToastProps[]
+  toasts: ToastData[]
   onRemoveToast: (id: string) => void
 }
 

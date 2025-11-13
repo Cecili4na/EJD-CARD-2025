@@ -2,25 +2,16 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { Header, ConfirmationModal } from '../../components/shared'
 import { useToastContext } from '../../contexts/ToastContext'
-import { productService, Product as ProductType } from '../../services/productService'
+import { productService, type Product } from '../../services/productService'
 import OptimizedImage from '../../components/ui/OptimizedImage';
-
-interface Product {
-  id: string  // alterado de number para string
-  name: string
-  price: number
-  stock: number,
-  description?: string
-  image_url?: string | null
-  // ...outros campos...
-}
+import type { ProductCategory } from '../../types'
 
 const ListProductsPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { showSuccess, showError, showInfo } = useToastContext()
   
-  const context = location.pathname.startsWith('/sapatinho-veloz')
+  const context: ProductCategory = location.pathname.startsWith('/sapatinho-veloz')
     ? 'sapatinho'
     : location.pathname.startsWith('/lanchonete')
       ? 'lanchonete'
@@ -72,7 +63,7 @@ const ListProductsPage = () => {
   const loadProducts = async () => {
     // Inicializar produtos mock se não houver produtos
     const loadedProducts = await productService.getProducts(context)
-    setProducts(loadedProducts || [])
+    setProducts(loadedProducts ?? [])
     // Resetar para a primeira página ao recarregar produtos
     setCurrentPage(1)
   }
@@ -108,7 +99,7 @@ const ListProductsPage = () => {
 
   const handleEdit = (product: Product) => {
     if (product.id) {
-      navigate({to: `${basePath}/products/${product.id}/edit`})
+      navigate({ to: `${basePath}/products/${product.id}/edit` as any, search: {} as any })
     } else {
       showError('Erro', 'ID do produto não encontrado')
     }
@@ -120,7 +111,13 @@ const ListProductsPage = () => {
 
   const handleConfirmDelete = async () => {
     if (productToDelete) {
-      const success = await productService.deleteProduct(context, productToDelete.id)
+      const productId = productToDelete.id
+      if (!productId) {
+        showError('Erro', 'ID do produto não encontrado')
+        setProductToDelete(null)
+        return
+      }
+      const success = await productService.deleteProduct(context, productId)
       if (success) {
         await loadProducts()
         showSuccess('Sucesso', context === 'lojinha' ? 'Produto excluído com sucesso!' : 'Item excluído com sucesso!')
@@ -194,7 +191,7 @@ const ListProductsPage = () => {
             Comece cadastrando seu primeiro {itemSingular}!
           </p>
           <button
-            onClick={() => navigate(`${basePath}/products/create`)}
+            onClick={() => navigate({ to: `${basePath}/products/create` as any, search: {} as any })}
             className="px-8 py-4 text-lg font-semibold rounded-lg shadow-lg transition-all duration-200 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black hover:shadow-xl"
           >
             ➕ Cadastrar {itemSingularTitle}
@@ -204,57 +201,60 @@ const ListProductsPage = () => {
         <>
           {/* Grid de Produtos */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentProducts.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-yellow-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300"
-              >
-                <OptimizedImage
-                src={product.image_url || getDefaultImage(context)}
-                alt={product.name}
-                className="h-48 bg-gradient-to-br from-gray-100 to-gray-200"
-                context={context}
-              />
-                {/* Informações do Produto */}
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-emerald-600 mb-2 font-cardinal truncate" title={product.name}>
-                    {product.name}
-                  </h3>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 font-farmhand">💰 Preço:</span>
-                      <span className="text-lg font-bold text-sky-900 font-cardinal">
-                        R$ {formatPrice(product.price)}
-                      </span>
-                    </div>
+            {currentProducts.map((product, index) => {
+              const productKey = product.id ?? `product-${index}`
+              return (
+                <div
+                  key={productKey}
+                  className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-yellow-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+                >
+                  <OptimizedImage
+                    src={product.image_url || (product as any).image || getDefaultImage(context)}
+                    alt={product.name}
+                    className="h-48 bg-gradient-to-br from-gray-100 to-gray-200"
+                    context={context}
+                  />
+                  {/* Informações do Produto */}
+                  <div className="p-4">
+                    <h3 className="text-lg font-bold text-emerald-600 mb-2 font-cardinal truncate" title={product.name}>
+                      {product.name}
+                    </h3>
                     
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 font-farmhand">📦 Quantidade:</span>
-                      <span className={`font-bold font-cardinal ${product.stock > 10 ? 'text-emerald-600' : product.stock > 5 ? 'text-yellow-600' : 'text-red-600'}`}>
-                        {product.stock}
-                      </span>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600 font-farmhand">💰 Preço:</span>
+                        <span className="text-lg font-bold text-sky-900 font-cardinal">
+                          R$ {formatPrice(product.price)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600 font-farmhand">📦 Quantidade:</span>
+                        <span className={`font-bold font-cardinal ${product.stock > 10 ? 'text-emerald-600' : product.stock > 5 ? 'text-yellow-600' : 'text-red-600'}`}>
+                          {product.stock}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Botões de Ação */}
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEdit(product)}
-                      className="flex-1 px-4 py-2 rounded-lg font-semibold shadow-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white hover:shadow-xl"
-                    >
-                      ✏️ Editar
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(product)}
-                      className="flex-1 px-4 py-2 rounded-lg font-semibold shadow-lg transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white hover:shadow-xl"
-                    >
-                      🗑️ Excluir
-                    </button>
+                    {/* Botões de Ação */}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="flex-1 px-4 py-2 rounded-lg font-semibold shadow-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white hover:shadow-xl"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(product)}
+                        className="flex-1 px-4 py-2 rounded-lg font-semibold shadow-lg transition-all duration-200 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white hover:shadow-xl"
+                      >
+                        🗑️ Excluir
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Paginação */}

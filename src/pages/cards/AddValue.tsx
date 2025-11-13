@@ -4,17 +4,16 @@ import { useToastContext } from '../../contexts/ToastContext'
 import { useSupabaseData } from '../../contexts/SupabaseDataContext'
 
 interface AddValueProps {
-  onBack: () => void
+  onBack?: () => void
 }
 
-const AddValue: React.FC<AddValueProps> = ({ onBack }) => {
+const AddValue: React.FC<AddValueProps> = ({ onBack: _onBack }) => {
   const { getCardByNumber, updateCardBalance } = useSupabaseData()
   const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [amount, setAmount] = useState('')
   const [formattedAmount, setFormattedAmount] = useState('')
   const [cardNumber, setCardNumber] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isSearching, setIsSearching] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { showSuccess } = useToastContext()
@@ -60,14 +59,11 @@ const AddValue: React.FC<AddValueProps> = ({ onBack }) => {
     setSelectedCard(null)
     
     if (value.length >= 3) {
-      setIsSearching(true)
       try {
         const foundCard = await getCardByNumber(value)
         setSelectedCard(foundCard)
       } catch (err: any) {
         setError(err?.message || 'Erro ao buscar cartão')
-      } finally {
-        setIsSearching(false)
       }
     }
   }

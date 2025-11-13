@@ -9,6 +9,7 @@ export type Product = {
   price: number
   stock: number
   image?: string | null
+  image_url?: string | null
   category?: string | null
   [key: string]: any
 }
@@ -24,17 +25,16 @@ export const productService = {
   getProducts: async (category: ProductCategory): Promise<Product[]> => {
     try {
       const { table, hasCategoryColumn } = TABLE_BY_CATEGORY[category]
-      const query = supabase
+      let query = supabase
         .from(table)
         .select('*')
         .eq('active', true)
-        .order('name', { ascending: true })
 
       if (hasCategoryColumn) {
-        query.eq('category', category)
+        query = query.eq('category', category)
       }
 
-      const { data, error } = await query
+      const { data, error } = await query.order('name', { ascending: true })
 
       if (error) {
         console.error('productService.getProducts error:', error)
@@ -73,17 +73,16 @@ export const productService = {
   getProductById: async (id: string, category: ProductCategory = 'lojinha'): Promise<Product | null> => {
     try {
       const { table, hasCategoryColumn } = TABLE_BY_CATEGORY[category]
-      const query = supabase
+      let query = supabase
         .from(table)
         .select('*')
         .eq('id', id)
-        .single()
 
       if (hasCategoryColumn) {
-        query.eq('category', category)
+        query = query.eq('category', category)
       }
 
-      const { data, error } = await query
+      const { data, error } = await query.single()
 
       if (error) {
         console.error('productService.getProductById error:', error)
@@ -110,7 +109,7 @@ export const productService = {
       const filePath = `${fileName}`;
 
       // Upload file to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('products')
         .upload(filePath, file);
 

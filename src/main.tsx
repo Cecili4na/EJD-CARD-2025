@@ -50,9 +50,11 @@ const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element not found')
 
 type ReactRootInstance = ReturnType<typeof ReactDOM.createRoot>
-const cachedRoot = (rootElement as Record<string, unknown>).__appRoot as ReactRootInstance | undefined
-const root = cachedRoot ?? ReactDOM.createRoot(rootElement)
-;(rootElement as Record<string, unknown>).__appRoot = root
+type RootHTMLElement = HTMLElement & { __appRoot?: ReactRootInstance }
+const elementWithRoot = rootElement as RootHTMLElement
+const cachedRoot = elementWithRoot.__appRoot
+const root = cachedRoot ?? ReactDOM.createRoot(elementWithRoot)
+elementWithRoot.__appRoot = root
 
 root.render(
   <React.StrictMode>

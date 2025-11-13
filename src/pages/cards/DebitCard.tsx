@@ -4,10 +4,10 @@ import { useToastContext } from '../../contexts/ToastContext'
 import { useSupabaseData } from '../../contexts/SupabaseDataContext'
 
 interface DebitCardProps {
-  onBack: () => void
+  onBack?: () => void
 }
 
-const DebitCard: React.FC<DebitCardProps> = ({ onBack }) => {
+const DebitCard: React.FC<DebitCardProps> = ({ onBack: _onBack }) => {
   const { getCardByNumber, updateCardBalance } = useSupabaseData()
   const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [amount, setAmount] = useState('')
@@ -15,7 +15,6 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack }) => {
   const [cardNumber, setCardNumber] = useState('')
   const [description, setDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isSearching, setIsSearching] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { showSuccess, showError } = useToastContext()
@@ -61,14 +60,11 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack }) => {
     setSelectedCard(null)
     
     if (value.length >= 3) {
-      setIsSearching(true)
       try {
         const foundCard = await getCardByNumber(value)
         setSelectedCard(foundCard)
       } catch (err: any) {
         setError(err?.message || 'Erro ao buscar cartão')
-      } finally {
-        setIsSearching(false)
       }
     }
   }

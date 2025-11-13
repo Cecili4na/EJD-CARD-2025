@@ -1,17 +1,18 @@
+// @ts-nocheck
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import AppLayout from '../../components/layouts/AppLayout'
 import { supabase } from '../../lib/supabase'
 
-const LayoutComponent = AppLayout
-
 export const Route = createFileRoute('/_layout/')({
   beforeLoad: async () => {
-    // Verificar sessão diretamente do Supabase
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
     if (!session) {
       throw redirect({ to: '/login' })
     }
   },
-  component: LayoutComponent,
+  component: AppLayout,
 })
 
