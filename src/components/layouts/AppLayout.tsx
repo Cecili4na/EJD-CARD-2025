@@ -43,8 +43,7 @@ const AppLayout = () => {
     return 'mycard'
   }
 
-<<<<<<< HEAD
-  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'admin' | 'mycard' | 'sapatinho-veloz') => {
+  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'lojinhaPedidos' | 'historicoLanchonete' |'admin' | 'mycard' | 'sapatinho-veloz') => {
     navigate({ to: `/${tab}` as any, search: {} as any })
   }
 
@@ -74,10 +73,6 @@ const AppLayout = () => {
       return `← Voltar para Gerenciar Produtos`
     }
     return `← Voltar para ${contextName}`
-=======
-  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'lojinhaPedidos' | 'historicoLanchonete' | 'admin' | 'mycard') => {
-    navigate(`/${tab}`)
->>>>>>> 9451abe (Cria página de pedidos não entregues de lojinha, ajustes no geral do sistema)
   }
 
   const handleLogout = async () => {
