@@ -6,6 +6,7 @@ import { salesService, SaleItem } from '../../services/salesService'
 import { useToastContext } from '../../contexts/ToastContext'
 import { cardService, Card as PaymentCard } from '../../services/cardService'
 import { useSupabaseData } from '../../contexts/SupabaseDataContext'
+import OptimizedImage from '../../components/ui/OptimizedImage'
 
 type ContextType = 'lojinha' | 'lanchonete'
 
@@ -237,7 +238,12 @@ const SalesPage: React.FC = () => {
                 <Card key={p.id} className="bg-white/80 border-yellow-200 hover:shadow-lg transition-shadow duration-200">
                   <div className="p-3">
                     <div className="h-36 w-full bg-gray-100 rounded-md overflow-hidden flex items-center justify-center mb-3">
-                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                      <OptimizedImage
+                        src={p.image_url || ''}
+                        alt={p.name}
+                        className="w-full h-full object-cover"
+                        context={context}
+                      />
                     </div>
                     <h4 className="font-semibold text-emerald-700 truncate font-cardinal">{p.name}</h4>
                     <p className="text-sm text-sky-900 font-farmhand">R$ {formatPrice(p.price)}</p>
@@ -359,17 +365,22 @@ const SalesPage: React.FC = () => {
                   {Object.entries(cartItems).map(([productId, qty]) => {
                     const p = products.find(pr => pr.id === productId)!
                     return (
-                      <div key={productId} className="flex items-center gap-2">
-                        <img src={p.image_url} alt={p.name} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                        <div key={productId} className="flex items-center gap-2">
+                          <OptimizedImage
+                          src={p.image_url || ''}
+                          alt={p.name}
+                          className="w-10 h-10 rounded object-cover flex-shrink-0"
+                          context={context}
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-emerald-700 font-cardinal">{p.name}</p>
                           <p className="text-xs text-sky-900 font-farmhand">R$ {formatPrice(p.price)}</p>
                         </div>
-                        <div className="items-center space-x-1 mx-2 flex-shrink-0">
+                        <div className="items-center space-x-1 flex-shrink-0">
                           <div className="text-sm font-semibold text-sky-900 w-20 text-right flex-shrink-0">
-                          <button onClick={() => handleDecrease(productId)} className="padding-0 px-1.5 py-0.5 mr-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">-</button>
+                          <button onClick={() => handleDecrease(productId)} className="!px-1.5 !py-0.5 mr-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">-</button>
                           <span className="w-5 text-center text-xs">{qty}</span>
-                          <button onClick={() => handleIncrease(productId)} className="padding-0 px-1.5 py-0.5 ml-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">+</button>
+                          <button onClick={() => handleIncrease(productId)} className="!px-1.5 !py-0.5 ml-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">+</button>
                           </div>
                           <div className="text-sm font-semibold text-sky-900 w-20 text-right flex-shrink-0">R$ {formatPrice(p.price * qty)}</div>
                         </div>

@@ -67,7 +67,7 @@ const LojinhaPage = () => {
               Gerenciar Produtos Sapatinho
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
-              Cadastre, edite e visualize itens exclusivos do Sapatinho Veloz
+              Cadastre, edite e visualize itens do Sapatinho Veloz
             </p>
             <Button 
               size="lg"

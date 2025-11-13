@@ -29,7 +29,7 @@ const SalesHistoryPage: React.FC = () => {
     }
   }
 
-  const title = context === 'lojinha' ? '🧾 Histórico de Vendas - Lojinha' : '🧾 Histórico de Vendas - Lanchonete'
+  const title = context === 'lojinha' ? '📊 Histórico de Vendas - Lojinha' : '📊 Histórico de Vendas - Lanchonete'
 
   const formatDate = (iso: string) => new Date(iso).toLocaleString('pt-BR')
   const formatPrice = (price: number) => price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
