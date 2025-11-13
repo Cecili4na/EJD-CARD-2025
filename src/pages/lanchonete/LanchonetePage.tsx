@@ -38,7 +38,7 @@ const LanchonetePage = () => {
         </Card>
         
         {/* Pedidos */}
-        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/lanchonete/orders' as any, search: {} as any })}>
+        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/vendas/lanchonete' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">📋</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
