@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Header, Button, Card, ConfirmationModal } from '../../components/shared'
 import { productService, Product } from '../../services/productService'
 import { salesService, SaleItem } from '../../services/salesService'
@@ -15,7 +15,7 @@ const SalesPage: React.FC = () => {
   const navigate = useNavigate()
   const { showSuccess, showError, showWarning } = useToastContext()
 
-  const context: ContextType = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
+  const context: ContextType = location.pathname.endsWith('/lojinha') ? 'lojinha' : 'lanchonete'
 
   const [products, setProducts] = useState<Product[]>([])
   const [cartItems, setCartItems] = useState<Record<string, number>>({})
@@ -367,9 +367,9 @@ const SalesPage: React.FC = () => {
                         </div>
                         <div className="items-center space-x-1 mx-2 flex-shrink-0">
                           <div className="text-sm font-semibold text-sky-900 w-20 text-right flex-shrink-0">
-                          <button onClick={() => handleDecrease(productId)} className="px-1.5 py-0.5 mr-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">-</button>
+                          <button onClick={() => handleDecrease(productId)} className="padding-0 px-1.5 py-0.5 mr-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">-</button>
                           <span className="w-5 text-center text-xs">{qty}</span>
-                          <button onClick={() => handleIncrease(productId)} className="px-1.5 py-0.5 ml-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">+</button>
+                          <button onClick={() => handleIncrease(productId)} className="padding-0 px-1.5 py-0.5 ml-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">+</button>
                           </div>
                           <div className="text-sm font-semibold text-sky-900 w-20 text-right flex-shrink-0">R$ {formatPrice(p.price * qty)}</div>
                         </div>

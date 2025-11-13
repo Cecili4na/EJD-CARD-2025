@@ -49,6 +49,10 @@ const LojinhaPage = () => {
             <Button 
               size="lg"
               className="bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-emerald-200"
+              onClick={(event) => {
+                event.stopPropagation()
+                navigate({ to: '/vendas/lojinha' as any, search: {} as any })
+              }}
             >
               💰 Vendas
             </Button>

@@ -7,17 +7,11 @@ const CardsPage = () => {
   return (
     <div className="space-y-6">
       <Header 
-            title="🔍 Comunicação"
+            title="💳 Comunicação"
             subtitle="Crie e gerencie seus cartões mágicos"
             showLogo={false}
             showBackButton={false}
           />
-      {/* Cards de Funcionalidades de Cartões */}
-      <Header 
-            title="💳 Cartões Mágicos"
-            subtitle="Gerencie seus cartões de débito mágicos"
-            showLogo={false}
-        />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Criar Cartão */}
         <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/cards/create' as any, search: {} as any })}>

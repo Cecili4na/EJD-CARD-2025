@@ -50,6 +50,10 @@ const LanchonetePage = () => {
             <Button 
               size="lg"
               className="bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-sky-200"
+              onClick={(event) => {
+                event.stopPropagation()
+                navigate({ to: '/vendas/lanchonete' as any, search: {} as any })
+              }}
             >
               📋 Pedidos
             </Button>

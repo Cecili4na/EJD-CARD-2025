@@ -33,17 +33,18 @@ const AppLayout = () => {
     const path = routerState.location.pathname
     if (path.startsWith('/mycard')) return 'mycard'
     if (path.startsWith('/cards')) return 'cards'
-    if (path.includes('/sales/history')) return 'historicoLojinha'
-    if (path.includes('/orders/history')) return 'historicoLanchonete'
-    if (path.includes('/lojinha/orders')) return 'lojinhaPedidos'
+    if (path.includes('/historico/lojinha')) return 'historicoLojinha'
+    if (path.includes('/historico/lanchonete')) return 'historicoLanchonete'
+    if (path.includes('/pedidos-lojinha')) return 'lojinhaPedidos'
     if (path.startsWith('/lojinha')) return 'lojinha'
     if (path.startsWith('/lanchonete')) return 'lanchonete'
     if (path.startsWith('/admin')) return 'admin'
     if (path.startsWith('/sapatinho-veloz')) return 'sapatinho-veloz'
+    if (path.startsWith('/pedidos-sapatinho-veloz')) return 'pedidos-sapatinho-veloz'
     return 'mycard'
   }
 
-  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'lojinhaPedidos' | 'historicoLanchonete' |'admin' | 'mycard' | 'sapatinho-veloz') => {
+  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'lojinhaPedidos' | 'historicoLanchonete' |'admin' | 'mycard' | 'sapatinho-veloz' | 'pedidos-sapatinho-veloz') => {
     navigate({ to: `/${tab}` as any, search: {} as any })
   }
 

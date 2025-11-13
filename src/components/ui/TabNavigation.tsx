@@ -3,8 +3,8 @@ import { useRouter } from '@tanstack/react-router'
 import { usePermissions } from '../../hooks/usePermissions'
 
 interface TabNavigationProps {
-  activeTab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'historicoLanchonete' | 'lojinhaPedidos' | 'admin' | 'mycard' | 'sapatinho-veloz'
-  onTabChange: (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'historicoLanchonete' | 'lojinhaPedidos' | 'admin' | 'mycard' | 'sapatinho-veloz') => void
+  activeTab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'historicoLanchonete' | 'lojinhaPedidos' | 'admin' | 'mycard' | 'sapatinho-veloz' | 'pedidos-sapatinho-veloz'
+  onTabChange: (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'historicoLanchonete' | 'lojinhaPedidos' | 'admin' | 'mycard' | 'sapatinho-veloz' | 'pedidos-sapatinho-veloz') => void
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
@@ -32,7 +32,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             onClick={() => onTabChange('mycard')}
             className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'mycard'
-                ? 'bg-purple-500 text-white shadow-lg'
+                ? 'bg-emerald-300 text-white shadow-lg'
                 : 'text-gray-900 hover:bg-purple-100 bg-white border-2 border-gray-300'
             }`}
           >
@@ -43,7 +43,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               onClick={() => onTabChange('cards')}
             className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'cards'
-                ? 'bg-emerald-500 text-white shadow-lg'
+                ? 'bg-emerald-300 text-white shadow-lg'
                 : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
             }`}
             >
@@ -55,7 +55,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               onClick={() => onTabChange('lojinha')}
               className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'lojinha'
-                  ? 'bg-emerald-500 text-white shadow-lg'
+                  ? 'bg-emerald-300 text-white shadow-lg'
                   : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
               }`}
             >
@@ -64,9 +64,15 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLojinha && (
             <button
-              onClick={() => safeNavigate('/lojinha/sales/history')}
-              className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
-            >
+              onClick={() => {
+                onTabChange('historicoLojinha')
+                safeNavigate('/historico/lojinha')}
+              }
+              className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                activeTab === 'historicoLojinha'
+                  ? 'bg-emerald-300 text-white shadow-lg'
+                  : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
+            }`}            >
               📊 Histórico Lojinha
             </button>
           )}
@@ -75,7 +81,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               onClick={() => onTabChange('lanchonete')}
               className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'lanchonete'
-                  ? 'bg-emerald-500 text-white shadow-lg'
+                  ? 'bg-emerald-300 text-white shadow-lg'
                   : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
               }`}
             >
@@ -84,9 +90,15 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           )}
           {canViewSalesHistoryLanchonete && (
             <button
-              onClick={() => safeNavigate('/lanchonete/orders/history')}
-              className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
-            >
+              onClick={() => {
+                onTabChange('historicoLanchonete')
+                safeNavigate('/historico/lanchonete')}
+              }
+              className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                activeTab === 'historicoLanchonete'
+                  ? 'bg-emerald-300 text-white shadow-lg'
+                  : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
+            }`}            >
               📊 Histórico Lanchonete
             </button>
           )}
@@ -95,7 +107,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
             onClick={() => safeNavigate('/sapatinho-veloz')}
             className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'sapatinho-veloz'
-                ? 'bg-emerald-500 text-white shadow-lg'
+                ? 'bg-emerald-300 text-white shadow-lg'
                 : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
             }`}
           >
@@ -103,17 +115,23 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           </button>
           {canViewOpenOrders && (
             <button
-              onClick={() => safeNavigate('/lojinha/orders')}
-              className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
-            >
+              onClick={() => safeNavigate('/pedidos-lojinha')}
+              className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                activeTab === 'lojinhaPedidos'
+                  ? 'bg-emerald-300 text-white shadow-lg'
+                  : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
+            }`}            >
               📦 Pedidos Lojinha
             </button>
           )}
           {canViewOpenOrders && (
             <button
               onClick={() => safeNavigate('/pedidos-sapatinho-veloz')}
-              className="px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300 whitespace-nowrap flex-shrink-0"
-            >
+              className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+              activeTab === 'pedidos-sapatinho-veloz'
+                ? 'bg-emerald-300 text-white shadow-lg'
+                : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
+            }`}            >
               📦 Pedidos Sapatinho Veloz
             </button>
           )}
@@ -122,7 +140,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               onClick={() => onTabChange('admin')}
             className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
               activeTab === 'admin'
-                ? 'bg-emerald-500 text-white shadow-lg'
+                ? 'bg-emerald-300 text-white shadow-lg'
                 : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
             }`}
             >

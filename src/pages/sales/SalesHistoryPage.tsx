@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import { Header, Card, Button } from '../../components/shared'
 import { Sale, useSupabaseData } from '../../contexts/SupabaseDataContext'
 
@@ -10,7 +10,7 @@ const SalesHistoryPage: React.FC = () => {
   const { getSales } = useSupabaseData()
   const location = useLocation()
   const navigate = useNavigate()
-  const context: ContextType = location.pathname.startsWith('/lojinha') ? 'lojinha' : 'lanchonete'
+  const context: ContextType = location.pathname.endsWith('/lojinha') ? 'lojinha' : 'lanchonete'
 
   const [sales, setSales] = useState<Sale[]>([])
   const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set())
