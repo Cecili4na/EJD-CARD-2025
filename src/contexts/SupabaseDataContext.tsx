@@ -75,6 +75,7 @@ export interface AppData {
   sales: Sale[]
   orders: Order[]
   cards: Card[]
+  coupons: string[]
 }
 
 interface SupabaseDataContextType {
@@ -94,12 +95,15 @@ interface SupabaseDataContextType {
   getProducts: (category: 'lojinha' | 'lanchonete') => Product[]
   
   // Funções de vendas
-  makeSale: (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete') => Promise<string>
+  makeSale: (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete', coupon: string, discountedTotal: number) => Promise<string>
   getSales: (category?: 'lojinha' | 'lanchonete') => Sale[]
   
   // Funções de pedidos
   getOpenOrders: () => Order[]
   markAsDelivered: (orderId: string) => Promise<void>
+
+  // Funções de cupons
+  getCoupons: () => Promise<string>[]
   
   // Funções de cartão
   getCardByUserId: (userId: string) => Card | null
@@ -133,7 +137,8 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     products: { lojinha: [], lanchonete: [] },
     sales: [],
     orders: [],
-    cards: []
+    cards: [],
+    coupons: []
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -197,6 +202,14 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
         .order('created_at', { ascending: false })
 
       if (ordersError) throw ordersError
+
+      // Carregar cupons
+      const { data: coupons, error: couponsError } = await supabase
+        .from('coupons')
+        .select('name')
+        .order('created_at', { ascending: false })
+
+      if (couponsError) throw couponsError
 
       // Processar dados
       const balances = new Map<string, { balance: number; transactions: Transaction[] }>()
@@ -281,7 +294,8 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
         products: productsByCategory,
         sales: processedSales,
         orders: processedOrders,
-        cards: mappedCards
+        cards: mappedCards,
+        coupons: coupons?.map(c => c.name) || []
       })
 
     } catch (err) {
@@ -407,96 +421,19 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
   }
 
   // Funções de vendas
-  const makeSale = async (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete'): Promise<string> => {
-    try {
+  const makeSale = async (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete', coupon: string, discountedTotal: number) => {
+    const { data, error } = await supabase.rpc('make_sale_tx', {
+      p_user_id: userId,
+      p_items: items,
+      p_category: category,
+      p_coupon: coupon,
+      p_discounted_total: discountedTotal
+    });
 
-    // Obtem quantidade de vendas para gerar o próximo sale_id
-    const { count, error: countError } = await supabase
-      .from('sales')
-      .select('*', { count: 'exact', head: true })
+    if (error) throw error;
 
-    if (countError) throw countError
-
-    // Gera próximo sale_id formatado
-    const nextSaleNumber = (count || 0) + 1
-    const formattedSaleId = nextSaleNumber.toString().padStart(4, '0')
-
-      // Obter usuário
-      const { data: session } = await supabase.auth.getSession()
-      const sellerId = session.session?.user?.id
-      if (!sellerId) throw new Error('Sessão inválida')
-        
-      // Buscar cartão do usuário
-      const { data: card, error: cardError } = await supabase
-        .from('cards')
-        .select('id, balance, user_name')
-        .eq('user_id', userId)
-        .single()
-
-      if (cardError) throw cardError
-
-      const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-
-      // Verificar saldo
-      if (card.balance < total) {
-        throw new Error('Saldo insuficiente')
-      }
-
-      // Criar venda
-      const { data: sale, error: saleError } = await supabase
-        .from('sales')
-        .insert({
-          sale_id: formattedSaleId,
-          card_id: card.id,
-          seller_id: sellerId,
-          category,
-          total,
-          status: 'completed'
-        })
-        .select()
-        .single()
-
-      if (saleError) throw saleError
-
-      // Criar itens da venda
-      const saleItems = items.map(item => ({
-        sale_id: sale.id,
-        product_id: item.productId,
-        product_name: item.productName,
-        quantity: item.quantity,
-        price: item.price
-      }))
-
-      const { error: itemsError } = await supabase
-        .from('sale_items')
-        .insert(saleItems)
-
-      if (itemsError) throw itemsError
-
-      // Debitar saldo
-      await addBalance(userId, total, `Compra na ${category}`, sellerId)
-
-      // Criar pedido se for lojinha
-      if (category === 'lojinha') {
-        const { error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            sale_id: sale.id,
-            card_id: card.id,
-            customer_name: `${card.user_name || 'Sem Nome'}`,
-            total,
-            status: 'completed'
-          })
-
-        if (orderError) throw orderError
-      }
-
-      await loadData()
-      return sale.id
-    } catch (err) {
-      console.error('Erro ao realizar venda:', err)
-      throw err
-    }
+    // data é o id da venda criada
+    return data;
   }
 
   const getSales = async (category?: 'lojinha' | 'lanchonete'): Promise<Sale[]> => {
@@ -692,6 +629,24 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     }
   }
 
+  // Buscar cupons
+  const getCoupons = async (): Promise<string[]> => {
+    try {
+        const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .order('created_at', { ascending: false })
+        if (error) throw error
+      console.log('Cupons buscados:', data)
+      const couponNames = (data || []).map((item: { name: string }) => item.name)
+      console.log(couponNames)
+      return couponNames as any || null
+    } catch (err) {
+        console.error('Erro ao buscar cupons:', err)
+        throw err
+    }
+  }
+
   // Atualizar saldo do cartão
   const updateCardBalance = async (cardId: string, amount: number, type: 'credit' | 'debit', description?: string): Promise<void> => {
     try {
@@ -799,6 +754,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     deleteProduct,
     getProducts,
     makeSale,
+    getCoupons,
     getSales,
     getOpenOrders,
     markAsDelivered,

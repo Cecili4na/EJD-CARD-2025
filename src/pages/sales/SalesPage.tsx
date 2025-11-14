@@ -11,7 +11,7 @@ import OptimizedImage from '../../components/ui/OptimizedImage'
 type ContextType = 'lojinha' | 'lanchonete'
 
 const SalesPage: React.FC = () => {
-  const { getCardByNumber, makeSale } = useSupabaseData()
+  const { getCardByNumber, makeSale, getCoupons } = useSupabaseData()
   const location = useLocation()
   const navigate = useNavigate()
   const { showSuccess, showError, showWarning } = useToastContext()
@@ -19,6 +19,7 @@ const SalesPage: React.FC = () => {
   const context: ContextType = location.pathname.endsWith('/lojinha') ? 'lojinha' : 'lanchonete'
 
   const [products, setProducts] = useState<Product[]>([])
+  const [coupons, setCoupons] = useState<string[]>([])
   const [cartItems, setCartItems] = useState<Record<string, number>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [cardNumber, setCardNumber] = useState('')
@@ -28,10 +29,14 @@ const SalesPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [couponCode, setCouponCode] = useState('')
+  const [isCouponApplied, setIsCouponApplied] = useState(false)
+  const [couponError, setCouponError] = useState<string | null>(null)
   const itemsPerPage = 6
 
   useEffect(() => {
     loadProducts()
+    loadCoupons()
     setCartItems({})
     cardService.initializeMockCards()
     setCardNumber('')
@@ -45,6 +50,13 @@ const SalesPage: React.FC = () => {
     setProducts(loadedProducts || [])
     setCurrentPage(1)
   }
+
+  const loadCoupons = async () => {
+    const loadedCoupons = await getCoupons()
+    console.log('Cupons carregados:', loadedCoupons)
+    setCoupons(loadedCoupons || [])
+  }
+
 
   // Filtrar produtos por nome
   const filteredProducts = useMemo(() => {
@@ -66,6 +78,14 @@ const SalesPage: React.FC = () => {
     setCurrentPage(1)
   }, [searchFilter])
 
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      setCouponCode('')
+      setCouponError(null)
+      setIsCouponApplied(false)
+    }
+  }, [cartItems])
+
   const total = useMemo(() => {
     return Object.entries(cartItems).reduce((acc, [productId, qty]) => {
       const p = products.find(pr => pr.id === productId)
@@ -73,6 +93,13 @@ const SalesPage: React.FC = () => {
       return acc + p.price * qty
     }, 0)
   }, [cartItems, products])
+
+  const discountedTotal = useMemo(() => {
+    if (isCouponApplied && couponCode) {
+      console.log('Aplicando cupom:', couponCode)
+      return Math.max(0, total - 10)
+    } return total
+  }, [total, isCouponApplied, couponCode]) 
 
   const handleAddToCart = (product: Product) => {
     setCartItems(prev => ({
@@ -102,7 +129,12 @@ const SalesPage: React.FC = () => {
     }))
   }
 
-  const handleClearCart = () => setCartItems({})
+  const handleClearCart = () => {
+    setCartItems({})
+    setCouponCode('')
+    setCouponError(null)
+    setIsCouponApplied(false)
+  }
 
   const handleCardNumberChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -154,15 +186,18 @@ const SalesPage: React.FC = () => {
       await makeSale(
         selectedCard.user_id,
         items,
-        context
+        context,
+        couponCode,
+        discountedTotal
       )
       
       showSuccess(
         'Venda realizada!',
         `Venda de R$ ${total.toFixed(2)} para cartão ${selectedCard.card_number} de ${selectedCard.user_name} foi realizada com sucesso.`
       )
-      
-      navigate(`/${context}`)
+      setCardNumber('')
+      setSelectedCard(null)
+      handleClearCart()
     } catch (err: any) {
       setError(err?.message || 'Erro ao realizar venda')
       console.error('Erro ao realizar venda:', err)
@@ -305,59 +340,63 @@ const SalesPage: React.FC = () => {
         </div>
 
         {/* Carrinho */}
-        <div>
-          <Card className="bg-white/80 border-yellow-200">
-            <div className="p-4">
-              <h3 className="text-lg font-bold text-emerald-700 mb-3 font-cardinal">🛒 Carrinho</h3>
-              {/* Cartão do Cliente dentro do carrinho */}
-              <div className="mb-4">
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label htmlFor="cardNumber" className="block text-sm font-semibold text-black mb-2">Número do Cartão</label>
-                    <input
-                      id="cardNumber"
-                      type="text"
-                      value={cardNumber}
-                      onChange={handleCardNumberChange}
-                      className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
-                      placeholder="001"
-                      maxLength={16}
-                    />
-                  </div>
-                  <div>
-                    {selectedCard ? (
-                      <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-xl p-3">
-                        <p className="text-black"><strong>Nome:</strong> {selectedCard.user_name || 'N/A'}</p>
-                        <p className="text-black">
-                          <strong>Número:</strong> {
-                            selectedCard.card_number 
-                              ? selectedCard.card_number.toString().replace(/(\d{4})(?=\d)/g, '$1 ')
-                              : 'N/A'
-                          }
-                        </p>
-                        <p className="text-black">
-                          <strong>Saldo:</strong> R$ {
-                            typeof selectedCard.balance === 'number' 
-                              ? selectedCard.balance.toFixed(2).replace('.', ',')
-                              : '0,00'
-                          }
-                        </p>
-                        <p className={`text-black mt-1 ${total > (selectedCard.balance || 0) ? 'text-red-600' : ''}`}>
-                          <strong>Após compra:</strong> R$ {
-                            typeof selectedCard.balance === 'number'
-                              ? (selectedCard.balance - total).toFixed(2).replace('.', ',')
-                              : '0,00'
-                          }
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-600 font-farmhand">
-                        {error || 'Informe um número de cartão válido.'}
+      <div>
+        <Card className="bg-white/80 border-yellow-200">
+          <div className="p-4">
+            <h3 className="text-lg font-bold text-emerald-700 mb-3 font-cardinal">🛒 Carrinho</h3>
+
+            {/* Campo de cartão */}
+            <div className="mb-4">
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label htmlFor="cardNumber" className="block text-sm font-semibold text-black mb-2">Número do Cartão</label>
+                  <input
+                    id="cardNumber"
+                    type="text"
+                    value={cardNumber}
+                    onChange={handleCardNumberChange}
+                    className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+                    placeholder="001"
+                    maxLength={16}
+                  />
+                </div>
+                <div>
+                  {selectedCard ? (
+                    <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-xl p-3">
+                      <p className="text-black"><strong>Nome:</strong> {selectedCard.user_name || 'N/A'}</p>
+                      <p className="text-black">
+                        <strong>Número:</strong>{' '}
+                        {selectedCard.card_number
+                          ? selectedCard.card_number.toString().replace(/(\d{4})(?=\d)/g, '$1 ')
+                          : 'N/A'}
                       </p>
-                    )}
-                  </div>
+                      <p className="text-black">
+                        <strong>Saldo:</strong> R${' '}
+                        {typeof selectedCard.balance === 'number'
+                          ? selectedCard.balance.toFixed(2).replace('.', ',')
+                          : '0,00'}
+                      </p>
+                      <p
+                        className={`text-black mt-1 ${
+                          discountedTotal > (selectedCard.balance || 0) ? 'text-red-600' : ''
+                        }`}
+                      >
+                        <strong>Após compra:</strong> R${' '}
+                        {typeof selectedCard.balance === 'number'
+                          ? (selectedCard.balance - discountedTotal).toFixed(2).replace('.', ',')
+                          : '0,00'}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600 font-farmhand">
+                      {error || 'Informe um número de cartão válido.'}
+                    </p>
+                  )}
                 </div>
               </div>
+              </div>
+
+              {/* Itens do carrinho */}
               {Object.keys(cartItems).length === 0 ? (
                 <p className="text-sm text-gray-600 font-farmhand">Nenhum item no carrinho.</p>
               ) : (
@@ -365,8 +404,8 @@ const SalesPage: React.FC = () => {
                   {Object.entries(cartItems).map(([productId, qty]) => {
                     const p = products.find(pr => pr.id === productId)!
                     return (
-                        <div key={productId} className="flex items-center gap-2">
-                          <OptimizedImage
+                      <div key={productId} className="flex items-center gap-2">
+                        <OptimizedImage
                           src={p.image_url || ''}
                           alt={p.name}
                           className="w-10 h-10 rounded object-cover flex-shrink-0"
@@ -378,22 +417,123 @@ const SalesPage: React.FC = () => {
                         </div>
                         <div className="items-center space-x-1 flex-shrink-0">
                           <div className="text-sm font-semibold text-sky-900 w-20 text-right flex-shrink-0">
-                          <button onClick={() => handleDecrease(productId)} className="!px-1.5 !py-0.5 mr-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">-</button>
-                          <span className="w-5 text-center text-xs">{qty}</span>
-                          <button onClick={() => handleIncrease(productId)} className="!px-1.5 !py-0.5 ml-1 rounded bg-gray-200 hover:bg-gray-300 text-xs">+</button>
+                            <button
+                              onClick={() => handleDecrease(productId)}
+                              className="!px-1.5 !py-0.5 mr-1 rounded bg-gray-200 hover:bg-gray-300 text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="w-5 text-center text-xs">{qty}</span>
+                            <button
+                              onClick={() => handleIncrease(productId)}
+                              className="!px-1.5 !py-0.5 ml-1 rounded bg-gray-200 hover:bg-gray-300 text-xs"
+                            >
+                              +
+                            </button>
                           </div>
-                          <div className="text-sm font-semibold text-sky-900 w-20 text-right flex-shrink-0">R$ {formatPrice(p.price * qty)}</div>
+                          <div className="text-sm font-semibold text-sky-900 w-20 text-right flex-shrink-0">
+                            R$ {formatPrice(p.price * qty)}
+                          </div>
                         </div>
                       </div>
                     )
                   })}
-                  <div className="border-t pt-3 flex items-center justify-between">
-                    <span className="font-bold text-emerald-700 font-cardinal">Total</span>
-                    <span className="font-bold text-sky-900">R$ {formatPrice(total)}</span>
+
+                  {/* Campo de cupom (somente lojinha) */}
+                  {context === 'lojinha' && (
+                    <div className="pt-3 border-t">
+                      <label className="block text-sm font-semibold text-black mb-2">
+                        Cupom de desconto
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <select
+                          value={couponCode}
+                          onChange={e => setCouponCode(e.target.value)}
+                          disabled={isCouponApplied || total < 150 || coupons.length === 0}
+                          className={`w-3/4 h-[48px] px-3 border rounded-md text-sm font-farmhand transition-colors duration-200
+                            ${total < 150 
+                              ? 'bg-gray-100 text-gray-500 border-gray-300 cursor-not-allowed' 
+                              : 'bg-white/90 border-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-200'}
+                          `}
+                        >
+                          <option value="">Selecione um cupom</option>
+                          {coupons.map((coupon, idx) => (
+                            <option key={idx} value={coupon}>
+                              {coupon}
+                            </option>
+                          ))}
+                        </select>
+                        <Button
+                          className={`w-1/4 h-[48px] px-3 rounded-md font-cardinal text-sm flex items-center justify-center leading-none transition-colors duration-200
+                            ${total < 150 || isCouponApplied
+                              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                              : 'bg-emerald-500 hover:bg-emerald-600 text-white'}
+                          `}
+                          disabled={isCouponApplied || total < 150}
+                          onClick={() => {
+                            if (isCouponApplied || total < 150) return
+                              setIsCouponApplied(true)
+                              setCouponError(null)
+                              showSuccess('Cupom aplicado!', 'Desconto de R$10,00 adicionado.')
+                            }
+                          }
+                        >
+                          Aplicar
+                        </Button>
+                      </div>
+
+                      {total < 150 && (
+                        <p className="text-sm text-amber-600 mt-1 font-farmhand">
+                          ⚠️ Valor mínimo para usar o cupom: R$150,00
+                        </p>
+                      )}
+
+                      {couponError && total >= 150 && (
+                        <p className="text-sm text-red-600 mt-1 font-farmhand">{couponError}</p>
+                      )}
+
+                      {isCouponApplied && total >= 150 && (
+                        <p className="text-sm text-emerald-700 mt-1 font-farmhand">
+                          ✅ Cupom aplicado: -R$ 10,00
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Totais */}
+                  <div className={`pt-3 space-y-1 ${
+                      context === 'lojinha' && isCouponApplied ? 'border-t' : ''
+                    }`}>
+                    {context === 'lojinha' && isCouponApplied && 
+                    (<div className="flex items-center justify-between">
+                      <span className="font-bold text-emerald-700 font-cardinal">Subtotal</span>
+                      <span className="font-bold text-sky-900">R$ {formatPrice(total)}</span>
+                    </div>
+                  )}
+                    {context === 'lojinha' && isCouponApplied && (
+                      <div className="flex items-center justify-between text-sm text-emerald-700">
+                        <span>Desconto (cupom)</span>
+                        <span>- R$ 10,00</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between border-t pt-2">
+                      <span className="font-bold text-emerald-700 font-cardinal">Valor Final</span>
+                      <span className="font-bold text-sky-900">
+                        R$ {formatPrice(context === 'lojinha' && isCouponApplied ? total - 10 : total)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex space-x-2 pt-2">
-                    <Button onClick={handleClearCart} className="flex-1 bg-ruby-500 hover:bg-ruby-600">Limpar</Button>
-                    <Button onClick={handleOpenConfirmation} className="flex-1 bg-emerald-500 hover:bg-emerald-600" disabled={isSaving}>
+
+                  {/* Botões */}
+                  <div className="flex space-x-2 pt-3">
+                    <Button onClick={handleClearCart} className="flex-1 bg-ruby-500 hover:bg-ruby-600">
+                      Limpar
+                    </Button>
+                    <Button
+                      onClick={handleOpenConfirmation}
+                      className="flex-1 bg-emerald-500 hover:bg-emerald-600"
+                      disabled={isSaving}
+                    >
                       {isSaving ? 'Salvando...' : 'Finalizar'}
                     </Button>
                   </div>
@@ -413,8 +553,8 @@ const SalesPage: React.FC = () => {
         icon={context === 'lojinha' ? '🛍️' : '🍔'}
         card={selectedCard}
         transactionType="sale" 
-        amount={total.toFixed(2)}
-        formattedAmount={total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        amount={discountedTotal.toFixed(2)}
+        formattedAmount={discountedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         description={`${Object.entries(cartItems).map(([id, q]) => {
           const p = products.find(pp => pp.id === id)
           return p ? `${p.name} (${q}x)` : ''

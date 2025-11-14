@@ -13,6 +13,7 @@ const SalesHistoryPage: React.FC = () => {
   const context: ContextType = location.pathname.endsWith('/lojinha') ? 'lojinha' : 'lanchonete'
 
   const [sales, setSales] = useState<Sale[]>([])
+  const [searchName, setSearchName] = useState('')
   const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -28,6 +29,14 @@ const SalesHistoryPage: React.FC = () => {
       console.error('Erro ao carregar vendas:', error)
     }
   }
+
+  const filteredSales = useMemo(() => {
+  if (!searchName.trim()) return sales
+    return sales.filter(sale =>
+      sale.card?.user_name?.toLowerCase().includes(searchName.toLowerCase())
+    )
+  }, [sales, searchName])
+
 
   const title = context === 'lojinha' ? '📊 Histórico de Vendas - Lojinha' : '📊 Histórico de Vendas - Lanchonete'
 
@@ -66,7 +75,17 @@ const SalesHistoryPage: React.FC = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {sales.map(sale => {
+          <div className="px-1">
+            <input
+              type="text"
+              value={searchName}
+              onChange={e => setSearchName(e.target.value)}
+              placeholder="Filtrar por nome do cliente..."
+              className="w-full px-3 py-2 border rounded-lg font-farmhand text-sm 
+                        border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-300"
+            />
+          </div>
+          {filteredSales.map(sale => {
             const isExpanded = expandedSales.has(sale.id)
             return (
               <Card key={sale.id} className="bg-white/80 border-yellow-200">
