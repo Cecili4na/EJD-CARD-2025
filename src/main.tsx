@@ -34,15 +34,17 @@ function App() {
   const DataProviderComponent = isSupabaseConfigured() ? SupabaseDataProvider : DataProvider
 
   return (
-    <TrpcProvider>
-      <AuthProvider>
-        <DataProviderComponent>
-          <ToastProvider>
-            <RouterUpdater />
-          </ToastProvider>
-        </DataProviderComponent>
-      </AuthProvider>
-    </TrpcProvider>
+    <QueryClientProvider client={queryClient}>
+      <TrpcProvider>
+        <AuthProvider>
+          <DataProviderComponent>
+            <ToastProvider>
+              <RouterUpdater />
+            </ToastProvider>
+          </DataProviderComponent>
+        </AuthProvider>
+      </TrpcProvider>
+    </QueryClientProvider>
   )
 }
 

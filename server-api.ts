@@ -3,6 +3,9 @@
  * Backend seguro SEM complicação
  */
 
+// Carregar variáveis de ambiente
+import 'dotenv/config'
+
 import express from 'express'
 import cors from 'cors'
 import { z } from 'zod'
@@ -10,6 +13,12 @@ import { createClient } from '@supabase/supabase-js'
 
 const app = express()
 const PORT = 3001
+
+// Debug: Verificar se as variáveis foram carregadas
+console.log('🔍 Verificando variáveis de ambiente:')
+console.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL ? '✅ Configurado' : '❌ Não encontrado')
+console.log('VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY ? '✅ Configurado' : '❌ Não encontrado')
+console.log('VITE_SUPABASE_SERVICE_ROLE_KEY:', process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ? '✅ Configurado' : '❌ Não encontrado')
 
 // Supabase com service role (acesso total ao banco)
 const supabase = createClient(

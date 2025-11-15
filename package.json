@@ -5,12 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:trpc": "tsx server-trpc.ts",
-    "dev:full": "concurrently \"npm run dev:trpc\" \"npm run dev\"",
+    "dev:api": "tsx server-api.ts",
+    "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "auth-server": "tsx server.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
