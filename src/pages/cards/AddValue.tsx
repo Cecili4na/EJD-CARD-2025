@@ -213,7 +213,7 @@ const AddValue: React.FC<AddValueProps> = ({ onBack: _onBack }) => {
         variant="card-transaction"
         amount={amount}
         formattedAmount={formattedAmount}
-        isLoading={isLoading} message={'Confirma a adição?'}      
+        isLoading={isLoading}  
         />
     </div>
   )
