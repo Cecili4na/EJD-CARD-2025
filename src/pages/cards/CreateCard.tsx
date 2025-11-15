@@ -187,7 +187,7 @@ const CreateCard: React.FC<CreateCardProps> = ({ onBack: _onBack }) => {
                   </>
                 ) : (
                   <>
-                    💳 CRIAR CARTÃO
+                    💳 Criar cartão
                   </>
                 )}
               </Button>

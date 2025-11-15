@@ -37,7 +37,7 @@ const LojinhaPage = () => {
         </Card>
         
         {/* Vendas */}
-        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/lojinha/sales' as any, search: {} as any })}>
+        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => navigate({ to: '/vendas/lojinha' as any, search: {} as any })}>
           <div className="text-center">
             <div className="text-5xl mb-4">💰</div>
             <h3 className="text-xl font-semibold text-emerald-600 mb-4 font-cardinal">
@@ -49,6 +49,10 @@ const LojinhaPage = () => {
             <Button 
               size="lg"
               className="bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-emerald-200"
+              onClick={(event) => {
+                event.stopPropagation()
+                navigate({ to: '/vendas/lojinha' as any, search: {} as any })
+              }}
             >
               💰 Vendas
             </Button>
@@ -63,7 +67,7 @@ const LojinhaPage = () => {
               Gerenciar Produtos Sapatinho
             </h3>
             <p className="text-black-700 mb-4 font-farmhand">
-              Cadastre, edite e visualize itens exclusivos do Sapatinho Veloz
+              Cadastre, edite e visualize itens do Sapatinho Veloz
             </p>
             <Button 
               size="lg"

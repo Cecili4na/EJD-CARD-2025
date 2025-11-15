@@ -79,7 +79,7 @@ const CheckBalance: React.FC<CheckBalanceProps> = ({ onBack: _onBack }) => {
                 className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black shadow-lg hover:shadow-emerald-200 font-semibold"
                 disabled={isLoading || !searchNumber}
               >
-                {isLoading ? '🔍 Buscando...' : '🔍 CONSULTAR SALDO'}
+                {isLoading ? '🔍 Buscando...' : '🔍 Consultar Saldo'}
               </Button>
             </div>
           </div>

@@ -233,7 +233,7 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack: _onBack }) => {
                   </>
                 ) : (
                   <>
-                    💸 DEBITAR VALOR
+                    💸 Debitar Valor
                   </>
                 )}
               </Button>
@@ -255,8 +255,8 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack: _onBack }) => {
         amount={amount}
         formattedAmount={formattedAmount}
         description={description}
-        isLoading={isLoading}
-      />
+        isLoading={isLoading} 
+        message={'Confirma o débito do valor?'}      />
     </div>
   )
 }

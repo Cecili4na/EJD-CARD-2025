@@ -111,7 +111,7 @@ const ProductsPage = () => {
          {/* Listar Produtos/Cardápio */}
          <Card
            className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-           onClick={() => navigate({ to: `${basePath}/products/list` as any, search: {} as any })}
+           onClick={() => navigate({ to: `${basePath}/products` as any, search: {} as any })}
          >
            <div className="text-center">
              <div className="text-5xl mb-4">📋</div>
