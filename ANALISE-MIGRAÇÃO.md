@@ -177,3 +177,5 @@ Após correção, re-testar todas as funcionalidades principais do sistema.
 **Conclusão:** Sistema utilizável mas precisa de correções antes de deploy em produção.
 
 
+
+

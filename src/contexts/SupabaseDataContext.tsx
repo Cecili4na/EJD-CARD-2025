@@ -96,7 +96,7 @@ interface SupabaseDataContextType {
   
   // Funções de vendas
   makeSale: (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete', coupon: string, discountedTotal: number) => Promise<string>
-  getSales: (category?: 'lojinha' | 'lanchonete') => Sale[]
+  getSales: (category?: 'lojinha' | 'lanchonete') => Promise<Sale[]>
   
   // Funções de pedidos
   getOpenOrders: () => Order[]
