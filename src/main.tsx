@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { DataProvider } from './contexts/DataContext'
 import { SupabaseDataProvider } from './contexts/SupabaseDataContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { TrpcProvider } from './providers/TrpcProvider'
 import { isSupabaseConfigured } from './lib/supabase'
 import './index.css'
 import './global.css'
@@ -34,13 +35,15 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <DataProviderComponent>
-          <ToastProvider>
-            <RouterUpdater />
-          </ToastProvider>
-        </DataProviderComponent>
-      </AuthProvider>
+      <TrpcProvider>
+        <AuthProvider>
+          <DataProviderComponent>
+            <ToastProvider>
+              <RouterUpdater />
+            </ToastProvider>
+          </DataProviderComponent>
+        </AuthProvider>
+      </TrpcProvider>
     </QueryClientProvider>
   )
 }

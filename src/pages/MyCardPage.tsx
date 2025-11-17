@@ -113,10 +113,10 @@ const MyCardPage: React.FC = () => {
         })
 
         // Carregar histórico de compras
-        const sales = supabaseData.getSales()
+        const sales = await supabaseData.getSales()
         
         // Converter vendas em compras do usuário
-        const userPurchases: Purchase[] = sales
+        const userPurchases: Purchase[] = (sales || [])
           .filter((sale: any) => sale.userId === userCard.id)
           .map((sale: any) => ({
             id: sale.id,
