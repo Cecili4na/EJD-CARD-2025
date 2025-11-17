@@ -1,6 +1,8 @@
 import React from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { usePermissions } from '../../hooks/usePermissions'
+import { useCardByUserId } from '../../hooks/useCards'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface TabNavigationProps {
   activeTab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'historicoLanchonete' | 'lojinhaPedidos' | 'admin' | 'mycard' | 'sapatinho-veloz' | 'pedidos-sapatinho-veloz'
@@ -9,6 +11,7 @@ interface TabNavigationProps {
 
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange }) => {
   const router = useRouter()
+  const { user } = useAuth()
   const safeNavigate = (path: string) => {
     router.navigate({ to: path as any, search: {} as any })
   }
@@ -22,6 +25,10 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
     canViewSalesHistoryLanchonete,
     canViewOpenOrders
   } = usePermissions()
+  
+  // Verificar se o usuário tem um cartão associado
+  const { data: userCard } = useCardByUserId(user?.id || '', !!user?.id)
+  const hasAssociatedCard = !!userCard
 
   return (
     <div className="flex justify-center mb-8 w-full">
@@ -38,7 +45,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
           >
             💳 Meu Cartão
           </button>
-          {canViewCards && (
+          {canViewCards && userRole !== 'encontrista' && (
             <button
               onClick={() => onTabChange('cards')}
             className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
@@ -102,17 +109,19 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               📊 Histórico Lanchonete
             </button>
           )}
-          {/* Sapatinho Veloz - visível para todos */}
-          <button
-            onClick={() => safeNavigate('/sapatinho-veloz')}
-            className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
-              activeTab === 'sapatinho-veloz'
-                ? 'bg-emerald-300 text-white shadow-lg'
-                : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
-            }`}
-          >
-            👠 Sapatinho Veloz
-          </button>
+          {/* Sapatinho Veloz - visível apenas se tiver cartão associado */}
+          {hasAssociatedCard && (
+            <button
+              onClick={() => safeNavigate('/sapatinho-veloz')}
+              className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                activeTab === 'sapatinho-veloz'
+                  ? 'bg-emerald-300 text-white shadow-lg'
+                  : 'text-gray-900 hover:bg-emerald-100 bg-white border-2 border-gray-300'
+              }`}
+            >
+              👠 Sapatinho Veloz
+            </button>
+          )}
           {canViewOpenOrders && (
             <button
               onClick={() => safeNavigate('/pedidos-lojinha')}
@@ -124,7 +133,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onTabChange })
               📦 Pedidos Lojinha
             </button>
           )}
-          {canViewOpenOrders && (
+          {canViewOpenOrders && hasAssociatedCard && (
             <button
               onClick={() => safeNavigate('/pedidos-sapatinho-veloz')}
               className={`px-6 py-3 rounded-lg font-bold text-base transition-all duration-200 whitespace-nowrap flex-shrink-0 ${

@@ -35,8 +35,8 @@ const QuickAccessCards: React.FC = () => {
     buttonColor: 'bg-purple-500 hover:bg-purple-600'
   })
 
-  // Card: Comunicação (se tiver permissão)
-  if (canViewCards) {
+  // Card: Comunicação (se tiver permissão e não for encontrista)
+  if (canViewCards && userRole !== 'encontrista') {
     cards.push({
       title: '💳 Comunicação',
       description: 'Gerenciar cartões',
