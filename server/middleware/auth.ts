@@ -33,14 +33,25 @@ export async function authenticate(
   const { data: { user }, error } = await supabase.auth.getUser(token)
 
   if (error || !user) {
+    console.error('❌ Auth error:', error)
     return res.status(401).json({ error: 'Invalid token' })
   }
+
+  // Buscar role da tabela app_users (não está em user_metadata)
+  const { data: profile } = await supabase
+    .from('app_users')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  // Se não encontrar na tabela, tentar user_metadata como fallback
+  const role = (profile?.role || user.user_metadata?.role || 'guest') as UserRole
 
   // Adicionar user ao request
   ;(req as AuthRequest).user = {
     id: user.id,
     email: user.email!,
-    role: (user.user_metadata?.role || 'guest') as UserRole,
+    role,
   }
 
   next()

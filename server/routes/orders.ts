@@ -114,7 +114,7 @@ ordersRouter.post('/mark-delivered', authenticate, async (req, res) => {
     console.error('❌ Error:', error)
 
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dados inválidos', details: error.errors })
+      return res.status(400).json({ error: 'Dados inválidos', details: error.issues })
     }
 
     res.status(500).json({ error: error.message || 'Erro ao marcar pedido como entregue' })

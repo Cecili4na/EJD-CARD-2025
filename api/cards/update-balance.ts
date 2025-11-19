@@ -17,7 +17,17 @@ const UpdateBalanceSchema = z.object({
 })
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  console.log('🔵 [CARDS/UPDATE-BALANCE] ========================================')
+  console.log('🔵 [CARDS/UPDATE-BALANCE] FUNÇÃO INVOCADA COM SUCESSO!')
+  console.log('🔵 [CARDS/UPDATE-BALANCE] ========================================')
+  console.log('🔵 [CARDS/UPDATE-BALANCE] Requisição recebida:', {
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString()
+  })
+
   if (req.method !== 'POST') {
+    console.log('❌ [CARDS/UPDATE-BALANCE] Método não permitido:', req.method)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 

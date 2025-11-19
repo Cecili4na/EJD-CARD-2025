@@ -32,11 +32,21 @@ export async function authenticateRequest(
     return { error: 'Invalid token', status: 401 }
   }
 
+  // Buscar role da tabela app_users (não está em user_metadata)
+  const { data: profile } = await supabase
+    .from('app_users')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  // Se não encontrar na tabela, tentar user_metadata como fallback
+  const role = (profile?.role || user.user_metadata?.role || 'guest') as UserRole
+
   return {
     user: {
       id: user.id,
       email: user.email!,
-      role: (user.user_metadata?.role || 'guest') as UserRole,
+      role,
     },
   }
 }

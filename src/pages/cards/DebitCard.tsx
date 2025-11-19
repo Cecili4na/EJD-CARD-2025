@@ -248,15 +248,15 @@ const DebitCard: React.FC<DebitCardProps> = ({ onBack: _onBack }) => {
         onClose={handleCancelConfirmation}
         onConfirm={handleConfirmDebit}
         title="Confirmar Débito"
-        message='Deseja realmente debitar o valor no cartão?'
+        message="Deseja realmente debitar o valor no cartão?"
         icon="💸"
         card={selectedCard}
         transactionType="debit"
         amount={amount}
         formattedAmount={formattedAmount}
         description={description}
-        isLoading={isLoading} 
-        message={'Confirma o débito do valor?'}      />
+        isLoading={isLoading}
+      />
     </div>
   )
 }

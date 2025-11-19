@@ -82,11 +82,12 @@ export interface SapatinhoVelozOrder {
   id: string
   saleId: string
   senderUserId: string
-  senderName?: string
-  senderTeam: string
+  senderName?: string | null
+  senderTeam?: string | null
   recipientName: string
   recipientAddress: string
-  message?: string
+  message?: string | null
+  isAnonymous?: boolean
   items: SapatinhoVelozOrderItem[]
   total: number
   status: 'pending' | 'completed' | 'delivered'

@@ -10,7 +10,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { supabase } from '../lib/supabase'
-import { hasPermission } from '../lib/permissions'
+import { hasPermission, type Permission } from '../lib/permissions'
 
 export const productsRouter = Router()
 
@@ -145,7 +145,7 @@ productsRouter.post('/create', authenticate, async (req, res) => {
     console.error('❌ Error:', error)
 
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dados inválidos', details: error.errors })
+      return res.status(400).json({ error: 'Dados inválidos', details: error.issues })
     }
 
     res.status(500).json({ error: error.message || 'Erro ao criar produto' })
@@ -204,7 +204,7 @@ productsRouter.put('/update', authenticate, async (req, res) => {
     }
 
     // Verificar permissão específica da categoria
-    const requiredPermission = `products:update_${product.category}` as const
+    const requiredPermission: Permission = `products:update_${product.category}` as Permission
     if (!hasPermission(user.role, requiredPermission)) {
       console.warn('❌ SECURITY: Permission denied', {
         userId: user.id,
@@ -241,7 +241,7 @@ productsRouter.put('/update', authenticate, async (req, res) => {
     console.error('❌ Error:', error)
 
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dados inválidos', details: error.errors })
+      return res.status(400).json({ error: 'Dados inválidos', details: error.issues })
     }
 
     res.status(500).json({ error: error.message || 'Erro ao atualizar produto' })
@@ -297,7 +297,7 @@ productsRouter.delete('/delete', authenticate, async (req, res) => {
     console.error('❌ Error:', error)
 
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dados inválidos', details: error.errors })
+      return res.status(400).json({ error: 'Dados inválidos', details: error.issues })
     }
 
     res.status(500).json({ error: error.message || 'Erro ao deletar produto' })

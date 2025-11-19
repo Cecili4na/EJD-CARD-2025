@@ -8,7 +8,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { supabase } from '../lib/supabase'
-import { hasPermissionForCategory } from '../lib/permissions'
+import { hasPermissionForCategory, hasPermission, type Permission } from '../lib/permissions'
 
 export const salesRouter = Router()
 
@@ -178,7 +178,7 @@ salesRouter.post('/create', authenticate, async (req, res) => {
     console.error('❌ Error:', error)
     
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dados inválidos', details: error.errors })
+      return res.status(400).json({ error: 'Dados inválidos', details: error.issues })
     }
     
     res.status(500).json({ error: error.message || 'Erro ao processar venda' })
@@ -193,6 +193,38 @@ salesRouter.get('/list', authenticate, async (req, res) => {
   try {
     const user = (req as AuthRequest).user
     const category = req.query.category as string
+
+    // 2. Verificar permissão básica (admin e genios_card podem ver tudo)
+    if (user.role !== 'admin' && user.role !== 'genios_card') {
+      // Verificar se tem pelo menos uma permissão de visualização de vendas
+      const hasAnySalesPermission = 
+        hasPermission(user.role, 'sales:view_history_lojinha') ||
+        hasPermission(user.role, 'sales:view_history_lanchonete') ||
+        hasPermission(user.role, 'sales:view_history_sapatinho') ||
+        hasPermission(user.role, 'sales:view_own')
+
+      if (!hasAnySalesPermission) {
+        console.warn('❌ SECURITY: Permission denied', {
+          userId: user.id,
+          role: user.role,
+          action: 'sales:view',
+        })
+        return res.status(403).json({ error: 'Sem permissão para visualizar vendas' })
+      }
+
+      // 3. Se categoria específica, verificar permissão da categoria
+      if (category) {
+        const requiredPermission: Permission = `sales:view_history_${category}` as Permission
+        if (!hasPermission(user.role, requiredPermission)) {
+          console.warn('❌ SECURITY: Permission denied', {
+            userId: user.id,
+            role: user.role,
+            action: requiredPermission,
+          })
+          return res.status(403).json({ error: `Sem permissão para visualizar vendas de: ${category}` })
+        }
+      }
+    }
 
     const table = category === 'sapatinho' ? 'sapatinho_sales' : 'sales'
     const itemsTable = category === 'sapatinho' ? 'sapatinho_sale_items' : 'sale_items'
