@@ -20,8 +20,24 @@ console.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL ? '✅ Configura
 console.log('VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY ? '✅ Configurado' : '❌ Não encontrado')
 console.log('VITE_SUPABASE_SERVICE_ROLE_KEY:', process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ? '✅ Configurado' : '❌ Não encontrado')
 
-// Middleware
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+// Middleware - CORS: permitir qualquer porta localhost em dev
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174', 
+  'http://localhost:3000',
+  'http://localhost:5175' // caso mude de novo
+]
+app.use(cors({ 
+  origin: (origin, callback) => {
+    // Permitir requisições sem origin (tipo mobile apps) ou localhost em dev
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true 
+}))
 app.use(express.json())
 
 // Registrar rotas
