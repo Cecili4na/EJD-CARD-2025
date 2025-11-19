@@ -102,9 +102,10 @@ const SalesPage: React.FC = () => {
   }, [total, isCouponApplied, couponCode]) 
 
   const handleAddToCart = (product: Product) => {
+    if (!product.id) return
     setCartItems(prev => ({
       ...prev,
-      [product.id]: (prev[product.id] || 0) + 1
+      [product.id]: (prev[product.id!] || 0) + 1
     }))
   }
 
@@ -174,11 +175,12 @@ const SalesPage: React.FC = () => {
       .map(([productId, quantity]) => {
         const p = products.find(pr => pr.id === productId)!
         return {
+          id: p.id,
           productId: p.id || '',
           productName: p.name,
           price: p.price,
           quantity,
-          image: p.image_url
+          image: p.image_url || undefined
         }
       })
 
@@ -552,7 +554,7 @@ const SalesPage: React.FC = () => {
         title={context === 'lojinha' ? 'Confirmar Venda' : 'Confirmar Pedido'}
         icon={context === 'lojinha' ? '🛍️' : '🍔'}
         card={selectedCard}
-        transactionType="sale" 
+        transactionType="debit" 
         amount={discountedTotal.toFixed(2)}
         formattedAmount={discountedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         description={`${Object.entries(cartItems).map(([id, q]) => {

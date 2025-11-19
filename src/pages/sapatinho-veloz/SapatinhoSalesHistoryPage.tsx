@@ -15,7 +15,7 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
   const loadSales = async () => {
     try {
       setIsLoading(true)
-      const fetchedSales = await getSales('sapatinho')
+      const fetchedSales = await getSales('sapatinho' as 'lojinha' | 'lanchonete')
       console.log('Vendas do sapatinho carregadas:', fetchedSales)
       setSales(fetchedSales)
     } catch (error) {
@@ -81,10 +81,10 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
               <div className="flex justify-between items-start mb-5">
                 <div>
                   <div className="flex items-center space-x-4 mb-3">
-                    <h3 className="text-2xl font-bold text-black">Venda #{sale.sale_id || sale.id.slice(0, 8)}</h3>
+                    <h3 className="text-2xl font-bold text-black">Venda #{sale.saleId || sale.sale_id || sale.id.slice(0, 8)}</h3>
                   </div>
                   <p className="text-base text-gray-700">
-                    Criado em: {formatDate(sale.created_at)}
+                    Criado em: {formatDate(sale.createdAt || sale.created_at || '')}
                   </p>
                   {sale.card?.card_number && sale.card?.user_name && (
                     <p className="text-base text-gray-700 mt-1">
@@ -169,7 +169,7 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
                     {sale.items?.map((item, index) => (
                       <div key={item.productId || index} className="flex justify-between items-center py-2 border-b border-gray-300 last:border-b-0">
                         <div>
-                          <span className="text-base font-semibold text-gray-900">{item.product_name}</span>
+                          <span className="text-base font-semibold text-gray-900">{item.productName}</span>
                           <span className="text-base text-gray-700 ml-3">x{item.quantity}</span>
                         </div>
                         <span className="text-lg font-bold text-gray-900">

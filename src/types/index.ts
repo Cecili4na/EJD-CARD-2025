@@ -32,10 +32,13 @@ export interface SaleItem {
   productName: string
   quantity: number
   price: number
+  image?: string
 }
 
 export interface Sale {
   id: string
+  saleId?: string
+  sale_id?: string
   userId: string
   sellerId: string
   category: ProductCategory
@@ -43,6 +46,11 @@ export interface Sale {
   total: number
   status: 'completed' | 'delivered'
   createdAt: string
+  created_at?: string
+  card?: {
+    card_number?: string
+    user_name?: string
+  }
 }
 
 export interface Order {

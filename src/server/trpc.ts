@@ -8,7 +8,6 @@
  */
 
 import { initTRPC, TRPCError } from '@trpc/server'
-import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch'
 import superjson from 'superjson'
 import { supabase } from '../lib/supabase'
 import { type UserRole, hasPermission, type Permission } from './permissions'
