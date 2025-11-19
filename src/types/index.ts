@@ -27,12 +27,12 @@ export interface Product {
 }
 
 export interface SaleItem {
-  id: string
+  id?: string | null
   productId: string
   productName: string
   quantity: number
   price: number
-  image?: string
+  image?: string | null
 }
 
 export interface Sale {
