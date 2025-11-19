@@ -12,7 +12,6 @@
 import { z } from 'zod'
 import { router, createProtectedProcedure } from '../trpc'
 import { TRPCError } from '@trpc/server'
-import type { ProductCategory } from '../../types'
 
 // Schema de validação para criar venda
 const createSaleSchema = z.object({
@@ -45,7 +44,7 @@ export const salesRouter = router({
       const { user, supabase } = ctx
 
       // 1. Verificar permissão específica para a categoria
-      const categoryPermission = `sales:create_${category}` as const
+      // Permission check would go here: const categoryPermission = `sales:create_${category}` as const
       const hasPermissionForCategory = ctx.user.role === 'admin' || 
         ctx.user.role === 'genios_card' ||
         (category === 'lojinha' && ['coord_lojinha', 'vendedor_lojinha'].includes(ctx.user.role)) ||
