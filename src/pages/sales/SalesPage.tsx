@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from '@tanstack/react-router'
+import { useLocation } from '@tanstack/react-router'
 import { Header, Button, Card, ConfirmationModal } from '../../components/shared'
 import { productService, Product } from '../../services/productService'
 import type { SaleItem } from '../../types'

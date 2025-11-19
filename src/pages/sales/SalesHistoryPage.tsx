@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from '@tanstack/react-router'
-import { Button } from '../../components/shared'
 import { Sale, useSupabaseData } from '../../contexts/SupabaseDataContext'
 
 
@@ -31,7 +30,7 @@ const SalesHistoryPage: React.FC = () => {
   }
 
   const filteredSales = useMemo(() => {
-  if (!searchName.trim()) return sales
+    if (!searchName.trim()) return sales
     return sales.filter(sale =>
       sale.card?.user_name?.toLowerCase().includes(searchName.toLowerCase())
     )
@@ -125,7 +124,7 @@ const SalesHistoryPage: React.FC = () => {
               Nenhuma venda registrada ainda.
             </p>
             <button 
-              onClick={() => navigate({ to: context === 'lojinha' ? '/lojinha/sales' : '/lanchonete/orders' })} 
+              onClick={() => navigate({ to: context === 'lojinha' ? '/lojinha' : '/lanchonete' })} 
               className="bg-gradient-to-r from-[#d4704a] to-[#c86a45] hover:from-[#c86a45] hover:to-[#d4704a] text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
               style={{ fontFamily: "'Courier New', monospace" }}
             >
@@ -160,7 +159,7 @@ const SalesHistoryPage: React.FC = () => {
           <div className="space-y-5">
             {filteredSales.map((sale, index) => {
               const isExpanded = expandedSales.has(sale.id)
-              const { date, time } = formatDate(sale.createdAt || sale.created_at || '')
+              const { date, time } = formatDate(sale.createdAt)
               
               return (
                 <div
@@ -193,7 +192,7 @@ const SalesHistoryPage: React.FC = () => {
                               className="text-2xl font-bold text-[#2d2520] tracking-tight"
                               style={{ fontFamily: "'Courier New', monospace" }}
                             >
-                              #{sale.saleId || sale.sale_id || sale.id.slice(0, 8)}
+                              #{sale.id.slice(0, 8)}
                             </h3>
                             <div className="flex-1 h-[1px] bg-gradient-to-r from-[#d4704a]/40 to-transparent self-center" />
                           </div>

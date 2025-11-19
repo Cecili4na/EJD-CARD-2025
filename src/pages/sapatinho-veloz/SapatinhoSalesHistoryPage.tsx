@@ -81,15 +81,15 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
               <div className="flex justify-between items-start mb-5">
                 <div>
                   <div className="flex items-center space-x-4 mb-3">
-                    <h3 className="text-2xl font-bold text-black">Venda #{sale.saleId || sale.sale_id || sale.id.slice(0, 8)}</h3>
+                    <h3 className="text-2xl font-bold text-black">Venda #{sale.id.slice(0, 8)}</h3>
                   </div>
                   <p className="text-base text-gray-700">
-                    Criado em: {formatDate(sale.createdAt || sale.created_at || '')}
+                    Criado em: {formatDate(sale.createdAt)}
                   </p>
                   {sale.card?.card_number && sale.card?.user_name && (
                     <p className="text-base text-gray-700 mt-1">
-                      Cartão: <span className="font-semibold">{sale.card.card_number}</span> • 
-                      Cliente: <span className="font-semibold">{sale.card.user_name}</span>
+                      Cartão: <span className="font-semibold">{sale.card?.card_number}</span> • 
+                      Cliente: <span className="font-semibold">{sale.card?.user_name}</span>
                     </p>
                   )}
                 </div>
