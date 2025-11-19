@@ -3,8 +3,11 @@ import React from 'react'
 
 interface Card {
   id: string
-  name: string
-  cardNumber: string
+  name?: string
+  userName?: string
+  user_name?: string
+  cardNumber?: string
+  card_number?: string
   balance: number
 }
 
@@ -14,7 +17,7 @@ interface Product {
   price: number
   stock: number
   description?: string
-  image_url: string
+  image_url: string | null
 }
 
 interface ConfirmationModalProps {
@@ -147,10 +150,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               <h4 className="font-semibold text-black mb-3 font-farmhand">📋 Dados do Cartão</h4>
               <div className="space-y-2">
                 <p className="text-black font-farmhand">
-                  <strong>Nome:</strong> {card.user_name}
+                  <strong>Nome:</strong> {card.userName || card.user_name}
                 </p>
                 <p className="text-black font-farmhand">
-                  <strong>Número:</strong> {formatCardNumber(card.card_number)}
+                  <strong>Número:</strong> {formatCardNumber(card.cardNumber || card.card_number || '')}
                 </p>
                 <p className="text-black font-farmhand">
                   <strong>Saldo Atual:</strong> R$ {card.balance.toFixed(2).replace('.', ',')}

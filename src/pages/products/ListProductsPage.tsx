@@ -407,7 +407,7 @@ const ListProductsPage = () => {
           price: productToDelete.price,
           stock: productToDelete.stock,
           description: productToDelete.description,
-          image_url: productToDelete.image_url
+          image_url: productToDelete.image_url || null
         } : null}
         isLoading={isLoading}
       />

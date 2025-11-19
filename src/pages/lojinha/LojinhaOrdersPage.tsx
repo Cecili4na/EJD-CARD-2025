@@ -92,8 +92,8 @@ const [isConfirming, setIsConfirming] = useState(false)
         <div>
             <div className="flex justify-between items-start mb-4">
             <div>
-                <h3 className="font-bold">Pedido #{order.sale.sale_id}</h3>
-                <p className="text-sm text-gray-600">{order.customer_name}</p>
+                <h3 className="font-bold">Pedido #{order.saleId}</h3>
+                <p className="text-sm text-gray-600">{order.customerName}</p>
             </div>
             <span className="text-lg font-semibold">
                 R$ {order.total.toFixed(2)}
@@ -105,7 +105,7 @@ const [isConfirming, setIsConfirming] = useState(false)
             <ul className="text-sm space-y-1">
                 {order.items?.map((item, index) => (
                 <li key={index}>
-                    {item.product_name} ({item.quantity}x)
+                    {item.productName} ({item.quantity}x)
                 </li>
             ))}
             </ul>
@@ -114,7 +114,7 @@ const [isConfirming, setIsConfirming] = useState(false)
 
         <div className="flex justify-between items-center mt-auto">
             <span className="text-sm text-gray-500">
-            {formatDate(order.created_at)}
+            {formatDate(order.createdAt)}
             </span>
             <Button
             onClick={() => handleOpenConfirmation(order)}
@@ -138,11 +138,11 @@ const [isConfirming, setIsConfirming] = useState(false)
         onConfirm={handleConfirmDelivery}
         title="Confirmar Entrega"
         variant="delivery-confirmation"
-        message={selectedOrder ? `Deseja confirmar a entrega do pedido #${selectedOrder.sale.sale_id} de ${selectedOrder.customer_name}?` : ''}
+        message={selectedOrder ? `Deseja confirmar a entrega do pedido #${selectedOrder.saleId} de ${selectedOrder.customerName}?` : ''}
         card={null}
         amount={selectedOrder ? selectedOrder.total.toString() : '0'}
         formattedAmount={selectedOrder ? selectedOrder.total.toFixed(2).replace('.', ',') : '0,00'}
-        description={selectedOrder ? `Pedido realizado por ${selectedOrder.customer_name}` : ''}
+        description={selectedOrder ? `Pedido realizado por ${selectedOrder.customerName}` : ''}
         icon="📦"
         isLoading={isConfirming}
       />

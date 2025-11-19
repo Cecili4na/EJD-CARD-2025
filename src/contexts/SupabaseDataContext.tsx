@@ -24,42 +24,56 @@ export interface Product {
 }
 
 export interface SaleItem {
-  id: string
+  id?: string | null
   productId: string
   productName: string
+  product_name?: string
   quantity: number
   price: number
+  image?: string | null
 }
 
 export interface Sale {
   id: string
   userId: string
   sellerId: string
-  saleId: string
+  saleId?: string
+  sale_id?: string
   category: 'lojinha' | 'lanchonete'
   items: SaleItem[]
   total: number
   status: 'completed' | 'delivered'
   createdAt: string
+  created_at?: string
+  card?: {
+    card_number?: string
+    user_name?: string
+  }
 }
 
 export interface Order {
   id: string
   saleId: string
+  sale?: any
   userId: string
   customerName: string
+  customer_name?: string
   items: SaleItem[]
   total: number
   status: 'pending' | 'completed' | 'delivered'
   createdAt: string
+  created_at?: string
   deliveredAt?: string
 }
 
 export interface Card {
   id: string
   userId: string
+  user_id?: string
   userName: string
+  user_name?: string
   cardNumber: string
+  card_number?: string
   phoneNumber: string
   balance: number
   createdAt: string

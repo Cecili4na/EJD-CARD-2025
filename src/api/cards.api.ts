@@ -68,7 +68,7 @@ export const cardsApi = {
     }
   },
 
-  getByUserId: async (userId: string): Promise<Card | null> => {
+  getByUserId: async (_userId: string): Promise<Card | null> => {
     try {
       const data = await apiCall<any>('/api/cards/my-card')
       return mapToCard(data)
