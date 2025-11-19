@@ -1,120 +1,147 @@
 /**
- * API de Cartões - USANDO SERVERLESS FUNCTIONS
- * Migrado de Supabase direto para APIs serverless
+ * API de Cartões - Usando Supabase direto
+ * (APIs serverless removidas por limite do Vercel Hobby - máximo 12 funções)
  */
 
 import { Card } from '../types'
 import { supabase } from '../lib/supabase'
 
-const API_URL = import.meta.env.DEV 
-  ? 'http://localhost:3001'
-  : '' // Em produção, mesmo domínio (Vercel)
-
-async function getToken(): Promise<string | null> {
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.access_token || null
-}
-
-async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = await getToken()
-
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
-      ...options.headers,
-    },
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: response.statusText }))
-    throw new Error(error.error || 'Erro na requisição')
-  }
-
-  return response.json()
-}
-
-// Helper para converter resposta da API para tipo Card
 function mapToCard(data: any): Card {
   return {
     id: data.id,
-    userId: data.user_id || '',
-    userName: data.user_name || '',
-    cardNumber: data.card_number || '',
-    phoneNumber: data.phone_number || '',
-    balance: parseFloat(data.balance) || 0,
-    createdAt: data.created_at || '',
-    updatedAt: data.updated_at || ''
+    userId: data.user_id,
+    userName: data.user_name,
+    cardNumber: data.card_number,
+    phoneNumber: data.phone_number,
+    balance: data.balance,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at
   }
 }
 
 export const cardsApi = {
   // Queries
   getAll: async (): Promise<Card[]> => {
-    const data = await apiCall<any[]>('/api/cards/list')
-    return data.map(mapToCard)
+    const { data, error } = await supabase
+      .from('cards')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) throw new Error(error.message)
+    return (data || []).map(mapToCard)
   },
 
   getByNumber: async (cardNumber: string): Promise<Card | null> => {
     try {
-      const data = await apiCall<any>(`/api/cards/by-number?cardNumber=${encodeURIComponent(cardNumber)}`)
-      return mapToCard(data)
-    } catch (error: any) {
-      if (error.message.includes('não encontrado')) {
-        return null
-      }
-      throw error
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('card_number', cardNumber)
+        .single()
+      
+      if (error) throw new Error(error.message)
+      return data ? mapToCard(data) : null
+    } catch (error) {
+      console.error('Erro ao buscar cartão por número:', error)
+      return null
     }
   },
 
-  getByUserId: async (_userId: string): Promise<Card | null> => {
+  getByUserId: async (userId: string): Promise<Card | null> => {
     try {
-      const data = await apiCall<any>('/api/cards/my-card')
-      return mapToCard(data)
-    } catch (error: any) {
-      if (error.message.includes('não encontrado')) {
-        return null
-      }
-      throw error
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      
+      if (error) throw new Error(error.message)
+      return data ? mapToCard(data) : null
+    } catch (error) {
+      console.error('Erro ao buscar cartão do usuário:', error)
+      return null
     }
   },
 
   // Mutations
-  create: async (params: {
-    name: string
-    cardNumber: string
-    cardCode: string
-    phoneNumber: string
-    initialBalance?: number
-  }): Promise<Card> => {
-    const response = await apiCall<{ success: boolean; card: any; message: string }>('/api/cards/create', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    })
-    return mapToCard(response.card)
+  create: async (params: { name: string; cardNumber: string; cardCode: string; phoneNumber: string; initialBalance?: number }): Promise<Card> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Usuário não autenticado')
+    
+    const { data, error } = await supabase
+      .from('cards')
+      .insert({
+        user_id: user.id,
+        user_name: params.name,
+        card_number: params.cardNumber,
+        phone_number: params.phoneNumber,
+        balance: params.initialBalance || 0,
+        card_code: params.cardCode
+      })
+      .select()
+      .single()
+    
+    if (error) throw new Error(error.message)
+    return mapToCard(data)
   },
 
-  associate: async (params: {
-    cardNumber: string
-    cardCode: string
-  }): Promise<Card> => {
-    const response = await apiCall<{ success: boolean; card: any; message: string }>('/api/cards/associate', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    })
-    return mapToCard(response.card)
+  associate: async (params: { cardNumber: string; cardCode: string }): Promise<Card> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Usuário não autenticado')
+    
+    const { data: card, error: findError } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('card_number', params.cardNumber)
+      .eq('card_code', params.cardCode)
+      .single()
+    
+    if (findError || !card) throw new Error('Cartão não encontrado ou código incorreto')
+    
+    const { data, error } = await supabase
+      .from('cards')
+      .update({ user_id: user.id })
+      .eq('id', card.id)
+      .select()
+      .single()
+    
+    if (error) throw new Error(error.message)
+    return mapToCard(data)
   },
 
-  updateBalance: async (params: {
-    cardId: string
-    amount: number
-    type: 'credit' | 'debit'
-    description?: string
-  }): Promise<void> => {
-    await apiCall<{ success: boolean; newBalance: number; message: string }>('/api/cards/update-balance', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    })
-  }
+  updateBalance: async (params: { cardId: string; amount: number; type: 'credit' | 'debit'; description?: string }): Promise<void> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Usuário não autenticado')
+    
+    const { data: card, error: findError } = await supabase
+      .from('cards')
+      .select('balance')
+      .eq('id', params.cardId)
+      .single()
+    
+    if (findError || !card) throw new Error('Cartão não encontrado')
+    
+    const newBalance = params.type === 'credit' 
+      ? card.balance + params.amount 
+      : card.balance - params.amount
+    
+    if (newBalance < 0) throw new Error('Saldo insuficiente')
+    
+    const { error: updateError } = await supabase
+      .from('cards')
+      .update({ balance: newBalance })
+      .eq('id', params.cardId)
+    
+    if (updateError) throw new Error(updateError.message)
+    
+    await supabase
+      .from('transactions')
+      .insert({
+        card_id: params.cardId,
+        amount: params.amount,
+        type: params.type,
+        description: params.description || '',
+        created_by: user.id
+      })
+  },
 }
