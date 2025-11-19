@@ -100,7 +100,6 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
                 </div>
               </div>
 
-<<<<<<< HEAD
               {/* Status Badge */}
               <div className="mb-5">
                 <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
@@ -115,70 +114,6 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
               </div>
 
               {/* Items */}
-=======
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                <div className={`rounded-lg p-5 border-2 ${
-                  !(sale as any).senderName || (sale as any).senderName === null
-                    ? 'bg-purple-50 border-purple-300' 
-                    : 'bg-gray-50 border-gray-200'
-                }`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-lg font-bold text-black">👤 Remetente</h4>
-                    {(!(sale as any).senderName || (sale as any).senderName === null) && (
-                      <span className="px-3 py-1 bg-purple-200 text-purple-900 rounded-full text-sm font-bold border-2 border-purple-400">
-                        🔒 Anônimo
-                      </span>
-                    )}
-                  </div>
-                  {(sale as any).senderName && (sale as any).senderName !== null ? (
-                    <>
-                      <p className="text-base font-medium text-gray-900">
-                        {(sale as any).senderName}
-                      </p>
-                      {(sale as any).senderTeam && (
-                        <p className="text-base text-gray-700 mt-1">
-                          Equipe: {(sale as any).senderTeam}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-base font-medium text-purple-900 italic">
-                        Remetente anônimo
-                      </p>
-                      {(sale as any).senderTeam && (
-                        <p className="text-base text-purple-700 italic mt-1">
-                          Equipe: {(sale as any).senderTeam} (não será exibida)
-                        </p>
-                      )}
-                    </>
-                  )}
-                </div>
-                <div className="bg-gray-50 rounded-lg p-5 border-2 border-gray-200">
-                  <h4 className="text-lg font-bold text-black mb-3">📍 Destinatário</h4>
-                  {(sale as any).recipientName ? (
-                    <>
-                      <p className="text-base font-medium text-gray-900">{(sale as any).recipientName}</p>
-                      {(sale as any).recipientAddress && (
-                        <p className="text-base text-gray-700 mt-1">
-                          Entrega na Sala de Apoio da {(sale as any).recipientAddress}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-base text-gray-500 italic">Destinatário não informado</p>
-                  )}
-                </div>
-              </div>
-
-              {(sale as any).message && (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 p-5 mb-5 rounded-r-lg">
-                  <h4 className="text-lg font-bold text-black mb-2">💌 Mensagem:</h4>
-                  <p className="text-base text-gray-900">{(sale as any).message}</p>
-                </div>
-              )}
-
->>>>>>> 275ba7adc5dfba1ba61feb77fc4e967d8158efae
               <div className="mb-5">
                 <h4 className="text-lg font-bold text-black mb-3">🛍️ Produtos:</h4>
                 <div className="bg-gray-50 rounded-lg p-5 border-2 border-gray-200">

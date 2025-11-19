@@ -105,18 +105,11 @@ const SalesPage: React.FC = () => {
   }, [total, isCouponApplied, couponCode]) 
 
   const handleAddToCart = (product: Product) => {
-<<<<<<< HEAD
     const pid = product.id
     if (!pid) return
     setCartItems(prev => ({
       ...prev,
       [pid]: (prev[pid] || 0) + 1
-=======
-    if (!product.id) return
-    setCartItems(prev => ({
-      ...prev,
-      [product.id]: (prev[product.id!] || 0) + 1
->>>>>>> 275ba7adc5dfba1ba61feb77fc4e967d8158efae
     }))
   }
 
@@ -191,11 +184,7 @@ const SalesPage: React.FC = () => {
           productName: p.name,
           price: p.price,
           quantity,
-<<<<<<< HEAD
           image: p.image_url || null
-=======
-          image: p.image_url || undefined
->>>>>>> 275ba7adc5dfba1ba61feb77fc4e967d8158efae
         }
       })
 
