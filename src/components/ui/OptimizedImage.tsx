@@ -113,33 +113,15 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className, co
   };
 
   useEffect(() => {
-    const loadImage = async () => {
-      if (!src) {
-        setImageUrl(getDefaultImage());
-        setIsLoading(false);
-        return;
-      }
+    if (!src) {
+      setImageUrl(getDefaultImage());
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        // Add cache busting and optimization parameters
-        const optimizedUrl = new URL(src);
-        optimizedUrl.searchParams.set('width', '400');
-        optimizedUrl.searchParams.set('quality', '80');
-        optimizedUrl.searchParams.set('v', Date.now().toString());
-
-        const response = await fetch(optimizedUrl.toString());
-        if (!response.ok) throw new Error('Image load failed');
-
-        setImageUrl(optimizedUrl.toString());
-      } catch (error) {
-        console.error('Image load error:', error);
-        setImageUrl(getDefaultImage());
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadImage();
+    // Usar a URL diretamente - deixar o navegador lidar com o carregamento
+    setImageUrl(src);
+    setIsLoading(false);
   }, [src]);
 
   return (
@@ -158,9 +140,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({ src, alt, className, co
         loading="lazy"
         onError={(e) => {
           const target = e.target as HTMLImageElement;
-          target.onerror = null;
-          target.src = getDefaultImage();
+          // Só trocar para fallback se não for já o fallback
+          if (target.src !== getDefaultImage()) {
+            target.onerror = null;
+            target.src = getDefaultImage();
+          }
         }}
+        onLoad={() => setIsLoading(false)}
       />
     </div>
   );

@@ -33,6 +33,7 @@ const AppLayout = () => {
     const path = routerState.location.pathname
     if (path.includes('/historico/lojinha')) return 'historicoLojinha'
     if (path.includes('/historico/lanchonete')) return 'historicoLanchonete'
+    if (path.includes('/historico/sapatinho')) return 'historicoSapatinho'
     if (path.includes('/lojinha')) return 'lojinha'
     if (path.includes('/lanchonete')) return 'lanchonete'
     if (path.startsWith('/mycard')) return 'mycard'
@@ -44,7 +45,7 @@ const AppLayout = () => {
     return 'mycard'
   }
 
-  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'lojinhaPedidos' | 'historicoLanchonete' |'admin' | 'mycard' | 'sapatinho-veloz' | 'pedidos-sapatinho-veloz') => {
+  const handleTabChange = (tab: 'cards' | 'lojinha' | 'lanchonete' | 'historicoLojinha' | 'lojinhaPedidos' | 'historicoLanchonete' | 'historicoSapatinho' |'admin' | 'mycard' | 'sapatinho-veloz' | 'pedidos-sapatinho-veloz') => {
     navigate({ to: `/${tab}` as any, search: {} as any })
   }
 

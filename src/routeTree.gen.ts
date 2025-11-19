@@ -28,6 +28,7 @@ import { Route as LayoutSapatinhoVelozSelectRouteImport } from './routes/_layout
 import { Route as LayoutSapatinhoVelozSalesRouteImport } from './routes/_layout/sapatinho-veloz/sales'
 import { Route as LayoutLojinhaSelectRouteImport } from './routes/_layout/lojinha/select'
 import { Route as LayoutLanchoneteSelectRouteImport } from './routes/_layout/lanchonete/select'
+import { Route as LayoutHistoricoSapatinhoRouteImport } from './routes/_layout/historico/sapatinho'
 import { Route as LayoutHistoricoLojinhaRouteImport } from './routes/_layout/historico/lojinha'
 import { Route as LayoutHistoricoLanchoneteRouteImport } from './routes/_layout/historico/lanchonete'
 import { Route as LayoutCardsDebitRouteImport } from './routes/_layout/cards/debit'
@@ -143,6 +144,12 @@ const LayoutLanchoneteSelectRoute = LayoutLanchoneteSelectRouteImport.update({
   path: '/lanchonete/select',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutHistoricoSapatinhoRoute =
+  LayoutHistoricoSapatinhoRouteImport.update({
+    id: '/historico/sapatinho',
+    path: '/historico/sapatinho',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 const LayoutHistoricoLojinhaRoute = LayoutHistoricoLojinhaRouteImport.update({
   id: '/historico/lojinha',
   path: '/historico/lojinha',
@@ -250,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/cards/debit': typeof LayoutCardsDebitRoute
   '/historico/lanchonete': typeof LayoutHistoricoLanchoneteRoute
   '/historico/lojinha': typeof LayoutHistoricoLojinhaRoute
+  '/historico/sapatinho': typeof LayoutHistoricoSapatinhoRoute
   '/lanchonete/select': typeof LayoutLanchoneteSelectRoute
   '/lojinha/select': typeof LayoutLojinhaSelectRoute
   '/sapatinho-veloz/sales': typeof LayoutSapatinhoVelozSalesRoute
@@ -286,6 +294,7 @@ export interface FileRoutesByTo {
   '/cards/debit': typeof LayoutCardsDebitRoute
   '/historico/lanchonete': typeof LayoutHistoricoLanchoneteRoute
   '/historico/lojinha': typeof LayoutHistoricoLojinhaRoute
+  '/historico/sapatinho': typeof LayoutHistoricoSapatinhoRoute
   '/lanchonete/select': typeof LayoutLanchoneteSelectRoute
   '/lojinha/select': typeof LayoutLojinhaSelectRoute
   '/sapatinho-veloz/sales': typeof LayoutSapatinhoVelozSalesRoute
@@ -324,6 +333,7 @@ export interface FileRoutesById {
   '/_layout/cards/debit': typeof LayoutCardsDebitRoute
   '/_layout/historico/lanchonete': typeof LayoutHistoricoLanchoneteRoute
   '/_layout/historico/lojinha': typeof LayoutHistoricoLojinhaRoute
+  '/_layout/historico/sapatinho': typeof LayoutHistoricoSapatinhoRoute
   '/_layout/lanchonete/select': typeof LayoutLanchoneteSelectRoute
   '/_layout/lojinha/select': typeof LayoutLojinhaSelectRoute
   '/_layout/sapatinho-veloz/sales': typeof LayoutSapatinhoVelozSalesRoute
@@ -362,6 +372,7 @@ export interface FileRouteTypes {
     | '/cards/debit'
     | '/historico/lanchonete'
     | '/historico/lojinha'
+    | '/historico/sapatinho'
     | '/lanchonete/select'
     | '/lojinha/select'
     | '/sapatinho-veloz/sales'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/cards/debit'
     | '/historico/lanchonete'
     | '/historico/lojinha'
+    | '/historico/sapatinho'
     | '/lanchonete/select'
     | '/lojinha/select'
     | '/sapatinho-veloz/sales'
@@ -435,6 +447,7 @@ export interface FileRouteTypes {
     | '/_layout/cards/debit'
     | '/_layout/historico/lanchonete'
     | '/_layout/historico/lojinha'
+    | '/_layout/historico/sapatinho'
     | '/_layout/lanchonete/select'
     | '/_layout/lojinha/select'
     | '/_layout/sapatinho-veloz/sales'
@@ -596,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutLanchoneteSelectRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/historico/sapatinho': {
+      id: '/_layout/historico/sapatinho'
+      path: '/historico/sapatinho'
+      fullPath: '/historico/sapatinho'
+      preLoaderRoute: typeof LayoutHistoricoSapatinhoRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/historico/lojinha': {
       id: '/_layout/historico/lojinha'
       path: '/historico/lojinha'
@@ -726,6 +746,7 @@ interface LayoutRouteChildren {
   LayoutCardsDebitRoute: typeof LayoutCardsDebitRoute
   LayoutHistoricoLanchoneteRoute: typeof LayoutHistoricoLanchoneteRoute
   LayoutHistoricoLojinhaRoute: typeof LayoutHistoricoLojinhaRoute
+  LayoutHistoricoSapatinhoRoute: typeof LayoutHistoricoSapatinhoRoute
   LayoutLanchoneteSelectRoute: typeof LayoutLanchoneteSelectRoute
   LayoutLojinhaSelectRoute: typeof LayoutLojinhaSelectRoute
   LayoutSapatinhoVelozSalesRoute: typeof LayoutSapatinhoVelozSalesRoute
@@ -762,6 +783,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutCardsDebitRoute: LayoutCardsDebitRoute,
   LayoutHistoricoLanchoneteRoute: LayoutHistoricoLanchoneteRoute,
   LayoutHistoricoLojinhaRoute: LayoutHistoricoLojinhaRoute,
+  LayoutHistoricoSapatinhoRoute: LayoutHistoricoSapatinhoRoute,
   LayoutLanchoneteSelectRoute: LayoutLanchoneteSelectRoute,
   LayoutLojinhaSelectRoute: LayoutLojinhaSelectRoute,
   LayoutSapatinhoVelozSalesRoute: LayoutSapatinhoVelozSalesRoute,

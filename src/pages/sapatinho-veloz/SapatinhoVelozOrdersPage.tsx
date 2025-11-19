@@ -49,7 +49,7 @@ const SapatinhoVelozOrdersPage: React.FC = () => {
       case 'pending':
         return <span className="px-4 py-2 bg-yellow-200 text-yellow-900 rounded-full text-base font-bold border-2 border-yellow-400">⏳ Pendente</span>
       case 'completed':
-        return <span className="px-4 py-2 bg-blue-200 text-blue-900 rounded-full text-base font-bold border-2 border-blue-400">✅ Completo</span>
+        return <span className="px-4 py-2 bg-blue-200 text-blue-900 rounded-full text-base font-bold border-2 border-blue-400">📦 Aguardando entrega</span>
       case 'delivered':
         return <span className="px-4 py-2 bg-green-200 text-green-900 rounded-full text-base font-bold border-2 border-green-400">🚚 Entregue</span>
       default:
@@ -116,10 +116,51 @@ const SapatinhoVelozOrdersPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                <div className="bg-gray-50 rounded-lg p-5 border-2 border-gray-200">
-                  <h4 className="text-lg font-bold text-black mb-3">👤 Remetente</h4>
-                  <p className="text-base text-gray-900 font-medium">{order.senderName || 'Não informado'}</p>
-                  <p className="text-base text-gray-700 mt-1">Equipe: {order.senderTeam}</p>
+                <div className={`rounded-lg p-5 border-2 ${
+                  order.isAnonymous 
+                    ? 'bg-purple-50 border-purple-300' 
+                    : 'bg-gray-50 border-gray-200'
+                }`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-lg font-bold text-black">👤 Remetente</h4>
+                    {order.isAnonymous && (
+                      <span className="px-3 py-1 bg-purple-200 text-purple-900 rounded-full text-sm font-bold border-2 border-purple-400">
+                        🔒 Anônimo
+                      </span>
+                    )}
+                  </div>
+                  {order.senderName ? (
+                    <>
+                      <p className={`text-base font-medium ${
+                        order.isAnonymous ? 'text-purple-900 italic' : 'text-gray-900'
+                      }`}>
+                        {order.senderName}
+                      </p>
+                      <p className={`text-base mt-1 ${
+                        order.isAnonymous ? 'text-purple-700 italic' : 'text-gray-700'
+                      }`}>
+                        {order.senderTeam ? (
+                          <>
+                            Equipe: {order.senderTeam}
+                            {order.isAnonymous && ' (não será exibida)'}
+                          </>
+                        ) : (
+                          <span className="text-gray-500 italic">Equipe não informada</span>
+                        )}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-base text-purple-900 font-medium italic">Mensagem Anônima</p>
+                      <p className="text-base text-purple-700 mt-1 italic">
+                        {order.senderTeam ? (
+                          <>Equipe: {order.senderTeam} (não será exibida)</>
+                        ) : (
+                          <span className="text-gray-500">Equipe não informada</span>
+                        )}
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="bg-gray-50 rounded-lg p-5 border-2 border-gray-200">
                   <h4 className="text-lg font-bold text-black mb-3">📍 Destinatário</h4>
@@ -131,7 +172,7 @@ const SapatinhoVelozOrdersPage: React.FC = () => {
                 </div>
               </div>
 
-              {order.message && (
+              {order.message &&  (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 p-5 mb-5 rounded-r-lg">
                   <h4 className="text-lg font-bold text-black mb-2">💌 Mensagem:</h4>
                   <p className="text-base text-gray-900">{order.message}</p>
