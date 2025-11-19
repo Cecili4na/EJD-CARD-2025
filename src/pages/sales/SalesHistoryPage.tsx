@@ -206,9 +206,9 @@ const SalesHistoryPage: React.FC = () => {
                                 className="text-sm"
                                 style={{ fontFamily: "'Crimson Text', serif" }}
                               >
-                                Cartão <span className="font-mono font-semibold text-[#d4704a]">{sale.card.card_number}</span>
+                                Cartão <span className="font-mono font-semibold text-[#d4704a]">{sale.card?.card_number}</span>
                                 {' • '}
-                                <span className="font-semibold">{sale.card.user_name}</span>
+                                <span className="font-semibold">{sale.card?.user_name}</span>
                               </p>
                             </div>
                           )}
@@ -220,7 +220,7 @@ const SalesHistoryPage: React.FC = () => {
                               className="text-sm"
                               style={{ fontFamily: "'Crimson Text', serif" }}
                             >
-                              Vendedor: <span className="font-semibold">{sale.seller.name}</span>
+                              Vendedor ID: <span className="font-semibold">{sale.sellerId}</span>
                             </p>
                           </div>
 
@@ -314,7 +314,7 @@ const SalesHistoryPage: React.FC = () => {
                                       className="font-semibold text-[#2d2520] truncate mb-1"
                                       style={{ fontFamily: "'Crimson Text', serif", fontSize: '15px' }}
                                     >
-                                      {item.product_name}
+                                      {item.productName}
                                     </p>
                                     <div className="flex items-center gap-2">
                                       <span 
