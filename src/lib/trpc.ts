@@ -35,10 +35,10 @@ export function getTrpcClient() {
     : '/api/trpc'
 
   return trpc.createClient({
-    transformer: superjson,
     links: [
       httpBatchLink({
         url,
+        transformer: superjson,
         
         // Adicionar token de auth em cada requisição
         async headers() {

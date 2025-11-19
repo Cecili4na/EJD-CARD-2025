@@ -53,7 +53,7 @@ export function useSalesSecure() {
     createSale: {
       mutate: createSale.mutate,
       mutateAsync: createSale.mutateAsync,
-      isLoading: createSale.isLoading,
+      isPending: createSale.isPending,
       isError: createSale.isError,
       error: createSale.error,
       data: createSale.data,

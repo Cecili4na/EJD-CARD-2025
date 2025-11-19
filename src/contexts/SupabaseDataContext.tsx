@@ -113,11 +113,11 @@ interface SupabaseDataContextType {
   getSales: (category?: 'lojinha' | 'lanchonete') => Promise<Sale[]>
   
   // Funções de pedidos
-  getOpenOrders: () => Order[]
+  getOpenOrders: () => Promise<Order[]>
   markAsDelivered: (orderId: string) => Promise<void>
 
   // Funções de cupons
-  getCoupons: () => Promise<string>[]
+  getCoupons: () => Promise<string[]>
   
   // Funções de cartão
   getCardByUserId: (userId: string) => Card | null

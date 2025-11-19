@@ -194,7 +194,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           >
             <div className="flex items-center space-x-4">
               <img
-                src={product.image_url}
+                src={product.image_url || ''}
                 alt={product.name}
                 className="w-16 h-16 object-cover rounded-lg"
               />
