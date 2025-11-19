@@ -41,6 +41,7 @@ export const usePermissions = () => {
     // Histórico
     canViewSalesHistoryLojinha: hasPermission(userRole, 'canViewSalesHistoryLojinha'),
     canViewSalesHistoryLanchonete: hasPermission(userRole, 'canViewSalesHistoryLanchonete'),
+    canViewSalesHistorySapatinho: hasPermission(userRole, 'canViewSalesHistorySapatinho'),
     
     // Entregas
     canViewOpenOrders: hasPermission(userRole, 'canViewOpenOrders'),

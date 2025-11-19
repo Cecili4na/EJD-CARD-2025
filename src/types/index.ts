@@ -27,15 +27,18 @@ export interface Product {
 }
 
 export interface SaleItem {
-  id: string
+  id?: string | null
   productId: string
   productName: string
   quantity: number
   price: number
+  image?: string | null
 }
 
 export interface Sale {
   id: string
+  saleId?: string
+  sale_id?: string
   userId: string
   sellerId: string
   category: ProductCategory
@@ -43,6 +46,11 @@ export interface Sale {
   total: number
   status: 'completed' | 'delivered'
   createdAt: string
+  created_at?: string
+  card?: {
+    card_number?: string
+    user_name?: string
+  }
 }
 
 export interface Order {
@@ -82,11 +90,12 @@ export interface SapatinhoVelozOrder {
   id: string
   saleId: string
   senderUserId: string
-  senderName?: string
-  senderTeam: string
+  senderName?: string | null
+  senderTeam?: string | null
   recipientName: string
   recipientAddress: string
-  message?: string
+  message?: string | null
+  isAnonymous?: boolean
   items: SapatinhoVelozOrderItem[]
   total: number
   status: 'pending' | 'completed' | 'delivered'

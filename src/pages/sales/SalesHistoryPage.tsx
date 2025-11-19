@@ -124,13 +124,13 @@ const SalesHistoryPage: React.FC = () => {
             >
               Nenhuma venda registrada ainda.
             </p>
-            <Button 
-              onClick={() => navigate(context === 'lojinha' ? '/lojinha/sales' : '/lanchonete/orders')} 
+            <button 
+              onClick={() => navigate({ to: context === 'lojinha' ? '/lojinha/sales' : '/lanchonete/orders' })} 
               className="bg-gradient-to-r from-[#d4704a] to-[#c86a45] hover:from-[#c86a45] hover:to-[#d4704a] text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
               style={{ fontFamily: "'Courier New', monospace" }}
             >
               + NOVA VENDA
-            </Button>
+            </button>
           </div>
         </div>
       ) : (
@@ -160,7 +160,7 @@ const SalesHistoryPage: React.FC = () => {
           <div className="space-y-5">
             {filteredSales.map((sale, index) => {
               const isExpanded = expandedSales.has(sale.id)
-              const { date, time } = formatDate(sale.created_at)
+              const { date, time } = formatDate(sale.createdAt || sale.created_at || '')
               
               return (
                 <div
@@ -193,13 +193,13 @@ const SalesHistoryPage: React.FC = () => {
                               className="text-2xl font-bold text-[#2d2520] tracking-tight"
                               style={{ fontFamily: "'Courier New', monospace" }}
                             >
-                              #{sale.sale_id}
+                              #{sale.saleId || sale.sale_id || sale.id.slice(0, 8)}
                             </h3>
                             <div className="flex-1 h-[1px] bg-gradient-to-r from-[#d4704a]/40 to-transparent self-center" />
                           </div>
 
                           {/* Card & Customer Info */}
-                          {sale.card.card_number && sale.card.user_name && (
+                          {sale.card?.card_number && sale.card?.user_name && (
                             <div className="flex items-center gap-2 text-[#6b5744]">
                               <span className="text-lg">▪</span>
                               <p 

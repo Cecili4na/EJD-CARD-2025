@@ -21,13 +21,13 @@ const SalesPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [coupons, setCoupons] = useState<string[]>([])
   const [cartItems, setCartItems] = useState<Record<string, number>>({})
-  const [isSaving, setIsSaving] = useState(false)
+  const [isSaving] = useState(false)
   const [cardNumber, setCardNumber] = useState('')
   const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [searchFilter, setSearchFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
+  const [, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [couponCode, setCouponCode] = useState('')
   const [isCouponApplied, setIsCouponApplied] = useState(false)
@@ -105,11 +105,18 @@ const SalesPage: React.FC = () => {
   }, [total, isCouponApplied, couponCode]) 
 
   const handleAddToCart = (product: Product) => {
+<<<<<<< HEAD
     const pid = product.id
     if (!pid) return
     setCartItems(prev => ({
       ...prev,
       [pid]: (prev[pid] || 0) + 1
+=======
+    if (!product.id) return
+    setCartItems(prev => ({
+      ...prev,
+      [product.id]: (prev[product.id!] || 0) + 1
+>>>>>>> 275ba7adc5dfba1ba61feb77fc4e967d8158efae
     }))
   }
 
@@ -184,7 +191,11 @@ const SalesPage: React.FC = () => {
           productName: p.name,
           price: p.price,
           quantity,
+<<<<<<< HEAD
           image: p.image_url || null
+=======
+          image: p.image_url || undefined
+>>>>>>> 275ba7adc5dfba1ba61feb77fc4e967d8158efae
         }
       })
 

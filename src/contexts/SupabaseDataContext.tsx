@@ -436,31 +436,112 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     return data;
   }
 
-  const getSales = async (category?: 'lojinha' | 'lanchonete'): Promise<Sale[]> => {
+  const getSales = async (category?: 'lojinha' | 'lanchonete' | 'sapatinho'): Promise<Sale[]> => {
     if (category) {
-      const { data, error } = await supabase
-      .from('sales')
-      .select(`
-        *,
-        card: cards(
-          id,
-          card_number,
-          user_name
-        ),
-        items: sale_items (
-            product_name,
-            quantity,
-            price
-        ),
-        seller:app_users (
-          id,
-          name,
-          email
+      // Para sapatinho, usar tabelas diferentes
+      if (category === 'sapatinho') {
+        const { data: salesData, error: salesError } = await supabase
+          .from('sapatinho_sales')
+          .select('*')
+          .order('created_at', { ascending: false })
+        
+        if (salesError) throw salesError
+        
+        // Buscar cards, itens e pedido relacionado separadamente para garantir que funcionem
+        const salesWithDetails = await Promise.all(
+          (salesData || []).map(async (sale: any) => {
+            // Buscar card
+            const { data: cardData } = await supabase
+              .from('cards')
+              .select('id, card_number, user_name')
+              .eq('id', sale.card_id)
+              .single()
+            
+            // Buscar itens
+            const { data: itemsData } = await supabase
+              .from('sapatinho_sale_items')
+              .select('id, product_id, product_name, quantity, price')
+              .eq('sale_id', sale.id)
+            
+            // Buscar pedido relacionado para pegar a mensagem
+            const { data: orderData } = await supabase
+              .from('sapatinho_veloz_orders')
+              .select('message, sender_name, sender_team, recipient_name, recipient_address')
+              .eq('sale_id', sale.id)
+              .maybeSingle()
+            
+            return {
+              ...sale,
+              sale_id: sale.id, // Para compatibilidade
+              category: 'sapatinho',
+              card: cardData || null,
+              items: (itemsData || []).map((item: any) => ({
+                id: item.id,
+                productId: item.product_id,
+                productName: item.product_name,
+                product_name: item.product_name,
+                quantity: item.quantity,
+                price: parseFloat(item.price) || 0
+              })),
+              message: orderData?.message || null,
+              senderName: orderData?.sender_name || null,
+              senderTeam: orderData?.sender_team || null,
+              recipientName: orderData?.recipient_name || null,
+              recipientAddress: orderData?.recipient_address || null,
+              seller: {
+                id: sale.seller_id,
+                name: sale.seller_id, // Fallback se não tiver nome
+                email: ''
+              }
+            }
+          })
         )
-      `)
-      .eq('category', category)
-      .order('created_at', { ascending: false })
-      return data || []
+        
+        return salesWithDetails
+      }
+      
+      // Para lojinha e lanchonete, usar tabela sales normal
+      const { data: salesData, error: salesError } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          card: cards(
+            id,
+            card_number,
+            user_name
+          ),
+          items: sale_items (
+              product_name,
+              quantity,
+              price
+          )
+        `)
+        .eq('category', category)
+        .order('created_at', { ascending: false })
+      
+      if (salesError) throw salesError
+      
+      // Buscar informações do vendedor separadamente para garantir que o nome seja retornado
+      const salesWithSeller = await Promise.all(
+        (salesData || []).map(async (sale: any) => {
+          const { data: sellerData } = await supabase
+            .from('app_users')
+            .select('id, name, email')
+            .eq('id', sale.seller_id)
+            .single()
+          
+          return {
+            ...sale,
+            seller: sellerData || {
+              id: sale.seller_id,
+              name: sale.seller_id, // Fallback se não encontrar
+              email: ''
+            }
+          }
+        })
+      )
+      
+      return salesWithSeller
     }
     return data.sales
   }

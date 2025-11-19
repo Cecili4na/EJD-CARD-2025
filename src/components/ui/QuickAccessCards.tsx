@@ -14,6 +14,7 @@ const QuickAccessCards: React.FC = () => {
     canSellLanchonete,
     canViewSalesHistoryLojinha,
     canViewSalesHistoryLanchonete,
+    canViewSalesHistorySapatinho,
     canViewOpenOrders
   } = usePermissions()
 
@@ -87,6 +88,17 @@ const QuickAccessCards: React.FC = () => {
       path: '/historico/lanchonete',
       color: 'from-cyan-50 to-cyan-100 border-cyan-200',
       buttonColor: 'bg-cyan-500 hover:bg-cyan-600'
+    })
+  }
+
+  // Card: Histórico Sapatinho (se tiver permissão)
+  if (canViewSalesHistorySapatinho) {
+    cards.push({
+      title: '📊 Histórico Sapatinho',
+      description: 'Ver histórico de vendas',
+      path: '/historico/sapatinho',
+      color: 'from-yellow-50 to-yellow-100 border-yellow-200',
+      buttonColor: 'bg-yellow-500 hover:bg-yellow-600'
     })
   }
 

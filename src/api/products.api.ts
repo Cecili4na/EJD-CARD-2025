@@ -41,7 +41,8 @@ export const productsApi = {
       description: product.description,
       stock: product.stock,
       active: product.active,
-      createdAt: product.created_at
+      createdAt: product.created_at,
+      image_url: product.image_url || product.image || null
     }))
   },
 

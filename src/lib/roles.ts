@@ -34,6 +34,7 @@ export interface RolePermissions {
   // Histórico de vendas (ver relatórios)
   canViewSalesHistoryLojinha: boolean
   canViewSalesHistoryLanchonete: boolean
+  canViewSalesHistorySapatinho: boolean
   
   // Pedidos Lojinha
   canViewOpenOrders: boolean
@@ -62,6 +63,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: true,
     canViewSalesHistoryLojinha: true,
     canViewSalesHistoryLanchonete: true,
+    canViewSalesHistorySapatinho: true,
     canViewOpenOrders: true,
     canMarkAsDelivered: true,
     canManageUsers: true,
@@ -84,6 +86,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: true,
     canViewSalesHistoryLojinha: true,
     canViewSalesHistoryLanchonete: true,
+    canViewSalesHistorySapatinho: true,
     canViewOpenOrders: true,
     canMarkAsDelivered: true,
     canManageUsers: true,
@@ -150,6 +153,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: false,
     canViewSalesHistoryLojinha: false,
     canViewSalesHistoryLanchonete: false,
+    canViewSalesHistorySapatinho: false,
     canViewOpenOrders: false,
     canMarkAsDelivered: false,
     canManageUsers: false,
@@ -172,6 +176,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: false,
     canViewSalesHistoryLojinha: false,
     canViewSalesHistoryLanchonete: false,
+    canViewSalesHistorySapatinho: false,
     canViewOpenOrders: false,
     canMarkAsDelivered: false,
     canManageUsers: false,
@@ -194,6 +199,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: false,
     canViewSalesHistoryLojinha: false,
     canViewSalesHistoryLanchonete: false,
+    canViewSalesHistorySapatinho: false,
     canViewOpenOrders: true,
     canMarkAsDelivered: true,
     canManageUsers: false,
@@ -216,6 +222,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: true,
     canViewSalesHistoryLojinha: false,
     canViewSalesHistoryLanchonete: false,
+    canViewSalesHistorySapatinho: false,
     canViewOpenOrders: false,
     canMarkAsDelivered: false,
     canManageUsers: false,
@@ -238,6 +245,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: false,
     canViewSalesHistoryLojinha: false,
     canViewSalesHistoryLanchonete: false,
+    canViewSalesHistorySapatinho: false,
     canViewOpenOrders: false,
     canMarkAsDelivered: false,
     canManageUsers: false,
@@ -258,6 +266,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canSellLanchonete: false,
     canViewSalesHistoryLojinha: false,
     canViewSalesHistoryLanchonete: false,
+    canViewSalesHistorySapatinho: false,
     canViewOpenOrders: false,
     canMarkAsDelivered: false,
     canManageUsers: false,
