@@ -48,17 +48,22 @@ const MyCardPage: React.FC = () => {
   const [showPixInfo, setShowPixInfo] = useState(false)
   const [pixPayment, setPixPayment] = useState<PixPayment | null>(null)
   const [isCheckingPayment, setIsCheckingPayment] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(false)
 
   // Carregar dados do usuário
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id || isLoadingData) return
 
     loadUserData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
   const loadUserData = async () => {
+    if (isLoadingData) return // Evita chamadas duplicadas
+    
     try {
+      setIsLoadingData(true)
+      
       if (supabaseData && isSupabaseConfigured()) {
         // Primeiro tentar buscar do contexto (mais rápido)
         let userCard = supabaseData.getCardByUserId(user?.id || '')
@@ -112,12 +117,11 @@ const MyCardPage: React.FC = () => {
           phoneNumber: userCard.phoneNumber || ''
         })
 
-        // Carregar histórico de compras
-        const sales = await supabaseData.getSales()
+        // Carregar histórico de compras do cartão (otimizado - busca apenas vendas deste cartão)
+        const sales = await supabaseData.getSalesByCardId(userCard.id, 20)
         
         // Converter vendas em compras do usuário
         const userPurchases: Purchase[] = (sales || [])
-          .filter((sale: any) => sale.userId === userCard.id)
           .map((sale: any) => ({
             id: sale.id,
             date: sale.createdAt.split('T')[0],
@@ -167,6 +171,8 @@ const MyCardPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error)
+    } finally {
+      setIsLoadingData(false)
     }
   }
 

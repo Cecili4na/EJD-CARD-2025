@@ -39,7 +39,7 @@ export interface Sale {
   sellerId: string
   saleId?: string
   sale_id?: string
-  category: 'lojinha' | 'lanchonete'
+  category: 'lojinha' | 'lanchonete' | 'sapatinho'
   items: SaleItem[]
   total: number
   status: 'completed' | 'delivered'
@@ -110,7 +110,8 @@ interface SupabaseDataContextType {
   
   // Funções de vendas
   makeSale: (userId: string, items: Omit<SaleItem, 'id'>[], category: 'lojinha' | 'lanchonete', coupon: string, discountedTotal: number) => Promise<string>
-  getSales: (category?: 'lojinha' | 'lanchonete') => Promise<Sale[]>
+  getSales: (category?: 'lojinha' | 'lanchonete' | 'sapatinho', limit?: number) => Promise<Sale[]>
+  getSalesByCardId: (cardId: string, limit?: number) => Promise<Sale[]>
   
   // Funções de pedidos
   getOpenOrders: () => Promise<Order[]>
@@ -173,6 +174,9 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
       setIsLoading(true)
       setError(null)
 
+      // Carregar apenas dados essenciais no início (cards e produtos)
+      // Vendas, transações e pedidos serão carregados sob demanda
+      
       // Carregar cartões
       const { data: cards, error: cardsError } = await supabase
         .from('cards')
@@ -190,33 +194,6 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
 
       if (productsError) throw productsError
 
-      // Carregar transações
-      const { data: transactions, error: transactionsError } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (transactionsError) throw transactionsError
-
-      // Carregar vendas
-      const { data: sales, error: salesError } = await supabase
-        .from('sales')
-        .select(`
-          *,
-          sale_items (*)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (salesError) throw salesError
-
-      // Carregar pedidos
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (ordersError) throw ordersError
-
       // Carregar cupons
       const { data: coupons, error: couponsError } = await supabase
         .from('coupons')
@@ -225,32 +202,14 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
 
       if (couponsError) throw couponsError
 
-      // Processar dados
+      // Processar apenas dados essenciais carregados
       const balances = new Map<string, { balance: number; transactions: Transaction[] }>()
       
-      // Agrupar transações por usuário
-      transactions?.forEach(tx => {
-        if (!balances.has(tx.card_id)) {
-          balances.set(tx.card_id, { balance: 0, transactions: [] })
-        }
-        const userData = balances.get(tx.card_id)!
-        userData.transactions.push({
-          id: tx.id,
-          userId: tx.card_id,
-          amount: tx.amount,
-          type: tx.type,
-          description: tx.description,
-          createdBy: tx.created_by,
-          createdAt: tx.created_at
-        })
-      })
-
-      // Calcular saldos
+      // Inicializar saldos dos cartões
       cards?.forEach(card => {
         if (!balances.has(card.id)) {
-          balances.set(card.id, { balance: 0, transactions: [] })
+          balances.set(card.id, { balance: card.balance || 0, transactions: [] })
         }
-        balances.get(card.id)!.balance = card.balance
       })
 
       // Processar produtos
@@ -258,38 +217,6 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
         lojinha: products?.filter(p => p.category === 'lojinha') || [],
         lanchonete: products?.filter(p => p.category === 'lanchonete') || []
       }
-
-      // Processar vendas
-      const processedSales: Sale[] = sales?.map(sale => ({
-        id: sale.id,
-        userId: sale.card_id,
-        sellerId: sale.seller_id,
-        category: sale.category,
-        saleId: sale.sale_id,
-        items: sale.sale_items.map((item: any) => ({
-          id: item.id,
-          productId: item.product_id,
-          productName: item.product_name,
-          quantity: item.quantity,
-          price: item.price
-        })),
-        total: sale.total,
-        status: sale.status,
-        createdAt: sale.created_at
-      })) || []
-
-      // Processar pedidos
-      const processedOrders: Order[] = orders?.map(order => ({
-        id: order.id,
-        saleId: order.sale_id,
-        userId: order.card_id,
-        customerName: order.customer_name,
-        items: [], // TODO: Buscar items separadamente se necessário
-        total: order.total,
-        status: order.status,
-        createdAt: order.created_at,
-        deliveredAt: order.delivered_at
-      })) || []
 
       // Mapear cartões do formato Supabase (snake_case) para formato Card (camelCase)
       const mappedCards: Card[] = (cards || []).map((card: any) => ({
@@ -306,8 +233,8 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
       setData({
         balances,
         products: productsByCategory,
-        sales: processedSales,
-        orders: processedOrders,
+        sales: [], // Será carregado sob demanda via getSales()
+        orders: [], // Será carregado sob demanda via getOpenOrders()
         cards: mappedCards,
         coupons: coupons?.map(c => c.name) || []
       })
@@ -450,114 +377,219 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     return data;
   }
 
-  const getSales = async (category?: 'lojinha' | 'lanchonete' | 'sapatinho'): Promise<Sale[]> => {
+  const getSales = async (category?: 'lojinha' | 'lanchonete' | 'sapatinho', limit: number = 100): Promise<Sale[]> => {
     if (category) {
-      // Para sapatinho, usar tabelas diferentes
+      // Para sapatinho, usar tabelas diferentes COM JOINs (evita N+1)
       if (category === 'sapatinho') {
         const { data: salesData, error: salesError } = await supabase
           .from('sapatinho_sales')
-          .select('*')
+          .select(`
+            *,
+            card: cards!sapatinho_sales_card_id_fkey (
+              id,
+              card_number,
+              user_name
+            ),
+            items: sapatinho_sale_items (
+              id,
+              product_id,
+              product_name,
+              quantity,
+              price
+            ),
+            order: sapatinho_veloz_orders!sapatinho_veloz_orders_sale_id_fkey (
+              message,
+              sender_name,
+              sender_team,
+              recipient_name,
+              recipient_address
+            )
+          `)
           .order('created_at', { ascending: false })
+          .limit(limit)
         
-        if (salesError) throw salesError
+        if (salesError) {
+          console.error('Erro ao buscar vendas do sapatinho:', salesError)
+          throw salesError
+        }
         
-        // Buscar cards, itens e pedido relacionado separadamente para garantir que funcionem
-        const salesWithDetails = await Promise.all(
-          (salesData || []).map(async (sale: any) => {
-            // Buscar card
-            const { data: cardData } = await supabase
-              .from('cards')
-              .select('id, card_number, user_name')
-              .eq('id', sale.card_id)
-              .single()
-            
-            // Buscar itens
-            const { data: itemsData } = await supabase
-              .from('sapatinho_sale_items')
-              .select('id, product_id, product_name, quantity, price')
-              .eq('sale_id', sale.id)
-            
-            // Buscar pedido relacionado para pegar a mensagem
-            const { data: orderData } = await supabase
-              .from('sapatinho_veloz_orders')
-              .select('message, sender_name, sender_team, recipient_name, recipient_address')
-              .eq('sale_id', sale.id)
-              .maybeSingle()
-            
-            return {
-              ...sale,
-              sale_id: sale.id, // Para compatibilidade
-              category: 'sapatinho',
-              card: cardData || null,
-              items: (itemsData || []).map((item: any) => ({
-                id: item.id,
-                productId: item.product_id,
-                productName: item.product_name,
-                product_name: item.product_name,
-                quantity: item.quantity,
-                price: parseFloat(item.price) || 0
-              })),
-              message: orderData?.message || null,
-              senderName: orderData?.sender_name || null,
-              senderTeam: orderData?.sender_team || null,
-              recipientName: orderData?.recipient_name || null,
-              recipientAddress: orderData?.recipient_address || null,
-              seller: {
-                id: sale.seller_id,
-                name: sale.seller_id, // Fallback se não tiver nome
-                email: ''
-              }
-            }
-          })
-        )
+        // Processar dados já carregados em 1 query
+        const salesWithDetails = (salesData || []).map((sale: any) => ({
+          ...sale,
+          sale_id: sale.id,
+          category: 'sapatinho',
+          card: sale.card || null,
+          items: (sale.items || []).map((item: any) => ({
+            id: item.id,
+            productId: item.product_id,
+            productName: item.product_name,
+            product_name: item.product_name,
+            quantity: item.quantity,
+            price: parseFloat(item.price) || 0
+          })),
+          message: sale.order?.message || null,
+          senderName: sale.order?.sender_name || null,
+          senderTeam: sale.order?.sender_team || null,
+          recipientName: sale.order?.recipient_name || null,
+          recipientAddress: sale.order?.recipient_address || null,
+          seller: {
+            id: sale.seller_id,
+            name: sale.seller_id,
+            email: ''
+          }
+        }))
         
         return salesWithDetails
       }
       
-      // Para lojinha e lanchonete, usar tabela sales normal
+      // Para lojinha e lanchonete, usar tabela sales normal COM JOIN de seller (evita N+1)
       const { data: salesData, error: salesError } = await supabase
         .from('sales')
         .select(`
           *,
-          card: cards(
+          card: cards!sales_card_id_fkey (
             id,
             card_number,
             user_name
           ),
           items: sale_items (
-              product_name,
-              quantity,
-              price
+            product_name,
+            quantity,
+            price
+          ),
+          seller: app_users!sales_seller_id_fkey (
+            id,
+            name,
+            email
           )
         `)
         .eq('category', category)
         .order('created_at', { ascending: false })
+        .limit(limit)
       
-      if (salesError) throw salesError
+      if (salesError) {
+        console.error('Erro ao buscar vendas:', salesError)
+        throw salesError
+      }
       
-      // Buscar informações do vendedor separadamente para garantir que o nome seja retornado
-      const salesWithSeller = await Promise.all(
-        (salesData || []).map(async (sale: any) => {
-          const { data: sellerData } = await supabase
-            .from('app_users')
-            .select('id, name, email')
-            .eq('id', sale.seller_id)
-            .single()
-          
-          return {
-            ...sale,
-            seller: sellerData || {
-              id: sale.seller_id,
-              name: sale.seller_id, // Fallback se não encontrar
-              email: ''
-            }
-          }
-        })
-      )
+      // Processar dados já carregados em 1 query (sem N+1!)
+      const processedSales = (salesData || []).map((sale: any) => ({
+        ...sale,
+        seller: sale.seller || {
+          id: sale.seller_id,
+          name: sale.seller_id,
+          email: ''
+        }
+      }))
       
-      return salesWithSeller
+      return processedSales
     }
-    return data.sales
+    
+    // Se não especificou categoria, retornar vazio (não carregar tudo)
+    console.warn('getSales() chamado sem categoria - retornando array vazio')
+    return []
+  }
+
+  // Buscar vendas de um cartão específico (todas as categorias)
+  const getSalesByCardId = async (cardId: string, limit: number = 50): Promise<Sale[]> => {
+    try {
+      const allSales: Sale[] = []
+
+      // Buscar vendas normais (lojinha e lanchonete)
+      const { data: regularSales, error: regularError } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          card: cards!sales_card_id_fkey (
+            id,
+            card_number,
+            user_name
+          ),
+          items: sale_items (
+            product_name,
+            quantity,
+            price
+          )
+        `)
+        .eq('card_id', cardId)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (regularError) throw regularError
+
+      // Processar vendas normais
+      if (regularSales) {
+        allSales.push(...regularSales.map((sale: any) => ({
+          id: sale.id,
+          userId: sale.card_id,
+          sellerId: sale.seller_id,
+          category: sale.category,
+          items: (sale.items || []).map((item: any) => ({
+            productId: item.product_id || '',
+            productName: item.product_name,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          total: sale.total,
+          status: sale.status,
+          createdAt: sale.created_at,
+          card: sale.card
+        })))
+      }
+
+      // Buscar vendas do sapatinho veloz
+      const { data: sapatinhoSales, error: sapatinhoError } = await supabase
+        .from('sapatinho_sales')
+        .select(`
+          *,
+          card: cards!sapatinho_sales_card_id_fkey (
+            id,
+            card_number,
+            user_name
+          ),
+          items: sapatinho_sale_items (
+            id,
+            product_id,
+            product_name,
+            quantity,
+            price
+          )
+        `)
+        .eq('card_id', cardId)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (sapatinhoError) throw sapatinhoError
+
+      // Processar vendas do sapatinho
+      if (sapatinhoSales) {
+        allSales.push(...sapatinhoSales.map((sale: any) => ({
+          id: sale.id,
+          userId: sale.card_id,
+          sellerId: sale.seller_id,
+          category: 'sapatinho' as const,
+          items: (sale.items || []).map((item: any) => ({
+            productId: item.product_id,
+            productName: item.product_name,
+            quantity: item.quantity,
+            price: parseFloat(item.price) || 0
+          })),
+          total: sale.total,
+          status: sale.status,
+          createdAt: sale.created_at,
+          card: sale.card
+        })))
+      }
+
+      // Ordenar todas as vendas por data (mais recentes primeiro)
+      return allSales.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ).slice(0, limit)
+
+    } catch (error) {
+      console.error('Erro ao buscar vendas do cartão:', error)
+      return []
+    }
   }
 
   // Funções de pedidos
@@ -851,6 +883,7 @@ export const SupabaseDataProvider: React.FC<SupabaseDataProviderProps> = ({ chil
     makeSale,
     getCoupons,
     getSales,
+    getSalesByCardId,
     getOpenOrders,
     markAsDelivered,
     getCardByUserId,

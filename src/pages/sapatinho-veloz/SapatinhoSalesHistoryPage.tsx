@@ -4,9 +4,11 @@ import { Sale, useSupabaseData } from '../../contexts/SupabaseDataContext'
 const SapatinhoSalesHistoryPage: React.FC = () => {
   const { getSales } = useSupabaseData()
 
-  const [sales, setSales] = useState<Sale[]>([])
+  const [allSales, setAllSales] = useState<Sale[]>([])
   const [searchName, setSearchName] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   useEffect(() => {
     loadSales()
@@ -15,9 +17,10 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
   const loadSales = async () => {
     try {
       setIsLoading(true)
-      const fetchedSales = await getSales('lanchonete')
-      console.log('Vendas do sapatinho carregadas:', fetchedSales)
-      setSales(fetchedSales)
+      // Carregar até 200 vendas (10 páginas)
+      const fetchedSales = await getSales('sapatinho', 200)
+      console.log('Vendas do sapatinho carregadas:', fetchedSales.length)
+      setAllSales(fetchedSales)
     } catch (error) {
       console.error('Erro ao carregar vendas:', error)
     } finally {
@@ -26,11 +29,35 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
   }
 
   const filteredSales = useMemo(() => {
-    if (!searchName.trim()) return sales
-    return sales.filter(sale =>
+    if (!searchName.trim()) return allSales
+    return allSales.filter(sale =>
       sale.card?.user_name?.toLowerCase().includes(searchName.toLowerCase())
     )
-  }, [sales, searchName])
+  }, [allSales, searchName])
+
+  // Paginação
+  const totalPages = Math.ceil(filteredSales.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedSales = filteredSales.slice(startIndex, startIndex + itemsPerPage)
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -67,16 +94,26 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
 
       {isLoading ? (
         <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
           <p className="text-gray-500">Carregando vendas...</p>
         </div>
-      ) : filteredSales.length === 0 ? (
+      ) : paginatedSales.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-6xl mb-4">📭</div>
           <p className="text-gray-500 text-lg">Nenhuma venda encontrada</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {filteredSales.map(sale => (
+        <>
+          {/* Info de Paginação */}
+          <div className="mb-6 text-center">
+            <p className="text-sm text-gray-600">
+              Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredSales.length)} de {filteredSales.length} vendas
+              {totalPages > 1 && ` • Página ${currentPage} de ${totalPages}`}
+            </p>
+          </div>
+
+          <div className="space-y-6">
+          {paginatedSales.map(sale => (
             <div key={sale.id} className="border-2 border-gray-300 rounded-lg p-6 bg-white shadow-lg">
               <div className="flex justify-between items-start mb-5">
                 <div>
@@ -134,7 +171,71 @@ const SapatinhoSalesHistoryPage: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="mt-10 flex items-center justify-center gap-3">
+              {/* Botão Anterior */}
+              <button
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+                className="px-5 py-2.5 bg-white border-2 border-yellow-400 rounded-lg
+                          text-yellow-600 font-semibold text-sm
+                          hover:bg-yellow-400 hover:text-black
+                          disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-yellow-600
+                          transition-all duration-200"
+              >
+                ← Anterior
+              </button>
+
+              {/* Números de Página */}
+              <div className="flex items-center gap-2">
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum: number
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+
+                  const isActive = currentPage === pageNum
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold text-sm transition-all duration-200 ${
+                        isActive
+                          ? 'bg-yellow-400 text-black border-2 border-yellow-500 shadow-md'
+                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-yellow-400 hover:bg-yellow-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Botão Próxima */}
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className="px-5 py-2.5 bg-white border-2 border-yellow-400 rounded-lg
+                          text-yellow-600 font-semibold text-sm
+                          hover:bg-yellow-400 hover:text-black
+                          disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-yellow-600
+                          transition-all duration-200"
+              >
+                Próxima →
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

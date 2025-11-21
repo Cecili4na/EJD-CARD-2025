@@ -11,30 +11,66 @@ const SalesHistoryPage: React.FC = () => {
   const navigate = useNavigate()
   const context: ContextType = location.pathname.endsWith('/lojinha') ? 'lojinha' : 'lanchonete'
 
-  const [sales, setSales] = useState<Sale[]>([])
+  const [allSales, setAllSales] = useState<Sale[]>([])
   const [searchName, setSearchName] = useState('')
   const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set())
+  const [isLoading, setIsLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   useEffect(() => {
     loadSales()
+    setCurrentPage(1)
   }, [context])
 
   const loadSales = async () => {
+    if (isLoading) return
+    
     try {
-      const fetchedSales = await getSales(context)
-      console.log('Vendas carregadas:', fetchedSales)
-      setSales(fetchedSales)
+      setIsLoading(true)
+      // Carregar até 200 vendas (10 páginas)
+      const fetchedSales = await getSales(context, 200)
+      console.log('Vendas carregadas:', fetchedSales.length)
+      setAllSales(fetchedSales)
     } catch (error) {
       console.error('Erro ao carregar vendas:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const filteredSales = useMemo(() => {
-    if (!searchName.trim()) return sales
-    return sales.filter(sale =>
+    if (!searchName.trim()) return allSales
+    return allSales.filter(sale =>
       sale.card?.user_name?.toLowerCase().includes(searchName.toLowerCase())
     )
-  }, [sales, searchName])
+  }, [allSales, searchName])
+
+  // Paginação
+  const totalPages = Math.ceil(filteredSales.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedSales = filteredSales.slice(startIndex, startIndex + itemsPerPage)
+  
+  const isEmpty = useMemo(() => allSales.length === 0, [allSales])
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
 
   const title = context === 'lojinha' ? 'Histórico de Vendas' : 'Histórico de Vendas'
@@ -51,8 +87,6 @@ const SalesHistoryPage: React.FC = () => {
   }
   
   const formatPrice = (price: number) => price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
-  const isEmpty = useMemo(() => sales.length === 0, [sales])
 
   const toggleExpanded = (saleId: string) => {
     setExpandedSales(prev => {
@@ -155,9 +189,17 @@ const SalesHistoryPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Info de Paginação */}
+          <div className="mb-6 text-center">
+            <p className="text-sm text-[#9b6b4f]" style={{ fontFamily: "'Courier New', monospace" }}>
+              Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredSales.length)} de {filteredSales.length} vendas
+              {totalPages > 1 && ` • Página ${currentPage} de ${totalPages}`}
+            </p>
+          </div>
+
           {/* Sales List with Staggered Animation */}
           <div className="space-y-5">
-            {filteredSales.map((sale, index) => {
+            {paginatedSales.map((sale, index) => {
               const isExpanded = expandedSales.has(sale.id)
               const { date, time } = formatDate(sale.createdAt)
               
@@ -166,9 +208,7 @@ const SalesHistoryPage: React.FC = () => {
                   key={sale.id}
                   className="group relative"
                   style={{
-                    animation: 'slideInUp 0.5s ease-out',
-                    animationDelay: `${index * 0.05}s`,
-                    animationFillMode: 'backwards',
+                    animation: `slideInUp 0.5s ease-out ${index * 0.05}s both`,
                   }}
                 >
                   {/* Receipt-style Card */}
@@ -300,9 +340,7 @@ const SalesHistoryPage: React.FC = () => {
                                 key={item.productId}
                                 className="group/item relative"
                                 style={{
-                                  animation: 'slideInRight 0.3s ease-out',
-                                  animationDelay: `${itemIndex * 0.05}s`,
-                                  animationFillMode: 'backwards',
+                                  animation: `slideInRight 0.3s ease-out ${itemIndex * 0.05}s both`,
                                 }}
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-[#faf8f5] to-transparent rounded-lg opacity-0 transition-opacity group-hover/item:opacity-100" />
@@ -348,6 +386,72 @@ const SalesHistoryPage: React.FC = () => {
               )
             })}
           </div>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="mt-10 flex items-center justify-center gap-3">
+              {/* Botão Anterior */}
+              <button
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+                className="px-5 py-2.5 bg-white border-2 border-[#d4704a] rounded-lg
+                          text-[#d4704a] font-semibold text-sm
+                          hover:bg-[#d4704a] hover:text-white
+                          disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#d4704a]
+                          transition-all duration-200"
+                style={{ fontFamily: "'Courier New', monospace" }}
+              >
+                ← Anterior
+              </button>
+
+              {/* Números de Página */}
+              <div className="flex items-center gap-2">
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum: number
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+
+                  const isActive = currentPage === pageNum
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold text-sm transition-all duration-200 ${
+                        isActive
+                          ? 'bg-[#d4704a] text-white border-2 border-[#d4704a] shadow-md'
+                          : 'bg-white text-[#2d2520] border-2 border-gray-300 hover:border-[#d4704a] hover:bg-[#faf8f5]'
+                      }`}
+                      style={{ fontFamily: "'Courier New', monospace" }}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Botão Próxima */}
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className="px-5 py-2.5 bg-white border-2 border-[#d4704a] rounded-lg
+                          text-[#d4704a] font-semibold text-sm
+                          hover:bg-[#d4704a] hover:text-white
+                          disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#d4704a]
+                          transition-all duration-200"
+                style={{ fontFamily: "'Courier New', monospace" }}
+              >
+                Próxima →
+              </button>
+            </div>
+          )}
         </div>
       )}
       </div>
