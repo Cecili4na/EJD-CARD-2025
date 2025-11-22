@@ -3,8 +3,8 @@ import { Button } from '../components/shared'
 import { useAuth } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
 import { useSupabaseData } from '../contexts/SupabaseDataContext'
-import { pixService, PixPayment } from '../services/pixService'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { api } from '../services/api'
 
 interface Card {
   id: string
@@ -44,10 +44,17 @@ const MyCardPage: React.FC = () => {
   const [card, setCard] = useState<Card | null>(null)
   const [purchases, setPurchases] = useState<Purchase[]>([])
   const [amount, setAmount] = useState('')
+  const [cpfCnpj, setCpfCnpj] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showPixInfo, setShowPixInfo] = useState(false)
-  const [pixPayment, setPixPayment] = useState<PixPayment | null>(null)
+  const [pixPayment, setPixPayment] = useState<{
+    paymentId: string
+    pixCode: string
+    qrCodeUrl?: string
+  } | null>(null)
   const [isCheckingPayment, setIsCheckingPayment] = useState(false)
+  const [pixError, setPixError] = useState<string | null>(null)
+  const [showFeeModal, setShowFeeModal] = useState(false)
 
   // Carregar dados do usuário
   useEffect(() => {
@@ -170,38 +177,98 @@ const MyCardPage: React.FC = () => {
     }
   }
 
-  const handlePixPayment = async () => {
-    if (!card || !amount) return
-
+  const processPixPayment = async () => {
     setIsLoading(true)
+    setPixError(null)
     
     try {
-      // Gerar PIX usando o serviço
-      const payment = await pixService.generatePayment(parseFloat(amount), card.id)
-      setPixPayment(payment)
-      setShowPixInfo(true)
-
-      // Salvar pagamento no Supabase (se configurado)
-      if (supabaseData && isSupabaseConfigured()) {
-        await supabase
-          .from('pix_payments')
-          .insert({
-            card_id: card.id,
-            amount: parseFloat(amount),
-            pix_code: payment.pixCode,
-            qr_code_url: payment.qrCodeUrl,
-            status: 'pending',
-            payment_method: 'mock',
-            expires_at: payment.expiresAt.toISOString()
-          })
+      const parsedAmount = parseFloat(amount)
+      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        setPixError('Informe um valor válido para gerar o PIX.')
+        setIsLoading(false)
+        return
       }
 
-    } catch (error) {
+      const customerDocument = (cpfCnpj || '').replace(/\D/g, '')
+      if (!(customerDocument.length === 11 || customerDocument.length === 14)) {
+        setPixError('Informe um CPF ou CNPJ válido (11 ou 14 dígitos).')
+        setIsLoading(false)
+        return
+      }
+
+      const customer = await api.createCustomer({
+        name: card.name || 'Cliente EJD Card',
+        email: user?.email || undefined,
+        cpfCnpj: customerDocument,
+        phone: card.phoneNumber,
+      })
+
+      const payment = await api.createPayment({
+        customerId: customer.id,
+        value: parsedAmount,
+        description: 'Abastecimento via PIX',
+        billingType: 'PIX',
+        idempotencyKey: `pix-topup:${customer.id}:${parsedAmount}`,
+      })
+
+      const pixCode =
+        payment?.charges?.pixCopyPasteKey ||
+        payment?.charges?.payload ||
+        payment?.raw?.pixCopyPasteKey ||
+        payment?.raw?.payload ||
+        ''
+      const qrCodeUrl =
+        payment?.charges?.pixQrCodeImage ||
+        payment?.charges?.encodedImage ||
+        payment?.raw?.pixQrCodeImage ||
+        payment?.raw?.encodedImage ||
+        payment?.raw?.qrCode ||
+        ''
+
+      setPixPayment({
+        paymentId: payment.paymentId,
+        pixCode,
+        qrCodeUrl,
+      })
+      setShowPixInfo(true)
+
+      if (supabaseData && isSupabaseConfigured()) {
+        try {
+          await supabase
+            .from('pix_payments')
+            .insert({
+              card_id: card.id,
+              amount: parsedAmount,
+              pix_code: pixCode,
+              qr_code_url: qrCodeUrl,
+              status: payment.status || 'pending',
+              payment_method: 'asaas',
+              external_id: payment.paymentId,
+              webhook_data: payment.raw || null,
+            })
+        } catch (err) {
+          console.warn('Supabase insert pix_payments falhou (ignorado para UI):', err)
+        }
+      }
+
+    } catch (error: any) {
       console.error('Erro ao gerar PIX:', error)
-      alert('Erro ao gerar PIX. Tente novamente.')
+      setPixError(error?.message || 'Erro ao gerar PIX. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handlePixPayment = async () => {
+    if (!card || !amount) return
+
+    // Mostrar aviso de taxa antes de prosseguir
+    if (!showFeeModal) {
+      setShowFeeModal(true)
+      return
+    }
+
+    await processPixPayment()
   }
 
   const handleConfirmPayment = async () => {
@@ -399,6 +466,20 @@ const MyCardPage: React.FC = () => {
             />
           </div>
 
+          <div>
+            <label htmlFor="cpfCnpj" className="block text-sm font-semibold text-black mb-2">
+              CPF/CNPJ do Pagador
+            </label>
+            <input
+              type="text"
+              id="cpfCnpj"
+              value={cpfCnpj}
+              onChange={(e) => setCpfCnpj(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-emerald-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors duration-200 bg-white/90"
+              placeholder="Somente números"
+            />
+          </div>
+
           <Button
             onClick={handlePixPayment}
             size="lg"
@@ -416,6 +497,12 @@ const MyCardPage: React.FC = () => {
               </>
             )}
           </Button>
+
+          {pixError && (
+            <div className="text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
+              {pixError}
+            </div>
+          )}
         </div>
       </div>
 
@@ -492,26 +579,32 @@ const MyCardPage: React.FC = () => {
                 }}
               >
                 <p className="text-black text-sm font-semibold mb-3">Código PIX</p>
-                <div 
-                  style={{ 
-                    border: '2px solid #34d399',
-                    borderRadius: '0.5rem',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    backgroundColor: '#ffffff'
-                  }}
-                >
-                  <p className="text-base font-mono font-bold text-black break-all leading-relaxed">
-                    {pixPayment?.pixCode}
-                  </p>
-                </div>
-                <Button
-                  onClick={copyPixCode}
-                  size="sm"
-                  className="w-full !bg-emerald-500 hover:!bg-emerald-600 !text-white !shadow-md !font-bold !opacity-100"
-                >
-                  📋 Copiar Código
-                </Button>
+                {pixPayment?.pixCode ? (
+                  <>
+                    <div 
+                      style={{ 
+                        border: '2px solid #34d399',
+                        borderRadius: '0.5rem',
+                        padding: '1rem',
+                        marginBottom: '1rem',
+                        backgroundColor: '#ffffff'
+                      }}
+                    >
+                      <p className="text-base font-mono font-bold text-black break-all leading-relaxed">
+                        {pixPayment?.pixCode}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={copyPixCode}
+                      size="sm"
+                      className="w-full !bg-emerald-500 hover:!bg-emerald-600 !text-white !shadow-md !font-bold !opacity-100"
+                    >
+                      📋 Copiar Código
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-sm text-red-700">Não recebemos o código PIX. Tente novamente.</p>
+                )}
               </div>
 
               {/* Valor */}
@@ -586,7 +679,43 @@ const MyCardPage: React.FC = () => {
                   </span>
                 </p>
               </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de taxa */}
+      {showFeeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl border border-emerald-200 bg-white/90 shadow-2xl p-6">
+            <h4 className="text-lg font-bold text-emerald-700 mb-2 text-center">
+              Taxa fixa de R$ 0,99 por transação
+            </h4>
+            <p className="text-sm text-gray-800 mb-4 text-center leading-relaxed">
+              Usamos a API da Asaas para emitir o pagamento. Para cada PIX, a Asaas cobra R$ 0,99.
+              O valor líquido que entra é <strong>(valor pago - R$ 0,99)</strong>.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setShowFeeModal(false)
+                  void processPixPayment()
+                }}
+                className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                Concordo e continuar
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowFeeModal(false)
+                  setIsLoading(false)
+                }}
+                variant="outline"
+                className="flex-1 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
+              >
+                Cancelar
+              </Button>
             </div>
+          </div>
         </div>
       )}
     </div>

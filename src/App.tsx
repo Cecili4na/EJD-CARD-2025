@@ -9,14 +9,27 @@ import { SupabaseDataProvider } from './contexts/SupabaseDataContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { isSupabaseConfigured } from './lib/supabase'
 import { queryClient } from './lib/query-client'
+import { CheckoutForm } from './components/CheckoutForm'
+
+const DataProviderComponent = isSupabaseConfigured() ? SupabaseDataProvider : DataProvider
+const isCheckoutPath = () => typeof window !== 'undefined' && window.location.pathname.startsWith('/checkout')
 
 function AppContent() {
   const { user, isLoading } = useAuth()
 
+  // Checkout liberado mesmo sem login; serverless assegura segredo.
+  if (isCheckoutPath()) {
+    return (
+      <DataProviderComponent>
+        <ToastProvider>
+          <CheckoutForm />
+        </ToastProvider>
+      </DataProviderComponent>
+    )
+  }
+
   if (isLoading) return <div>Carregando...</div>
   if (!user) return <Login /> 
-
-  const DataProviderComponent = isSupabaseConfigured() ? SupabaseDataProvider : DataProvider
 
   return (
     <DataProviderComponent>
